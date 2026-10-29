@@ -28,6 +28,7 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isLogin = request.nextUrl.pathname.startsWith("/login");
+  if (request.nextUrl.pathname === "/api/metals") return response; // public: market prices only
   if (!user && request.nextUrl.pathname.startsWith("/api/")) {
     return new NextResponse("Войдите в систему.", { status: 401 });
   }

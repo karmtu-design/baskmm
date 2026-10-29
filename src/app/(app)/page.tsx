@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import MetalPrices, { MetalPricesSkeleton } from "@/components/MetalPrices";
 import { Badge, Column, Grid, Heading, Row, Text } from "@once-ui-system/core";
 import { NavigatorButton } from "@/components/SiteNavigator";
 import { ButtonLink, ExpiryText, Panel, StatusBadge } from "@/components/ui";
@@ -52,6 +54,13 @@ export default async function Overview() {
           <NavigatorButton />
           <ButtonLink href="/map">Открыть карту</ButtonLink>
         </Row>
+      </Column>
+
+      <Column gap="12">
+        <Text variant="label-strong-m">Цены на металлы</Text>
+        <Suspense fallback={<MetalPricesSkeleton />}>
+          <MetalPrices />
+        </Suspense>
       </Column>
 
       {licenses.some(isTest) && (

@@ -1,0 +1,77 @@
+import { Column, Row, Text } from "@once-ui-system/core";
+import { getMetalBoard, SOURCE_URL } from "@/lib/metals";
+
+const fmtPrice = (v: number, unit: string) =>
+  v.toLocaleString("ru-RU", { maximumFractionDigits: unit === "$/унц" || v < 100 ? 2 : 0, minimumFractionDigits: 0 });
+const fmtDate = (iso: string) => new Date(iso + "T00:00:00").toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+const daysOld = (iso: string) => Math.floor((Date.now() - new Date(iso + "T00:00:00").getTime()) / 86400000);
+
+/** A row of metal price cards for the home page. Prices change once a day. */
+export default async function MetalPrices() {
+  const board = await getMetalBoard();
+  if (board.quotes.length === 0) {
+    return (
+      <Text variant="body-default-s" onBackground="neutral-weak">
+        Цены на металлы сейчас недоступны{board.error ? `: ${board.error}` : ""}. Попробуйте обновить страницу позже.
+      </Text>
+    );
+  }
+  const latest = board.quotes.map((q) => q.date).sort().at(-1)!;
+  const stale = daysOld(latest) > 4;
+
+  return (
+    <Column gap="8">
+      <div className="metal-row">
+        {board.quotes.map((q) => {
+          const up = q.change != null && q.change > 0.00005;
+          const down = q.change != null && q.change < -0.00005;
+          return (
+            <div key={q.key} className="metal-card" title={`${q.name}: цена на ${fmtDate(q.date)}${q.prevDate ? `, изменение к ${fmtDate(q.prevDate)}` : ""}`}>
+              <div className="metal-head">
+                <span className="metal-sym">{q.symbol}</span>
+                <span className="metal-name">{q.name}</span>
+              </div>
+              <div className="metal-price">
+                {fmtPrice(q.price, q.unit)} <span className="metal-unit">{q.unit}</span>
+              </div>
+              <div className={`metal-change${up ? " is-up" : down ? " is-down" : ""}`}>
+                {q.change == null ? (
+                  <span className="metal-muted">{fmtDate(q.date)}</span>
+                ) : (
+                  <>
+                    {up ? "▲" : down ? "▼" : "•"} {Math.abs(q.change * 100).toLocaleString("ru-RU", { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%
+                    <span className="metal-muted"> · {fmtDate(q.date)}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <Row wrap gap="8">
+        <Text variant="body-default-xs" onBackground="neutral-weak">
+          Официальные цены Лондонской биржи металлов (LME, наличные) и London Fixing по золоту, источник:{" "}
+          <a href={SOURCE_URL} target="_blank" rel="noopener noreferrer">
+            Westmetall
+          </a>
+          . Обновляются раз в рабочий день; изменение указано к предыдущей записанной дате.
+        </Text>
+        {stale && (
+          <Text variant="body-default-xs" onBackground="warning-strong">
+            Внимание: последние цены от {fmtDate(latest)}, источник давно не обновлялся.
+          </Text>
+        )}
+      </Row>
+    </Column>
+  );
+}
+
+export function MetalPricesSkeleton() {
+  return (
+    <div className="metal-row" aria-hidden>
+      {Array.from({ length: 7 }).map((_, i) => (
+        <div key={i} className="metal-card is-loading" />
+      ))}
+    </div>
+  );
+}
