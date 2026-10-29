@@ -1,0 +1,81 @@
+export type Polygon = { type: "Polygon"; coordinates: number[][][] };
+export type MultiPolygon = { type: "MultiPolygon"; coordinates: number[][][][] };
+export type Contour = Polygon | MultiPolygon;
+
+export type Company = {
+  id: number;
+  name: string;
+  bin: string | null;
+  director: string | null;
+  legal_address: string | null;
+  contacts: string | null;
+  founders_share: string | null;
+  notes: string | null;
+};
+
+export type License = {
+  id: number;
+  company_id: number | null;
+  company_name: string;
+  license_number: string;
+  issue_date: string | null;
+  expiry_date: string | null;
+  license_type: string | null;
+  category: string | null;
+  mineral: string | null;
+  deposit_name: string | null;
+  region: string | null;
+  district: string | null;
+  area_sq_km: number | null;
+  status: string | null;
+  responsible: string | null;
+  contour: Contour | null;
+  contour_source: string | null;
+  notes: string | null;
+};
+
+export const LICENSE_TYPES = ["Разведка", "Добыча"];
+export const CATEGORIES = ["ТПИ", "ОПИ"];
+export const STATUSES = ["действует", "на продлении", "в оформлении", "приостановлена", "истекла"];
+
+/** Colour of a licence on the map, by its main commodity — a geological-legend palette. */
+export function mineralColor(mineral: string | null): string {
+  const m = (mineral || "").toLowerCase();
+  if (m.startsWith("au") || m.includes("золот")) return "#C08A1E";
+  if (m.startsWith("li") || m.includes("лит")) return "#7B5EA7";
+  if (m.startsWith("cu") || m.includes("мед")) return "#2E7D73";
+  if (m.startsWith("w") || m.includes("вольфр") || m.startsWith("mo") || m.startsWith("sn")) return "#4A6A8C";
+  if (m.includes("жаде") || m.includes("нефр")) return "#5E8C3A";
+  return "#8A5A44";
+}
+
+export function mineralGroup(mineral: string | null): string {
+  const c = mineralColor(mineral);
+  return (
+    {
+      "#C08A1E": "Золото",
+      "#7B5EA7": "Литий",
+      "#2E7D73": "Медь",
+      "#4A6A8C": "W, Mo, Sn",
+      "#5E8C3A": "Поделочные камни",
+    } as Record<string, string>
+  )[c] ?? "Прочее";
+}
+
+export function daysUntil(date: string | null): number | null {
+  if (!date) return null;
+  const d = new Date(date + "T00:00:00");
+  if (isNaN(d.getTime())) return null;
+  return Math.round((d.getTime() - Date.now()) / 86400000);
+}
+
+export function formatDate(date: string | null): string {
+  if (!date) return "—";
+  const d = new Date(date + "T00:00:00");
+  if (isNaN(d.getTime())) return date;
+  return d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+export function isTest(l: Pick<License, "license_number" | "contour_source">) {
+  return /тест/i.test(l.license_number) || /тест/i.test(l.contour_source || "");
+}

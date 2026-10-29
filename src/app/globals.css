@@ -1,0 +1,53 @@
+@import "tailwindcss";
+@import "@fontsource-variable/golos-text";
+@import "leaflet/dist/leaflet.css";
+
+@theme {
+  --font-sans: "Golos Text Variable", system-ui, sans-serif;
+  --color-paper: #edefea;
+  --color-surface: #f8f9f6;
+  --color-ink: #1e2a2c;
+  --color-muted: #5c6b6a;
+  --color-line: #cbd2cb;
+  --color-patina: #2f5d62;
+  --color-patina-deep: #1f3437;
+  --color-ochre: #b8742a;
+  --color-danger: #a23b2a;
+}
+
+html,
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+body {
+  font-feature-settings: "tnum" 1;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ochre);
+  outline-offset: 2px;
+}
+
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: #dfe3dc;
+}
+
+.leaflet-tooltip.license-label {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  box-shadow: none;
+  color: var(--color-ink);
+  font-size: 12px;
+  padding: 2px 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
