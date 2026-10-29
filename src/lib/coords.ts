@@ -80,6 +80,21 @@ export function parsePointsText(
 
 const round = (n: number) => Math.round(n * 1e7) / 1e7;
 
+/** One corner point written as latitude and longitude (any supported notation) → [lon, lat] in WGS-84. */
+export function convertPoint(lat: string, lon: string, system: CoordSystem): [number, number] | null {
+  const a = parseAngle(lat);
+  const b = parseAngle(lon);
+  if (a == null || b == null || a < -90 || a > 90 || b < -180 || b > 180) return null;
+  let p: [number, number] = [b, a];
+  if (system === "sk42") p = proj4(SK42, WGS84, p) as [number, number];
+  return [round(p[0]), round(p[1])];
+}
+
+/** Reads "СК-42", "Пулково", "SK-42" as the old system; anything else as WGS-84. */
+export function systemFromText(v: string | null | undefined): CoordSystem {
+  return /ск|sk|пулков|pulkovo|1942/i.test(v ?? "") ? "sk42" : "wgs84";
+}
+
 export function pointsToPolygon(points: [number, number][]): Polygon | null {
   if (points.length < 3) return null;
   const ring = [...points];
@@ -106,12 +121,12 @@ export function contourCorners(c: Contour): [number, number][] {
 
 export function toDMS(v: number, pos: string, neg: string): string {
   const sign = v < 0 ? neg : pos;
-  const a = Math.abs(v);
-  const d = Math.floor(a);
-  const mFloat = (a - d) * 60;
-  const m = Math.floor(mFloat);
-  const s = (mFloat - m) * 60;
-  return `${d}°${String(m).padStart(2, "0")}′${s.toFixed(2).padStart(5, "0")}″ ${sign}`;
+  // round once on whole hundredths of a second, so 59.996″ becomes the next minute, never 60.00″
+  const total = Math.round(Math.abs(v) * 360000);
+  const d = Math.floor(total / 360000);
+  const m = Math.floor((total % 360000) / 6000);
+  const s = (total % 6000) / 100;
+  return `${d}°${String(m).padStart(2, "0")}′${s.toFixed(2).padStart(5, "0")}″ ${sign}`.trim();
 }
 
 /** Collects polygons from any GeoJSON (FeatureCollection, Feature or geometry). */

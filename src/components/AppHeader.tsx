@@ -8,6 +8,7 @@ import { signOut } from "@/app/login/actions";
 
 const NAV: { href: string; label: string; icon: IconName }[] = [
   { href: "/map", label: "Карта", icon: "globe" },
+  { href: "/licenses", label: "Лицензии", icon: "document" },
   { href: "/companies", label: "Компании", icon: "organization" },
   { href: "/tasks", label: "Задачи", icon: "checkbox" },
 ];
