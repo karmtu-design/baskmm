@@ -1,22 +1,41 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function BaskMMHome() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  // Список участков и лицензий из вашей базы данных
-  const items = [
-    { id: 1, object: 'Ахметкино', mineral: 'Медь, Литий', company: 'ТОО "Бридж"', status: 'действует', region: 'Карагандинская обл.' },
-    { id: 2, object: 'Байское', mineral: 'ТПИ', company: 'ТОО "КазНедра"', status: 'действует', region: 'Абайская область' },
-    { id: 3, object: 'Юкон', mineral: 'Золото', company: 'ТОО "АлтынКен"', status: 'разведка', region: 'Восточно-Казахстанская обл.' },
-    { id: 4, object: 'Архарсу', mineral: 'Жадеит', company: 'Эдванс Майнинг Технолоджи', status: 'действует', region: 'Жетысуская область' },
-  ];
+  // Загружаем данные из вашего Supabase
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Используем ваш публичный эндпоинт Supabase
+        const response = await fetch('https://efdbhyndoskczcdikhzo.supabase.co/rest/v1/licenses?select=*', {
+          headers: {
+            // Публичный ключ доступа (anon key) можно подставить сюда или в переменные Vercel
+            'apikey': 'YOUR_SUPABASE_ANON_KEY',
+            'Authorization': 'Bearer YOUR_SUPABASE_ANON_KEY'
+          }
+        });
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setItems(data);
+        }
+      } catch (err) {
+        console.error('Ошибка загрузки:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
-  const filteredItems = items.filter(item => 
-    item.object.toLowerCase().includes(search.toLowerCase()) ||
-    item.mineral.toLowerCase().includes(search.toLowerCase()) ||
-    item.company.toLowerCase().includes(search.toLowerCase())
+  const filteredItems = items.filter((item: any) => 
+    Object.values(item).some(val => 
+      String(val).toLowerCase().includes(search.toLowerCase())
+    )
   );
 
   return (
@@ -58,19 +77,29 @@ export default function BaskMMHome() {
               </tr>
             </thead>
             <tbody>
-              {filteredItems.map((item) => (
-                <tr key={item.id} style={{ borderBottom: '1px solid #334155' }}>
-                  <td style={{ padding: '14px 16px', fontWeight: '600', color: '#f8fafc' }}>{item.object}</td>
-                  <td style={{ padding: '14px 16px', color: '#38bdf8' }}>{item.mineral}</td>
-                  <td style={{ padding: '14px 16px', color: '#cbd5e1' }}>{item.company}</td>
-                  <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{item.region}</td>
-                  <td style={{ padding: '14px 16px' }}>
-                    <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '12px', backgroundColor: '#064e3b', color: '#34d399' }}>
-                      {item.status}
-                    </span>
-                  </td>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} style={{ padding: '30px', textAlign: 'center', color: '#94a3b8' }}>Загрузка данных из Supabase...</td>
                 </tr>
-              ))}
+              ) : filteredItems.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ padding: '30px', textAlign: 'center', color: '#94a3b8' }}>Данные не найдены</td>
+                </tr>
+              ) : (
+                filteredItems.map((item: any, index) => (
+                  <tr key={index} style={{ borderBottom: '1px solid #334155' }}>
+                    <td style={{ padding: '14px 16px', fontWeight: '600', color: '#f8fafc' }}>{item.object || item.name || '—'}</td>
+                    <td style={{ padding: '14px 16px', color: '#38bdf8' }}>{item.mineral || '—'}</td>
+                    <td style={{ padding: '14px 16px', color: '#cbd5e1' }}>{item.company || '—'}</td>
+                    <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{item.region || '—'}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '12px', backgroundColor: '#064e3b', color: '#34d399' }}>
+                        {item.status || 'активно'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
