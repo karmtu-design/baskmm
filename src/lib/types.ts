@@ -79,3 +79,29 @@ export function formatDate(date: string | null): string {
 export function isTest(l: Pick<License, "license_number" | "contour_source">) {
   return /тест/i.test(l.license_number) || /тест/i.test(l.contour_source || "");
 }
+
+export type DrillInterval = {
+  id: number;
+  from_m: number;
+  to_m: number;
+  element: string | null;
+  grade: number | null;
+  unit: string | null;
+  lithology: string | null;
+};
+
+export type Drillhole = {
+  id: number;
+  license_id: number;
+  hole_id: string;
+  lon: number;
+  lat: number;
+  elevation_m: number | null;
+  azimuth_deg: number | null;
+  dip_deg: number | null;
+  depth_m: number;
+  year: number | null;
+  notes: string | null;
+  is_test: boolean;
+  drill_intervals: DrillInterval[];
+};

@@ -58,7 +58,7 @@ export default function MapExplorer({ licenses, companies }: { licenses: License
         </Row>
       </Row>
 
-      <LicensesMap key={`${company}|${type}|${group}|${labels}`} licenses={shown} height={680} showLabels={labels} />
+      <LicensesMap licenses={shown} height={680} showLabels={labels} />
       <Legend licenses={licenses} />
 
       {missing.length > 0 && (

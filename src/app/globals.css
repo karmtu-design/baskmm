@@ -1,6 +1,5 @@
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/jost";
-@import "leaflet/dist/leaflet.css";
 
 /* Once UI reads these four font variables; Geist has Cyrillic */
 :root {
@@ -127,26 +126,94 @@ textarea.field {
 }
 
 /* ---------- Map ---------- */
-.leaflet-container {
-  font-family: var(--font-body);
+.map-shell {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-l);
+  border: 1px solid var(--neutral-alpha-medium);
   background: var(--neutral-background-medium);
 }
-.leaflet-tooltip.license-label {
+.map-switch {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 10px;
   background: var(--page-background);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+.map-switch-btn {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--neutral-on-background-medium);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.map-switch-btn:hover {
+  color: var(--neutral-on-background-strong);
+}
+.map-switch-btn.is-active {
+  background: var(--neutral-alpha-medium);
+  color: var(--neutral-on-background-strong);
+  font-weight: 500;
+}
+.map-switch-sep {
+  width: 1px;
+  margin: 4px 2px;
+  background: var(--neutral-alpha-medium);
+}
+.map-label {
+  padding: 2px 6px;
   border: 1px solid var(--neutral-alpha-medium);
   border-radius: 6px;
-  box-shadow: none;
-  color: var(--neutral-on-background-strong);
-  font-size: 12px;
-  padding: 2px 6px;
-}
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
   background: var(--page-background);
   color: var(--neutral-on-background-strong);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
 }
-.leaflet-popup-content a {
-  color: var(--brand-on-background-strong);
+.map-place {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #e06c4c;
+  color: #fff;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.maplibregl-popup-content {
+  background: var(--page-background) !important;
+  color: var(--neutral-on-background-strong);
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 10px !important;
+  font-family: var(--font-body);
+}
+.maplibregl-popup-tip {
+  border-top-color: var(--page-background) !important;
+  border-bottom-color: var(--page-background) !important;
+}
+.maplibregl-popup-close-button {
+  color: var(--neutral-on-background-weak);
+}
+.map-popup {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.map-popup .muted {
+  color: var(--neutral-on-background-weak);
+}
+.map-popup a {
+  margin-top: 6px;
+  color: var(--brand-on-background-strong) !important;
+  font-weight: 500;
 }
 
 /* ---------- Licence tabs ---------- */
@@ -500,4 +567,238 @@ th[aria-sort] .sort-mark {
     bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     height: calc(100dvh - 90px);
   }
+}
+
+/* ---------- 3D drill holes ---------- */
+.drill-shell {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: var(--radius-l);
+  background: radial-gradient(ellipse at 50% 30%, #1b2733 0%, #0d141b 70%);
+  color: var(--neutral-on-background-weak);
+}
+.drill-reset {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 8px;
+  background: rgba(16, 24, 32, 0.8);
+  color: #d9dee3;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.drill-hint {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  font-size: 12px;
+  color: rgba(217, 222, 227, 0.6);
+  pointer-events: none;
+}
+
+/* ---------- Page transitions (View Transitions API) ---------- */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(app-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(app-header) {
+  display: none;
+}
+::view-transition-new(app-header) {
+  animation: none;
+}
+/* the page leaves quickly and sinks back a little… */
+::view-transition-old(.page-out) {
+  animation: 170ms cubic-bezier(0.4, 0, 1, 1) both page-leave;
+}
+/* …and the new page rises into place out of a soft blur */
+::view-transition-new(.page-in) {
+  animation: 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 110ms both page-arrive;
+}
+@keyframes page-leave {
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+    filter: blur(4px);
+  }
+}
+@keyframes page-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(1.01);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+/* a licence name glides from the register row into the page heading */
+::view-transition-group(.morph) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: morph-blur;
+}
+@keyframes morph-blur {
+  40% {
+    filter: blur(2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* ---------- Section navigator ---------- */
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: start center;
+  padding: 10vh 16px 16px;
+  background: rgba(8, 12, 16, 0.55);
+  backdrop-filter: blur(6px);
+  animation: nav-fade 180ms ease-out both;
+}
+.nav-dialog {
+  width: min(760px, 100%);
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 18px;
+  background: var(--page-background);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  animation: nav-pop 260ms cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+}
+@keyframes nav-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes nav-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+}
+.nav-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--neutral-alpha-weak);
+}
+.nav-search input {
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--neutral-on-background-strong);
+  font: inherit;
+  font-size: 16px;
+}
+.nav-body {
+  overflow-y: auto;
+  padding: 8px 10px 12px;
+}
+.nav-group {
+  margin: 12px 8px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--neutral-on-background-weak);
+}
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.nav-list {
+  display: grid;
+  gap: 2px;
+}
+@media (max-width: 600px) {
+  .nav-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--neutral-on-background-strong);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.nav-item.is-active {
+  background: var(--neutral-alpha-weak);
+  border-color: var(--brand-alpha-medium);
+}
+.nav-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 9px;
+  background: var(--brand-alpha-weak);
+  color: var(--bask-gold);
+}
+.nav-text {
+  display: grid;
+  min-width: 0;
+}
+.nav-title {
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nav-hint {
+  font-size: 12px;
+  color: var(--neutral-on-background-weak);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nav-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  border-top: 1px solid var(--neutral-alpha-weak);
+  font-size: 12px;
+  color: var(--neutral-on-background-weak);
+}
+.nav-dialog kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 5px;
+  font: inherit;
+  font-size: 11px;
 }

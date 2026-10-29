@@ -108,12 +108,6 @@ export function contourAreaKm2(c: Contour | null): number | null {
   return area({ type: "Feature", properties: {}, geometry: c } as never) / 1e6;
 }
 
-/** Outer ring(s) as [lat, lon] lists, the order Leaflet expects. */
-export function toLatLngs(c: Contour): [number, number][][] {
-  const polys = c.type === "Polygon" ? [c.coordinates] : c.coordinates;
-  return polys.map((p) => p[0].map(([x, y]) => [y, x] as [number, number]));
-}
-
 export function contourCorners(c: Contour): [number, number][] {
   const ring = (c.type === "Polygon" ? c.coordinates : c.coordinates[0])[0];
   return ring.slice(0, ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1] ? -1 : undefined) as [number, number][];
