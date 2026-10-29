@@ -49,3 +49,25 @@ export async function getDrillholes(licenseId: number): Promise<import("./types"
       .sort((a: any, b: any) => a.from_m - b.from_m),
   }));
 }
+
+export async function getPresentations(): Promise<import("./types").Presentation[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("presentations").select("*").order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((p: any) => ({ ...p, size_bytes: p.size_bytes == null ? null : Number(p.size_bytes) }));
+}
+
+const projectNumbers = (p: any) => ({ ...p, lat: p.lat == null ? null : Number(p.lat), lon: p.lon == null ? null : Number(p.lon) });
+
+export async function getProjects(): Promise<import("./types").PotentialProject[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("potential_projects").select("*").order("updated_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(projectNumbers);
+}
+
+export async function getProject(id: number): Promise<import("./types").PotentialProject | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("potential_projects").select("*").eq("id", id).maybeSingle();
+  return data ? projectNumbers(data) : null;
+}
