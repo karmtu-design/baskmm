@@ -12,10 +12,10 @@ export default function BaskMMHome() {
     async function fetchData() {
       try {
         // Используем ваш публичный эндпоинт Supabase
-        const response = await fetch('https://efdbhyndoskczcdikhzo.supabase.co/rest/v1/licenses?select=*', {
+        const response = await fetch('https://efdbhyndoskczcdikhzo.supabase.co/rest/v1/licenses?select=*', ..., {
           headers: {
             // Публичный ключ доступа (anon key) можно подставить сюда или в переменные Vercel
-            'apikey': 'YOUR_SUPABASE_ANON_KEY',
+            'apikey': 'https://efdbhyndoskczcdikhzo.supabase.co/rest/v1/',
             'Authorization': 'Bearer YOUR_SUPABASE_ANON_KEY'
           }
         });
