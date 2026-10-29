@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@fontsource-variable/golos-text";
+@import "@fontsource-variable/jost";
 @import "leaflet/dist/leaflet.css";
 
 @theme {
@@ -43,6 +44,123 @@ body {
   color: var(--color-ink);
   font-size: 12px;
   padding: 2px 6px;
+}
+
+/* ---------- Intro splash ---------- */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at 50% 42%, #18232e 0%, #101820 62%);
+  color: #d9dee3;
+  /* failsafe: if the animation script never runs, the splash still gets out of the way */
+  animation: intro-failsafe 0.6s ease 9s forwards;
+}
+html[data-intro="seen"] .intro {
+  display: none;
+}
+@keyframes intro-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+.intro .veins {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.intro .vein {
+  fill: none;
+  stroke: #c9a45c;
+  stroke-width: 1.1;
+  stroke-opacity: 0.75;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+}
+.intro-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(640px, 84vw);
+}
+.intro-logo {
+  width: 100%;
+}
+.intro .peaks {
+  position: relative;
+  aspect-ratio: 1456 / 345;
+}
+.intro .peaks svg,
+.intro .peaks img,
+.intro .shine {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.intro .peak-line {
+  fill: none;
+  stroke: #c9a45c;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.intro .peaks-img,
+.intro .wordmark,
+.intro .tagline,
+.intro .slogan {
+  opacity: 0;
+}
+.intro .shine {
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 242, 214, 0.9) 50%, transparent 58%) no-repeat;
+  background-size: 250% 100%;
+  background-position: 160% 0;
+  -webkit-mask: url("/brand/peaks-gold-mask.webp") center / 100% 100% no-repeat;
+  mask: url("/brand/peaks-gold-mask.webp") center / 100% 100% no-repeat;
+  mix-blend-mode: screen;
+}
+.intro .wordmark,
+.intro .tagline {
+  display: block;
+  width: 100%;
+}
+.intro .wordmark {
+  margin-top: 1.05%;
+}
+.intro .tagline {
+  margin-top: 2.2%;
+}
+.intro .slogan {
+  margin-top: clamp(20px, 4vw, 40px);
+  font-family: "Jost Variable", var(--font-sans);
+  font-weight: 300;
+  font-size: clamp(15px, 2.2vw, 22px);
+  letter-spacing: 0.06em;
+  color: #c9ced4;
+  text-align: center;
+}
+.intro-skip {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  padding: 8px 14px;
+  border: 1px solid rgba(201, 164, 92, 0.45);
+  border-radius: 999px;
+  color: #d9dee3;
+  font-size: 13px;
+  background: rgba(16, 24, 32, 0.6);
+}
+.intro-skip:hover {
+  border-color: #c9a45c;
 }
 
 @media (prefers-reduced-motion: reduce) {
