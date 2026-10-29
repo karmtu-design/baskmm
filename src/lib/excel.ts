@@ -34,7 +34,7 @@ export type ImportRow = {
 
 // ---------- reading cells ----------
 
-function cellText(v: unknown): string {
+export function cellText(v: unknown): string {
   if (v == null) return "";
   if (v instanceof Date) return v.toISOString();
   if (typeof v === "object") {
@@ -72,7 +72,7 @@ export function toIsoDate(v: unknown): string | null | undefined {
 
 const norm = (s: string) => s.toLowerCase().replace(/ё/g, "е").replace(/[\s,.()/]+/g, " ").trim();
 
-function findColumns(headerRow: unknown[], wanted: string[]): number[] {
+export function findColumns(headerRow: unknown[], wanted: string[]): number[] {
   const heads = headerRow.map((h) => norm(cellText(h)));
   return wanted.map((w) => {
     const n = norm(w);
@@ -287,7 +287,7 @@ export async function downloadLicenseWorkbook(licenses: License[] | null, fileNa
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-function styleHeader(row: { font?: unknown; fill?: unknown; eachCell: (fn: (c: any) => void) => void; height?: number }) {
+export function styleHeader(row: { font?: unknown; fill?: unknown; eachCell: (fn: (c: any) => void) => void; height?: number }) {
   row.eachCell((c: any) => {
     c.font = { bold: true, color: { argb: "FFFFFFFF" } };
     c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF101820" } };

@@ -105,3 +105,47 @@ export type Drillhole = {
   is_test: boolean;
   drill_intervals: DrillInterval[];
 };
+
+export type Presentation = {
+  id: number;
+  title: string;
+  project: string | null;
+  language: string | null;
+  description: string | null;
+  file_path: string;
+  file_name: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  uploaded_by: string | null;
+  created_at: string;
+};
+
+export const PRESENTATION_LANGUAGES = ["Русский", "English", "中文", "Қазақша"];
+
+export type PotentialProject = {
+  id: number;
+  name: string;
+  commodity: string | null;
+  region: string | null;
+  district: string | null;
+  stage: string | null;
+  deal_type: string | null;
+  holder: string | null;
+  source: string | null;
+  contact: string | null;
+  resources: string | null;
+  terms: string | null;
+  responsible: string | null;
+  next_step: string | null;
+  next_date: string | null;
+  lat: number | null;
+  lon: number | null;
+  link: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+/** Stages a potential project moves through, in order. */
+export const PROJECT_STAGES = ["Новый", "Изучаем", "Переговоры", "Due diligence", "Сделка", "Отложен", "Отклонён"];
+export const DEAL_TYPES = ["Покупка доли", "Покупка 100%", "Совместное предприятие", "Новая лицензия", "Партнёрство"];

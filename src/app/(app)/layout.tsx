@@ -2,7 +2,6 @@ import { Column } from "@once-ui-system/core";
 import AppHeader from "@/components/AppHeader";
 import AssistantPanel from "@/components/AssistantPanel";
 import SiteNavigator from "@/components/SiteNavigator";
-import { getCompanies, getLicenses } from "@/lib/data";
 import PageBackground from "@/components/PageBackground";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,7 +10,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const [licenses, companies] = user ? await Promise.all([getLicenses(), getCompanies()]) : [[], []];
 
   return (
     <Column fillWidth minHeight="100vh" horizontal="center" background="page">
@@ -30,10 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {children}
       </Column>
       <AssistantPanel />
-      <SiteNavigator
-        licenses={licenses.map((l) => ({ id: l.id, title: l.deposit_name || l.license_number, number: l.license_number, company: l.company_name }))}
-        companies={companies.map((c) => ({ id: c.id, name: c.name }))}
-      />
+      <SiteNavigator />
     </Column>
   );
 }
