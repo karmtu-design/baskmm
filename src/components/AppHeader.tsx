@@ -11,6 +11,8 @@ const NAV: { href: string; label: string; icon: IconName }[] = [
   { href: "/map", label: "Карта", icon: "globe" },
   { href: "/licenses", label: "Лицензии", icon: "document" },
   { href: "/companies", label: "Компании", icon: "organization" },
+  { href: "/projects", label: "Проекты", icon: "trendUp" },
+  { href: "/presentations", label: "Презентации", icon: "screen" },
   { href: "/tasks", label: "Задачи", icon: "checkbox" },
 ];
 
@@ -52,11 +54,11 @@ export default function AppHeader({ email }: { email?: string | null }) {
       <Line background="neutral-alpha-medium" vert maxHeight="24" />
       {NAV.map((item) => (
         <Row key={item.href}>
-          <Row s={{ hide: true }}>
+          <Row m={{ hide: true }}>
             <ToggleButton prefixIcon={item.icon} href={item.href} label={item.label} selected={path.startsWith(item.href)} />
           </Row>
-          <Row hide s={{ hide: false }}>
-            <ToggleButton prefixIcon={item.icon} href={item.href} aria-label={item.label} selected={path.startsWith(item.href)} />
+          <Row hide m={{ hide: false }}>
+            <ToggleButton prefixIcon={item.icon} href={item.href} aria-label={item.label} title={item.label} selected={path.startsWith(item.href)} />
           </Row>
         </Row>
       ))}
@@ -91,7 +93,7 @@ export default function AppHeader({ email }: { email?: string | null }) {
         <Row fillWidth horizontal="center" className="app-header-pill">
           {pill}
         </Row>
-        <Row fillWidth horizontal="end" paddingRight="12" s={{ hide: true }}>
+        <Row fillWidth horizontal="end" paddingRight="12" m={{ hide: true }}>
           <Text variant="body-default-s" onBackground="neutral-weak" truncate>
             {email}
           </Text>
