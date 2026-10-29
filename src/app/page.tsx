@@ -7,18 +7,19 @@ export default function BaskMMHome() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  // Загружаем данные из вашего Supabase
   useEffect(() => {
     async function fetchData() {
       try {
-        // Используем ваш публичный эндпоинт Supabase
-        const response = await fetch('https://efdbhyndoskczcdikhzo.supabase.co/rest/v1/licenses?select=*', ..., {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://efdbhyndoskczcdikhzo.supabase.co';
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+        const response = await fetch(`${supabaseUrl}/rest/v1/licenses?select=*`, {
           headers: {
-            // Публичный ключ доступа (anon key) можно подставить сюда или в переменные Vercel
-            'apikey': 'https://efdbhyndoskczcdikhzo.supabase.co/rest/v1/',
-            'Authorization': 'Bearer YOUR_SUPABASE_ANON_KEY'
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`
           }
         });
+        
         const data = await response.json();
         if (Array.isArray(data)) {
           setItems(data);
@@ -83,7 +84,7 @@ export default function BaskMMHome() {
                 </tr>
               ) : filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: '30px', textAlign: 'center', color: '#94a3b8' }}>Данные не найдены</td>
+                  <td colSpan={5} style={{ padding: '30px', textAlign: 'center', color: '#94a3b8' }}>Данные не найдены (проверьте имя таблицы в Supabase)</td>
                 </tr>
               ) : (
                 filteredItems.map((item: any, index) => (
