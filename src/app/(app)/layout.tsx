@@ -1,5 +1,6 @@
 import { Column } from "@once-ui-system/core";
 import AppHeader from "@/components/AppHeader";
+import AssistantPanel from "@/components/AssistantPanel";
 import PageBackground from "@/components/PageBackground";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,6 +26,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       >
         {children}
       </Column>
+      <AssistantPanel />
     </Column>
   );
 }
