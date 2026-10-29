@@ -99,7 +99,7 @@ export default async function LicensePage({
         }
       />
 
-      <Row as="nav" gap="4" marginBottom="24" borderBottom overflowX="auto" aria-label="Разделы лицензии">
+      <Row as="nav" gap="4" marginBottom="24" borderBottom overflowX="auto" aria-label="Разделы лицензии" className="tab-row">
         {TABS.map((t) => (
           <Link
             key={t.id}

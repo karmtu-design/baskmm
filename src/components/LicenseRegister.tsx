@@ -137,7 +137,7 @@ export default function LicenseRegister({ licenses, companies }: { licenses: Lic
             aria-label="Поиск по лицензиям"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ width: 300, minHeight: 40 }}
+            style={{ width: 260, minHeight: 40 }}
           />
           <select aria-label="Компания" className="field" style={sel} value={company} onChange={(e) => setCompany(e.target.value)}>
             <option value="">Все компании</option>

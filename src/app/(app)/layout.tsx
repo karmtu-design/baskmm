@@ -14,9 +14,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <Column fillWidth minHeight="100vh" horizontal="center" background="page">
       <PageBackground />
+      <a href="#main" className="skip-link">
+        Перейти к содержимому
+      </a>
       <AppHeader email={user?.email} />
       <Column
         as="main"
+        id="main"
         fillWidth
         maxWidth="xl"
         zIndex={1}

@@ -201,7 +201,7 @@ export default function ContourEditor({
 
       <Column gap="24">
       <Column background="surface" border radius="l" padding="24" gap="16" fitHeight>
-        <Heading as="h3" variant="heading-strong-m">
+        <Heading as="h2" variant="heading-strong-m">
           {current ? "Заменить контур" : "Добавить контур участка"}
         </Heading>
         <SegmentedControl

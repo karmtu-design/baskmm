@@ -448,7 +448,7 @@ function ShareDialog({ p, onClose }: { p: Presentation; onClose: () => void }) {
             </Row>
             <div className="share-apps">
               <a className={`share-app wa${disabled ? " is-off" : ""}`} href={disabled ? undefined : `https://wa.me/?text=${enc(message)}`} target="_blank" rel="noopener noreferrer">
-                <span className="share-dot">W</span>WhatsApp
+                <span className="share-dot" aria-hidden>W</span>WhatsApp
               </a>
               <a
                 className={`share-app tg${disabled ? " is-off" : ""}`}
@@ -456,16 +456,16 @@ function ShareDialog({ p, onClose }: { p: Presentation; onClose: () => void }) {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <span className="share-dot">T</span>Telegram
+                <span className="share-dot" aria-hidden>T</span>Telegram
               </a>
               <a className={`share-app mail${disabled ? " is-off" : ""}`} href={disabled ? undefined : `mailto:?subject=${enc(p.title)}&body=${enc(message)}`}>
-                <span className="share-dot">
+                <span className="share-dot" aria-hidden>
                   <Icon name="mail" size="xs" />
                 </span>
                 Почта
               </a>
               <button type="button" className="share-app copy" onClick={copy} disabled={disabled}>
-                <span className="share-dot">
+                <span className="share-dot" aria-hidden>
                   <Icon name={copied ? "check" : "copy"} size="xs" />
                 </span>
                 {copied ? "Скопировано" : "Копировать ссылку"}
