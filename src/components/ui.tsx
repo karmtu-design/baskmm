@@ -1,33 +1,21 @@
 import Link from "next/link";
+import { Button, Column, Heading, Row, SmartLink, Tag, Text } from "@once-ui-system/core";
 import { daysUntil, formatDate, mineralColor, mineralGroup, type License } from "@/lib/types";
 
 export function StatusBadge({ status }: { status: string | null }) {
   const s = status || "—";
-  const tone =
-    s === "действует"
-      ? "bg-patina/10 text-patina"
-      : s === "истекла" || s === "приостановлена"
-        ? "bg-danger/10 text-danger"
-        : "bg-ochre/12 text-ochre";
-  return <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${tone}`}>{s}</span>;
+  const scheme = s === "действует" ? "success" : s === "истекла" || s === "приостановлена" ? "danger" : "warning";
+  return <Tag as="span" size="s" scheme={scheme} label={s} />;
 }
 
 export function TestMark() {
-  return (
-    <span className="ml-2 inline-block rounded border border-dashed border-ochre px-1.5 text-[11px] font-medium text-ochre">
-      тестовые данные
-    </span>
-  );
+  return <Tag as="span" size="s" scheme="warning" label="тестовые данные" />;
 }
 
 export function MineralSwatch({ mineral }: { mineral: string | null }) {
   return (
-    <span className="inline-flex items-center gap-2">
-      <span
-        aria-hidden
-        className="inline-block h-3 w-3 rounded-sm"
-        style={{ background: mineralColor(mineral) }}
-      />
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      <span aria-hidden style={{ width: 12, height: 12, borderRadius: 3, background: mineralColor(mineral) }} />
       {mineral || "—"}
     </span>
   );
@@ -37,26 +25,26 @@ export function Legend({ licenses }: { licenses: Pick<License, "mineral">[] }) {
   const groups = Array.from(new Set(licenses.map((l) => mineralGroup(l.mineral))));
   const colorOf = (g: string) => mineralColor(licenses.find((l) => mineralGroup(l.mineral) === g)!.mineral);
   return (
-    <ul className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted">
+    <Row as="ul" wrap gap="20" textVariant="body-default-s" onBackground="neutral-weak" style={{ listStyle: "none", margin: 0, padding: 0 }}>
       {groups.map((g) => (
-        <li key={g} className="inline-flex items-center gap-2">
-          <span aria-hidden className="inline-block h-3 w-5 rounded-sm" style={{ background: colorOf(g) }} />
+        <li key={g} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <span aria-hidden style={{ width: 20, height: 12, borderRadius: 3, background: colorOf(g) }} />
           {g}
         </li>
       ))}
-    </ul>
+    </Row>
   );
 }
 
 export function ExpiryText({ date }: { date: string | null }) {
   const d = daysUntil(date);
   if (d == null) return <span>—</span>;
-  const tone = d < 0 ? "text-danger" : d <= 180 ? "text-ochre" : "";
+  const color = d < 0 ? "var(--danger-on-background-strong)" : d <= 180 ? "var(--warning-on-background-strong)" : undefined;
   const hint = d < 0 ? `истекла ${-d} дн. назад` : d <= 365 ? `через ${d} дн.` : null;
   return (
-    <span className={tone}>
+    <span style={{ color }}>
       {formatDate(date)}
-      {hint && <span className="block text-xs">{hint}</span>}
+      {hint && <span style={{ display: "block", fontSize: 12 }}>{hint}</span>}
     </span>
   );
 }
@@ -73,73 +61,92 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <header className="mb-6">
+    <Column as="header" gap="8" marginBottom="32">
       {back && (
-        <Link href={back.href} className="text-sm text-muted hover:text-ink">
-          ← {back.label}
-        </Link>
+        <Row>
+          <SmartLink href={back.href} prefixIcon="chevronLeft">
+            {back.label}
+          </SmartLink>
+        </Row>
       )}
-      <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-patina-deep md:text-[28px]">{title}</h1>
-          {subtitle && <div className="mt-1 text-muted">{subtitle}</div>}
-        </div>
-        {actions && <div className="flex gap-2">{actions}</div>}
-      </div>
-    </header>
+      <Row wrap gap="16" vertical="end" horizontal="between">
+        <Column gap="8">
+          <Heading as="h1" variant="display-strong-s">
+            {title}
+          </Heading>
+          {subtitle && (
+            <Text variant="body-default-l" onBackground="neutral-weak">
+              {subtitle}
+            </Text>
+          )}
+        </Column>
+        {actions && <Row gap="8">{actions}</Row>}
+      </Row>
+    </Column>
   );
 }
 
-export function ButtonLink({ href, children, primary }: { href: string; children: React.ReactNode; primary?: boolean }) {
+export function ButtonLink({ href, children, primary }: { href: string; children: string; primary?: boolean }) {
   return (
-    <Link
-      href={href}
-      className={`rounded-md px-3.5 py-2 text-sm font-medium ${
-        primary ? "bg-patina text-white hover:bg-patina-deep" : "border border-line bg-surface hover:border-muted"
-      }`}
-    >
+    <Button href={href} variant={primary ? "primary" : "secondary"} size="m" prefixIcon={primary ? "plus" : undefined}>
       {children}
-    </Link>
+    </Button>
+  );
+}
+
+/** A static panel: the library's surface recipe. */
+export function Panel({ children, title, padding = "24" }: { children: React.ReactNode; title?: string; padding?: "16" | "24" }) {
+  return (
+    <Column background="surface" border radius="l" padding={padding} gap="16" fillWidth>
+      {title && (
+        <Heading as="h2" variant="heading-strong-m">
+          {title}
+        </Heading>
+      )}
+      {children}
+    </Column>
   );
 }
 
 export function LicenseTable({ licenses, showCompany = true }: { licenses: License[]; showCompany?: boolean }) {
   if (licenses.length === 0)
-    return <p className="rounded-lg border border-dashed border-line p-6 text-muted">Лицензий пока нет.</p>;
+    return (
+      <Column border radius="l" padding="24" style={{ borderStyle: "dashed" }}>
+        <Text onBackground="neutral-weak">Лицензий пока нет. Добавьте первую кнопкой «Добавить лицензию».</Text>
+      </Column>
+    );
   return (
-    <div className="overflow-x-auto rounded-lg border border-line bg-surface">
-      <table className="w-full min-w-[720px] text-left text-sm">
-        <thead className="border-b border-line text-muted">
+    <div className="data-table-wrap">
+      <table className="data-table">
+        <thead>
           <tr>
-            <th className="px-4 py-3 font-medium">Участок</th>
-            <th className="px-4 py-3 font-medium">Полезное ископаемое</th>
-            <th className="px-4 py-3 font-medium">Вид</th>
-            {showCompany && <th className="px-4 py-3 font-medium">Компания</th>}
-            <th className="px-4 py-3 font-medium">Действует до</th>
-            <th className="px-4 py-3 font-medium">Статус</th>
+            <th>Участок</th>
+            <th>Полезное ископаемое</th>
+            <th>Вид</th>
+            {showCompany && <th>Компания</th>}
+            <th>Действует до</th>
+            <th>Статус</th>
           </tr>
         </thead>
         <tbody>
           {licenses.map((l) => (
-            <tr key={l.id} className="border-b border-line/60 last:border-0 hover:bg-paper/60">
-              <td className="px-4 py-3">
-                <Link href={`/licenses/${l.id}`} className="font-medium text-ink hover:text-patina">
-                  {l.deposit_name || "Без названия"}
-                </Link>
-                <div className="text-xs text-muted">{l.license_number}</div>
+            <tr key={l.id}>
+              <td>
+                <Link href={`/licenses/${l.id}`}>{l.deposit_name || "Без названия"}</Link>
+                <div style={{ fontSize: 12, color: "var(--neutral-on-background-weak)" }}>{l.license_number}</div>
               </td>
-              <td className="px-4 py-3">
+              <td>
                 <MineralSwatch mineral={l.mineral} />
               </td>
-              <td className="px-4 py-3">
+              <td>
                 {l.license_type || "—"}
-                {l.category && <span className="text-muted">, {l.category}</span>}
+                {l.category && <span style={{ color: "var(--neutral-on-background-weak)" }}>, {l.category}</span>}
               </td>
-              {showCompany && <td className="px-4 py-3">{l.company_name}</td>}
-              <td className="px-4 py-3">
+              {showCompany && <td>{l.company_name}</td>}
+              <td>
                 <ExpiryText date={l.expiry_date} />
               </td>
-              <td className="px-4 py-3">
+              <td>
                 <StatusBadge status={l.status} />
               </td>
             </tr>

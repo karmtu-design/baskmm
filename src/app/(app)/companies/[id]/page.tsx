@@ -1,17 +1,18 @@
 import { notFound } from "next/navigation";
+import { Button, Column, Grid, Text } from "@once-ui-system/core";
 import LicensesMap from "@/components/LicensesMap";
-import { ButtonLink, LicenseTable, PageHeader } from "@/components/ui";
+import { ButtonLink, LicenseTable, PageHeader, Panel } from "@/components/ui";
 import { getCompany, getLicenses } from "@/lib/data";
 import { updateCompany } from "../../actions";
 
-const FIELDS: { key: string; label: string; wide?: boolean; multiline?: boolean }[] = [
-  { key: "name", label: "Наименование", wide: true },
+const FIELDS: { key: string; label: string; multiline?: boolean }[] = [
+  { key: "name", label: "Наименование" },
   { key: "bin", label: "БИН" },
   { key: "director", label: "Руководитель" },
-  { key: "legal_address", label: "Юридический адрес", wide: true },
-  { key: "contacts", label: "Контакты", wide: true },
-  { key: "founders_share", label: "Учредители и доля Bask", wide: true },
-  { key: "notes", label: "Примечания", wide: true, multiline: true },
+  { key: "legal_address", label: "Юридический адрес" },
+  { key: "contacts", label: "Контакты" },
+  { key: "founders_share", label: "Учредители и доля Bask" },
+  { key: "notes", label: "Примечания", multiline: true },
 ];
 
 export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
@@ -23,63 +24,57 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   const value = (k: string) => (company as Record<string, unknown>)[k] as string | null;
 
   return (
-    <>
+    <Column>
       <PageHeader
         back={{ href: "/companies", label: "Все компании" }}
         title={company.name}
         subtitle={company.bin ? `БИН ${company.bin}` : "БИН не указан"}
-        actions={<ButtonLink href={`/licenses/new?company=${company.id}`} primary>Добавить лицензию</ButtonLink>}
+        actions={
+          <ButtonLink href={`/licenses/new?company=${company.id}`} primary>
+            Добавить лицензию
+          </ButtonLink>
+        }
       />
 
-      <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <div className="space-y-6">
-          <div>
-            <h2 className="mb-2 font-semibold">Лицензии</h2>
-            <LicenseTable licenses={licenses} showCompany={false} />
-          </div>
+      <Grid columns="3" gap="24" m={{ columns: "1" }}>
+        <Column gap="24" className="span-2">
+          <LicenseTable licenses={licenses} showCompany={false} />
           {licenses.some((l) => l.contour) && <LicensesMap licenses={licenses} height={380} />}
-        </div>
+        </Column>
 
-        <aside className="rounded-lg border border-line bg-surface p-5">
-          <h2 className="font-semibold">Реквизиты</h2>
-          <dl className="mt-3 space-y-3 text-sm">
+        <Panel title="Реквизиты">
+          <Column as="dl" gap="12" style={{ margin: 0 }}>
             {FIELDS.slice(1).map((f) => (
-              <div key={f.key}>
-                <dt className="text-muted">{f.label}</dt>
-                <dd className="whitespace-pre-line">{value(f.key) || "—"}</dd>
-              </div>
-            ))}
-          </dl>
-          <details className="mt-5 border-t border-line pt-4">
-            <summary className="cursor-pointer text-sm font-medium text-patina">Изменить реквизиты</summary>
-            <form action={update} className="mt-3 space-y-3">
-              {FIELDS.map((f) => (
-                <label key={f.key} className="block text-sm">
+              <Column key={f.key} gap="2">
+                <Text as="dt" variant="label-default-s" onBackground="neutral-weak">
                   {f.label}
-                  {f.multiline ? (
-                    <textarea
-                      name={f.key}
-                      defaultValue={value(f.key) ?? ""}
-                      rows={3}
-                      className="mt-1 w-full rounded-md border border-line bg-white px-3 py-2"
-                    />
-                  ) : (
-                    <input
-                      name={f.key}
-                      defaultValue={value(f.key) ?? ""}
-                      required={f.key === "name"}
-                      className="mt-1 w-full rounded-md border border-line bg-white px-3 py-2"
-                    />
-                  )}
-                </label>
-              ))}
-              <button className="rounded-md bg-patina px-4 py-2 text-sm font-medium text-white hover:bg-patina-deep">
-                Сохранить реквизиты
-              </button>
+                </Text>
+                <Text as="dd" variant="body-default-s" style={{ margin: 0, whiteSpace: "pre-line" }}>
+                  {value(f.key) || "—"}
+                </Text>
+              </Column>
+            ))}
+          </Column>
+          <details style={{ borderTop: "1px solid var(--neutral-alpha-weak)", paddingTop: 16 }}>
+            <summary>Изменить реквизиты</summary>
+            <form action={update} style={{ marginTop: 12 }}>
+              <Column gap="12">
+                {FIELDS.map((f) => (
+                  <label key={f.key} className="field-label">
+                    {f.label}
+                    {f.multiline ? (
+                      <textarea name={f.key} defaultValue={value(f.key) ?? ""} rows={3} className="field" />
+                    ) : (
+                      <input name={f.key} defaultValue={value(f.key) ?? ""} required={f.key === "name"} className="field" />
+                    )}
+                  </label>
+                ))}
+                <Button type="submit">Сохранить реквизиты</Button>
+              </Column>
             </form>
           </details>
-        </aside>
-      </section>
-    </>
+        </Panel>
+      </Grid>
+    </Column>
   );
 }
