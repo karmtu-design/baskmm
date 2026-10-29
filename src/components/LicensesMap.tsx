@@ -13,4 +13,4 @@ const LicensesMap = dynamic(() => import("./LicensesMapInner"), {
 });
 
 export default LicensesMap;
-export type { MapLicense } from "./LicensesMapInner";
+export type { MapLicense, MapOverlay } from "./LicensesMapInner";

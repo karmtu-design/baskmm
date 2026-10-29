@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Checkbox, Column, Grid, Heading, Row, SegmentedControl, Text } from "@once-ui-system/core";
-import LicensesMap, { type MapLicense } from "./LicensesMap";
+import LicensesMap, { type MapLicense, type MapOverlay } from "./LicensesMap";
 import {
   contourAreaKm2,
   contourCorners,
@@ -26,10 +26,14 @@ export default function ContourEditor({
   license,
   licenseArea,
   contourSource,
+  overlay,
+  aside,
 }: {
   license: MapLicense;
   licenseArea: number | null;
   contourSource: string | null;
+  overlay?: MapOverlay;
+  aside?: React.ReactNode;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<"points" | "file">("points");
@@ -126,7 +130,7 @@ export default function ContourEditor({
   return (
     <Grid columns="3" gap="24" m={{ columns: "1" }}>
       <Column gap="12" className="span-2">
-        <LicensesMap licenses={preview ? [] : [license]} preview={preview} height={520} linkToLicense={false} />
+        <LicensesMap licenses={preview ? [] : [license]} preview={preview} height={560} linkToLicense={false} overlay={overlay} />
         <Row wrap gap="24" vertical="center" textVariant="body-default-s">
           <span>
             Площадь по контуру: <b>{area ? `${area.toFixed(2)} км²` : "—"}</b>
@@ -195,6 +199,7 @@ export default function ContourEditor({
         )}
       </Column>
 
+      <Column gap="24">
       <Column background="surface" border radius="l" padding="24" gap="16" fitHeight>
         <Heading as="h3" variant="heading-strong-m">
           {current ? "Заменить контур" : "Добавить контур участка"}
@@ -289,6 +294,8 @@ export default function ContourEditor({
             {message.text}
           </Text>
         )}
+      </Column>
+      {aside}
       </Column>
     </Grid>
   );

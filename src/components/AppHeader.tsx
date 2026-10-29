@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Fade, Line, Row, Text, ToggleButton, useTheme, type IconName } from "@once-ui-system/core";
 import BrandLogo from "./BrandLogo";
 import { signOut } from "@/app/login/actions";
+import { openNavigator } from "./SiteNavigator";
 
 const NAV: { href: string; label: string; icon: IconName }[] = [
   { href: "/map", label: "Карта", icon: "globe" },
@@ -60,6 +61,7 @@ export default function AppHeader({ email }: { email?: string | null }) {
         </Row>
       ))}
       <Line background="neutral-alpha-medium" vert maxHeight="24" />
+      <ToggleButton prefixIcon="grid" onClick={openNavigator} aria-label="Все разделы (Ctrl+K)" />
       <ThemeToggle />
       <form action={signOut} style={{ display: "contents" }}>
         <ToggleButton prefixIcon="logout" aria-label="Выйти" type="submit" />
@@ -74,6 +76,7 @@ export default function AppHeader({ email }: { email?: string | null }) {
       <Row
         as="header"
         className="app-header"
+        style={{ viewTransitionName: "app-header" }}
         position="fixed"
         top="0"
         left="0"

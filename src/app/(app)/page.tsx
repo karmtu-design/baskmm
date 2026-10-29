@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge, Column, Grid, Heading, Row, Text } from "@once-ui-system/core";
 import LicensesMap from "@/components/LicensesMap";
+import { NavigatorButton } from "@/components/SiteNavigator";
 import { ButtonLink, ExpiryText, Legend, Panel, StatusBadge } from "@/components/ui";
 import { getCompanies, getLicenses } from "@/lib/data";
 import { BRAND } from "@/lib/brand";
@@ -49,9 +50,7 @@ export default async function Overview() {
           добычу.
         </Text>
         <Row gap="8" paddingTop="8">
-          <ButtonLink href="/licenses/new" primary>
-            Добавить лицензию
-          </ButtonLink>
+          <NavigatorButton />
           <ButtonLink href="/map">Открыть карту</ButtonLink>
         </Row>
       </Column>

@@ -1,16 +1,19 @@
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { Column, Grid, Heading, Row, Text } from "@once-ui-system/core";
 import { notFound } from "next/navigation";
-import ContourEditor from "@/components/ContourEditor";
+import LicenseMapTab from "@/components/LicenseMapTab";
+import DrillholesTab from "@/components/DrillholesTab";
 import LicenseForm from "@/components/LicenseForm";
 import { ExpiryText, MineralSwatch, PageHeader, Panel, StatusBadge, TestMark } from "@/components/ui";
-import { getCompanies, getLicense } from "@/lib/data";
+import { getCompanies, getDrillholes, getLicense, getLicenses } from "@/lib/data";
 import { formatDate, isTest } from "@/lib/types";
 import { updateLicense } from "../../actions";
 
 const TABS = [
   { id: "info", label: "Сведения" },
-  { id: "map", label: "Карта и контур" },
+  { id: "map", label: "Карта и геоанализ" },
+  { id: "drill", label: "Скважины 3D" },
   { id: "docs", label: "Документы" },
   { id: "history", label: "Исторические данные" },
   { id: "checklist", label: "Чек-лист" },
@@ -63,6 +66,8 @@ export default async function LicensePage({
   const license = await getLicense(Number(id));
   if (!license) notFound();
   const companies = tab === "info" ? await getCompanies() : [];
+  const others = tab === "map" ? await getLicenses() : [];
+  const holes = tab === "drill" ? await getDrillholes(license.id) : [];
   const update = updateLicense.bind(null, license.id);
 
   const facts: [string, React.ReactNode][] = [
@@ -80,7 +85,11 @@ export default async function LicensePage({
     <Column>
       <PageHeader
         back={{ href: license.company_id ? `/companies/${license.company_id}` : "/", label: license.company_name }}
-        title={license.deposit_name || "Участок без названия"}
+        title={
+          <ViewTransition name={`lic-title-${license.id}`} share="morph" default="none">
+            <span style={{ display: "inline-block" }}>{license.deposit_name || "Участок без названия"}</span>
+          </ViewTransition>
+        }
         subtitle={
           <span style={{ display: "inline-flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
             Лицензия {license.license_number}
@@ -141,7 +150,16 @@ export default async function LicensePage({
       )}
 
       {tab === "map" && (
-        <ContourEditor license={license} licenseArea={license.area_sq_km} contourSource={license.contour_source} />
+        <LicenseMapTab
+          license={license}
+          licenseArea={license.area_sq_km}
+          contourSource={license.contour_source}
+          others={others.map((o) => ({ id: o.id, deposit_name: o.deposit_name, license_number: o.license_number, company_name: o.company_name, contour: o.contour }))}
+        />
+      )}
+
+      {tab === "drill" && (
+        <DrillholesTab license={{ id: license.id, deposit_name: license.deposit_name, license_number: license.license_number, contour: license.contour }} holes={holes} />
       )}
 
       {tab === "docs" && (

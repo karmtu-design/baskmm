@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { ViewTransition, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@once-ui-system/core";
 import DataTable, { type DataColumn } from "./DataTable";
@@ -19,7 +19,11 @@ const columns: DataColumn<License>[] = [
     sortFn: "text",
     cell: ({ row }) => (
       <>
-        <Link href={`/licenses/${row.original.id}`}>{row.original.deposit_name || "Без названия"}</Link>
+        <Link href={`/licenses/${row.original.id}`}>
+          <ViewTransition name={`lic-title-${row.original.id}`} share="morph" default="none">
+            <span style={{ display: "inline-block" }}>{row.original.deposit_name || "Без названия"}</span>
+          </ViewTransition>
+        </Link>
         <div style={muted}>{row.original.license_number}</div>
       </>
     ),

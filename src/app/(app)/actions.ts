@@ -235,3 +235,60 @@ export async function importLicenses(items: LicenseImportItem[], updateExisting:
   revalidatePath("/", "layout");
   return res;
 }
+
+export type DrillSaveItem = {
+  hole_id: string;
+  lon: number;
+  lat: number;
+  elevation_m: number | null;
+  azimuth_deg: number;
+  dip_deg: number;
+  depth_m: number;
+  year: number | null;
+  notes: string | null;
+  intervals: { from_m: number; to_m: number; element: string | null; grade: number | null; unit: string | null; lithology: string | null }[];
+};
+
+/** Saves drill holes for a licence. A hole with the same number is replaced together with its intervals. */
+export async function saveDrillholes(licenseId: number, holes: DrillSaveItem[], removeTest: boolean) {
+  const supabase = await createClient();
+  if (!Array.isArray(holes) || holes.length === 0) return { ok: false, message: "Нет скважин для загрузки.", saved: 0 };
+  if (holes.length > 3000) return { ok: false, message: "За один раз можно загрузить до 3000 скважин.", saved: 0 };
+  if (removeTest) await supabase.from("drillholes").delete().eq("license_id", licenseId).eq("is_test", true);
+  let saved = 0;
+  const errors: string[] = [];
+  for (const h of holes) {
+    await supabase.from("drillholes").delete().eq("license_id", licenseId).eq("hole_id", h.hole_id);
+    const { data, error } = await supabase
+      .from("drillholes")
+      .insert({
+        license_id: licenseId,
+        hole_id: String(h.hole_id).slice(0, 80),
+        lon: Number(h.lon),
+        lat: Number(h.lat),
+        elevation_m: h.elevation_m,
+        azimuth_deg: h.azimuth_deg,
+        dip_deg: h.dip_deg,
+        depth_m: h.depth_m,
+        year: h.year,
+        notes: h.notes,
+      })
+      .select("id")
+      .single();
+    if (error) {
+      errors.push(`${h.hole_id}: ${error.message}`);
+      continue;
+    }
+    if (h.intervals?.length) {
+      for (let i = 0; i < h.intervals.length; i += 500) {
+        const { error: e2 } = await supabase
+          .from("drill_intervals")
+          .insert(h.intervals.slice(i, i + 500).map((x) => ({ ...x, drillhole_id: data.id })));
+        if (e2) errors.push(`${h.hole_id}: интервалы — ${e2.message}`);
+      }
+    }
+    saved++;
+  }
+  revalidatePath(`/licenses/${licenseId}`);
+  return { ok: errors.length === 0, message: errors.slice(0, 5).join("; "), saved };
+}
