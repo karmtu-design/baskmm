@@ -1008,3 +1008,80 @@ th[aria-sort] .sort-mark {
   font-size: 12px;
   color: var(--neutral-on-background-weak);
 }
+
+/* ---------- Metal prices (home page) ---------- */
+.metal-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.metal-card {
+  display: grid;
+  gap: 6px;
+  min-height: 98px;
+  padding: 12px 14px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 14px;
+  background: var(--surface-background);
+}
+.metal-card.is-loading {
+  background: linear-gradient(90deg, var(--neutral-alpha-weak), var(--neutral-alpha-medium), var(--neutral-alpha-weak));
+  background-size: 200% 100%;
+  animation: metal-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes metal-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.metal-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.metal-sym {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--brand-alpha-weak);
+  color: var(--bask-gold);
+  font-size: 11px;
+  font-weight: 700;
+}
+.metal-name {
+  font-size: 13px;
+  color: var(--neutral-on-background-weak);
+}
+.metal-price {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--neutral-on-background-strong);
+  white-space: nowrap;
+}
+.metal-unit {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--neutral-on-background-weak);
+}
+.metal-change {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--neutral-on-background-medium);
+}
+.metal-change.is-up {
+  color: var(--success-on-background-strong);
+}
+.metal-change.is-down {
+  color: var(--danger-on-background-strong);
+}
+.metal-muted {
+  color: var(--neutral-on-background-weak);
+}
+@media (prefers-reduced-motion: reduce) {
+  .metal-card.is-loading {
+    animation: none;
+  }
+}

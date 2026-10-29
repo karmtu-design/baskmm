@@ -28,7 +28,7 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isLogin = request.nextUrl.pathname.startsWith("/login");
-  if (!user && request.nextUrl.pathname.startsWith("/api/")) {
+  if (!user && request.nextUrl.pathname.startsWith("/api/") && request.nextUrl.pathname !== "/api/metals") {
     return new NextResponse("Войдите в систему.", { status: 401 });
   }
   if (!user && !isLogin) {
