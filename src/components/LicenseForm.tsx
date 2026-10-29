@@ -1,6 +1,5 @@
+import { Button, Grid } from "@once-ui-system/core";
 import { CATEGORIES, LICENSE_TYPES, STATUSES, type Company, type License } from "@/lib/types";
-
-const input = "mt-1 w-full rounded-md border border-line bg-white px-3 py-2";
 
 export default function LicenseForm({
   action,
@@ -16,90 +15,91 @@ export default function LicenseForm({
   submitLabel: string;
 }) {
   const v = (k: keyof License) => (license?.[k] as string | number | null | undefined) ?? "";
+  const wide = { gridColumn: "1 / -1" };
   return (
-    <form action={action} className="grid max-w-3xl gap-4 sm:grid-cols-2">
-      <label className="text-sm sm:col-span-2">
-        Компания-недропользователь
-        <select name="company_id" required defaultValue={license?.company_id ?? defaultCompanyId ?? ""} className={input}>
-          <option value="" disabled>
-            Выберите компанию
-          </option>
-          {companies.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
+    <form action={action} style={{ maxWidth: 760 }}>
+      <Grid columns="2" gap="16" s={{ columns: "1" }}>
+        <label className="field-label" style={wide}>
+          Компания-недропользователь
+          <select name="company_id" required defaultValue={license?.company_id ?? defaultCompanyId ?? ""} className="field">
+            <option value="" disabled>
+              Выберите компанию
             </option>
-          ))}
-        </select>
-      </label>
-      <label className="text-sm">
-        Номер лицензии
-        <input name="license_number" required defaultValue={v("license_number")} className={input} />
-      </label>
-      <label className="text-sm">
-        Участок или месторождение
-        <input name="deposit_name" defaultValue={v("deposit_name")} className={input} />
-      </label>
-      <label className="text-sm">
-        Вид лицензии
-        <select name="license_type" defaultValue={v("license_type") || "Разведка"} className={input}>
-          {LICENSE_TYPES.map((t) => (
-            <option key={t}>{t}</option>
-          ))}
-        </select>
-      </label>
-      <label className="text-sm">
-        Категория полезных ископаемых
-        <select name="category" defaultValue={v("category") || "ТПИ"} className={input}>
-          {CATEGORIES.map((t) => (
-            <option key={t}>{t}</option>
-          ))}
-        </select>
-      </label>
-      <label className="text-sm">
-        Полезное ископаемое
-        <input name="mineral" placeholder="например, Cu-Mo-Au" defaultValue={v("mineral")} className={input} />
-      </label>
-      <label className="text-sm">
-        Статус
-        <select name="status" defaultValue={v("status") || "действует"} className={input}>
-          {STATUSES.map((t) => (
-            <option key={t}>{t}</option>
-          ))}
-        </select>
-      </label>
-      <label className="text-sm">
-        Дата выдачи
-        <input type="date" name="issue_date" defaultValue={v("issue_date")} className={input} />
-      </label>
-      <label className="text-sm">
-        Действует до
-        <input type="date" name="expiry_date" defaultValue={v("expiry_date")} className={input} />
-      </label>
-      <label className="text-sm">
-        Область
-        <input name="region" defaultValue={v("region")} className={input} />
-      </label>
-      <label className="text-sm">
-        Район
-        <input name="district" defaultValue={v("district")} className={input} />
-      </label>
-      <label className="text-sm">
-        Площадь по лицензии, км²
-        <input name="area_sq_km" inputMode="decimal" defaultValue={v("area_sq_km")} className={input} />
-      </label>
-      <label className="text-sm">
-        Ответственный сотрудник
-        <input name="responsible" defaultValue={v("responsible")} className={input} />
-      </label>
-      <label className="text-sm sm:col-span-2">
-        Примечания
-        <textarea name="notes" rows={3} defaultValue={v("notes")} className={input} />
-      </label>
-      <div className="sm:col-span-2">
-        <button className="rounded-md bg-patina px-4 py-2.5 text-sm font-medium text-white hover:bg-patina-deep">
-          {submitLabel}
-        </button>
-      </div>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field-label">
+          Номер лицензии
+          <input name="license_number" required defaultValue={v("license_number")} className="field" />
+        </label>
+        <label className="field-label">
+          Участок или месторождение
+          <input name="deposit_name" defaultValue={v("deposit_name")} className="field" />
+        </label>
+        <label className="field-label">
+          Вид лицензии
+          <select name="license_type" defaultValue={v("license_type") || "Разведка"} className="field">
+            {LICENSE_TYPES.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+        </label>
+        <label className="field-label">
+          Категория полезных ископаемых
+          <select name="category" defaultValue={v("category") || "ТПИ"} className="field">
+            {CATEGORIES.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+        </label>
+        <label className="field-label">
+          Полезное ископаемое
+          <input name="mineral" placeholder="например, Cu-Mo-Au" defaultValue={v("mineral")} className="field" />
+        </label>
+        <label className="field-label">
+          Статус
+          <select name="status" defaultValue={v("status") || "действует"} className="field">
+            {STATUSES.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+        </label>
+        <label className="field-label">
+          Дата выдачи
+          <input type="date" name="issue_date" defaultValue={v("issue_date")} className="field" />
+        </label>
+        <label className="field-label">
+          Действует до
+          <input type="date" name="expiry_date" defaultValue={v("expiry_date")} className="field" />
+        </label>
+        <label className="field-label">
+          Область
+          <input name="region" defaultValue={v("region")} className="field" />
+        </label>
+        <label className="field-label">
+          Район
+          <input name="district" defaultValue={v("district")} className="field" />
+        </label>
+        <label className="field-label">
+          Площадь по лицензии, км²
+          <input name="area_sq_km" inputMode="decimal" defaultValue={v("area_sq_km")} className="field" />
+        </label>
+        <label className="field-label">
+          Ответственный сотрудник
+          <input name="responsible" defaultValue={v("responsible")} className="field" />
+        </label>
+        <label className="field-label" style={wide}>
+          Примечания
+          <textarea name="notes" rows={3} defaultValue={v("notes")} className="field" />
+        </label>
+        <div style={wide}>
+          <Button type="submit">{submitLabel}</Button>
+        </div>
+      </Grid>
     </form>
   );
 }

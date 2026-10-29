@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Button, Checkbox, Column, Grid, Heading, Row, SegmentedControl, Text } from "@once-ui-system/core";
 import LicensesMap, { type MapLicense } from "./LicensesMap";
 import {
   contourAreaKm2,
@@ -119,190 +120,176 @@ export default function ContourEditor({
     ? contourCorners(current).reduce((s, [x, y], _, arr) => [s[0] + y / arr.length, s[1] + x / arr.length], [0, 0])
     : null;
   const areaDiff = area && licenseArea ? ((area - licenseArea) / licenseArea) * 100 : null;
-  const tab = (m: typeof mode, label: string) => (
-    <button
-      type="button"
-      onClick={() => setMode(m)}
-      aria-pressed={mode === m}
-      className={`rounded-md px-3 py-1.5 text-sm ${mode === m ? "bg-patina text-white" : "border border-line bg-surface"}`}
-    >
-      {label}
-    </button>
-  );
+  const weak = { color: "var(--neutral-on-background-weak)" };
+  const warn = { color: "var(--warning-on-background-strong)" };
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_400px]">
-      <div>
+    <Grid columns="3" gap="24" m={{ columns: "1" }}>
+      <Column gap="12" className="span-2">
         <LicensesMap licenses={preview ? [] : [license]} preview={preview} height={520} linkToLicense={false} />
-        <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+        <Row wrap gap="24" vertical="center" textVariant="body-default-s">
           <span>
             Площадь по контуру: <b>{area ? `${area.toFixed(2)} км²` : "—"}</b>
             {areaDiff != null && Math.abs(areaDiff) > 2 && (
-              <span className="ml-1 text-ochre">
+              <span style={{ ...warn, marginLeft: 4 }}>
                 ({areaDiff > 0 ? "+" : ""}
                 {areaDiff.toFixed(1)}% к площади по лицензии)
               </span>
             )}
           </span>
-          {preview && <span className="text-ochre">Пунктиром показан новый контур, он ещё не сохранён.</span>}
+          {preview && <span style={warn}>Пунктиром показан новый контур, он ещё не сохранён.</span>}
           {!preview && current && (
             <>
-              <button type="button" onClick={downloadKML} className="font-medium text-patina hover:underline">
+              <Button variant="tertiary" size="s" prefixIcon="download" onClick={downloadKML}>
                 Скачать KML для Google Earth
-              </button>
+              </Button>
               {center && (
-                <a
+                <Button
+                  variant="tertiary"
+                  size="s"
+                  suffixIcon="arrowUpRight"
                   href={`https://www.google.com/maps/search/?api=1&query=${center[0].toFixed(5)},${center[1].toFixed(5)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium text-patina hover:underline"
                 >
-                  Открыть место в Google Картах
-                </a>
+                  Открыть в Google Картах
+                </Button>
               )}
             </>
           )}
-        </div>
+        </Row>
 
         {current && !preview && (
-          <details className="mt-4 rounded-lg border border-line bg-surface p-4">
-            <summary className="cursor-pointer text-sm font-medium">
-              Угловые точки контура ({contourCorners(current).length})
-            </summary>
-            <div className="mt-3 overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="text-muted">
-                  <tr>
-                    <th className="py-1 pr-4 font-medium">Точка</th>
-                    <th className="py-1 pr-4 font-medium">Северная широта</th>
-                    <th className="py-1 pr-4 font-medium">Восточная долгота</th>
-                    <th className="py-1 font-medium">Десятичные градусы</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contourCorners(current).map(([x, y], i) => (
-                    <tr key={i} className="border-t border-line/60">
-                      <td className="py-1 pr-4">{i + 1}</td>
-                      <td className="py-1 pr-4">{toDMS(y, "с.ш.", "ю.ш.")}</td>
-                      <td className="py-1 pr-4">{toDMS(x, "в.д.", "з.д.")}</td>
-                      <td className="py-1 text-muted">
-                        {y.toFixed(6)}, {x.toFixed(6)}
-                      </td>
+          <Column background="surface" border radius="l" padding="16">
+            <details>
+              <summary>Угловые точки контура ({contourCorners(current).length})</summary>
+              <div style={{ overflowX: "auto", marginTop: 12 }}>
+                <table className="data-table" style={{ minWidth: 560 }}>
+                  <thead>
+                    <tr>
+                      <th>Точка</th>
+                      <th>Северная широта</th>
+                      <th>Восточная долгота</th>
+                      <th>Десятичные градусы</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {contourSource && <p className="mt-2 text-xs text-muted">Источник контура: {contourSource}</p>}
-          </details>
+                  </thead>
+                  <tbody>
+                    {contourCorners(current).map(([x, y], i) => (
+                      <tr key={i}>
+                        <td>{i + 1}</td>
+                        <td>{toDMS(y, "с.ш.", "ю.ш.")}</td>
+                        <td>{toDMS(x, "в.д.", "з.д.")}</td>
+                        <td style={weak}>
+                          {y.toFixed(6)}, {x.toFixed(6)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {contourSource && (
+                <Text as="p" variant="body-default-xs" onBackground="neutral-weak" marginTop="8">
+                  Источник контура: {contourSource}
+                </Text>
+              )}
+            </details>
+          </Column>
         )}
-      </div>
+      </Column>
 
-      <div className="rounded-lg border border-line bg-surface p-5">
-        <h3 className="font-semibold">{current ? "Заменить контур" : "Добавить контур участка"}</h3>
-        <div className="mt-3 flex gap-2">
-          {tab("points", "Угловые точки")}
-          {tab("file", "Файл KML, KMZ, GeoJSON")}
-        </div>
+      <Column background="surface" border radius="l" padding="24" gap="16" fitHeight>
+        <Heading as="h3" variant="heading-strong-m">
+          {current ? "Заменить контур" : "Добавить контур участка"}
+        </Heading>
+        <SegmentedControl
+          value={mode}
+          onChange={(v) => setMode(v as typeof mode)}
+          buttons={[
+            { value: "points", label: "Угловые точки" },
+            { value: "file", label: "Файл KML, KMZ, GeoJSON" },
+          ]}
+        />
 
         {mode === "points" ? (
-          <div className="mt-4 space-y-3 text-sm">
-            <p className="text-muted">
+          <Column gap="12">
+            <Text variant="body-default-s" onBackground="neutral-weak">
               Вставьте точки из приложения к лицензии, по одной на строку: сначала широта, затем долгота. Подходят
               градусы-минуты-секунды и десятичные градусы, можно копировать прямо из Word или Excel.
-            </p>
+            </Text>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={8}
               placeholder={EXAMPLE}
               aria-label="Угловые точки"
-              className="w-full rounded-md border border-line bg-white px-3 py-2"
+              className="field"
             />
-            <label className="block">
+            <label className="field-label">
               Система координат в документе
-              <select
-                value={system}
-                onChange={(e) => setSystem(e.target.value as CoordSystem)}
-                className="mt-1 w-full rounded-md border border-line bg-white px-3 py-2"
-              >
+              <select value={system} onChange={(e) => setSystem(e.target.value as CoordSystem)} className="field">
                 <option value="wgs84">WGS-84 (современные лицензии, GPS)</option>
                 <option value="sk42">СК-42, Пулково-1942 (старые документы)</option>
               </select>
             </label>
-            <label className="inline-flex items-center gap-2">
-              <input type="checkbox" checked={lonFirst} onChange={(e) => setLonFirst(e.target.checked)} />
-              В строке сначала долгота, затем широта
-            </label>
-            <div>
-              <button
-                type="button"
-                onClick={showPoints}
-                disabled={!text.trim()}
-                className="rounded-md border border-patina px-3.5 py-2 font-medium text-patina disabled:opacity-40"
-              >
+            <Checkbox label="В строке сначала долгота, затем широта" checked={lonFirst} onToggle={setLonFirst} />
+            <Row>
+              <Button variant="secondary" prefixIcon="eye" onClick={showPoints} disabled={!text.trim()}>
                 Показать на карте
-              </button>
-            </div>
-          </div>
+              </Button>
+            </Row>
+          </Column>
         ) : (
-          <div className="mt-4 space-y-3 text-sm">
-            <p className="text-muted">
+          <Column gap="12">
+            <Text variant="body-default-s" onBackground="neutral-weak">
               Выберите файл с контуром: KML или KMZ из Google Earth, либо GeoJSON из ГИС-программы.
-            </p>
+            </Text>
             <input
               type="file"
               accept=".kml,.kmz,.geojson,.json"
               onChange={(e) => e.target.files?.[0] && readFile(e.target.files[0])}
-              className="block w-full text-sm"
+              className="field"
             />
-          </div>
+          </Column>
         )}
 
         {errors.length > 0 && (
-          <ul className="mt-4 space-y-1 text-sm text-danger" role="alert">
+          <Column as="ul" gap="4" role="alert" style={{ margin: 0, paddingLeft: 18 }}>
             {errors.slice(0, 6).map((e) => (
-              <li key={e}>{e}</li>
+              <Text as="li" key={e} variant="body-default-s" onBackground="danger-strong">
+                {e}
+              </Text>
             ))}
-          </ul>
+          </Column>
         )}
 
         {preview && (
-          <div className="mt-5 flex flex-wrap gap-2 border-t border-line pt-4">
-            <button
-              type="button"
-              onClick={() => save(preview)}
-              disabled={pending}
-              className="rounded-md bg-patina px-4 py-2 text-sm font-medium text-white hover:bg-patina-deep disabled:opacity-50"
-            >
-              {pending ? "Сохраняется…" : "Сохранить контур"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setPreview(null)}
-              className="rounded-md border border-line px-4 py-2 text-sm"
-            >
+          <Row wrap gap="8" borderTop paddingTop="16">
+            <Button onClick={() => save(preview)} loading={pending} prefixIcon="check">
+              Сохранить контур
+            </Button>
+            <Button variant="secondary" onClick={() => setPreview(null)}>
               Отменить
-            </button>
-          </div>
+            </Button>
+          </Row>
         )}
 
         {current && !preview && (
-          <button
-            type="button"
-            onClick={() => confirm("Удалить контур этого участка?") && save(null)}
-            className="mt-6 text-sm text-danger hover:underline"
-          >
-            Удалить контур
-          </button>
+          <Row>
+            <Button
+              variant="danger"
+              size="s"
+              prefixIcon="trash"
+              onClick={() => confirm("Удалить контур этого участка?") && save(null)}
+            >
+              Удалить контур
+            </Button>
+          </Row>
         )}
 
         {message && (
-          <p className={`mt-4 text-sm ${message.ok ? "text-patina" : "text-danger"}`} role="status">
+          <Text variant="body-default-s" onBackground={message.ok ? "success-strong" : "danger-strong"} role="status">
             {message.text}
-          </p>
+          </Text>
         )}
-      </div>
-    </div>
+      </Column>
+    </Grid>
   );
 }

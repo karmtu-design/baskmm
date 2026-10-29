@@ -23,6 +23,8 @@
 
 ## Устройство
 
-Next.js 16, Supabase (база, вход), Leaflet (карта). Публикуется в Vercel автоматически
+Next.js 16, Supabase (база, вход), Leaflet (карта). Оформление построено на библиотеке
+[Once UI Core](https://github.com/once-ui-system/core) (лицензия MIT) в стиле шаблона Magic Portfolio;
+код самого шаблона не используется. Цвета, тема и фон настраиваются в `src/resources/once-ui.config.ts`. Публикуется в Vercel автоматически
 при каждом изменении ветки `main`. Настройки подключения к базе хранятся в Vercel:
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.

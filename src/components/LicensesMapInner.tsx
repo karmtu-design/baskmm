@@ -52,7 +52,7 @@ export default function LicensesMapInner({
   const withContour = useMemo(() => licenses.filter((l) => l.contour), [licenses]);
 
   return (
-    <div style={{ height }} className="overflow-hidden rounded-lg border border-line">
+    <div style={{ height, overflow: "hidden", borderRadius: "var(--radius-l)", border: "1px solid var(--neutral-alpha-medium)" }}>
       <MapContainer bounds={KZ_BOUNDS} scrollWheelZoom style={{ height: "100%", width: "100%" }}>
         <LayersControl position="topright">
           <LayersControl.BaseLayer checked name="Схема">
@@ -89,15 +89,15 @@ export default function LicensesMapInner({
                 </Tooltip>
               )}
               <Popup>
-                <div className="min-w-48 text-[13px] leading-snug">
-                  <div className="font-semibold">{l.deposit_name}</div>
-                  <div className="text-muted">{l.license_number}</div>
-                  <div className="mt-1">
+                <div style={{ minWidth: 190, fontSize: 13, lineHeight: 1.4 }}>
+                  <div style={{ fontWeight: 600 }}>{l.deposit_name}</div>
+                  <div style={{ opacity: 0.7 }}>{l.license_number}</div>
+                  <div style={{ marginTop: 4 }}>
                     {l.mineral} · {l.license_type}
                   </div>
                   <div>{l.company_name}</div>
                   {linkToLicense && (
-                    <Link href={`/licenses/${l.id}`} className="mt-2 inline-block font-medium text-patina">
+                    <Link href={`/licenses/${l.id}`} style={{ marginTop: 8, display: "inline-block", fontWeight: 500 }}>
                       Открыть лицензию
                     </Link>
                   )}

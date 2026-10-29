@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Checkbox, Column, Row, Text } from "@once-ui-system/core";
 import LicensesMap from "./LicensesMap";
-import { mineralColor, mineralGroup, type Company, type License } from "@/lib/types";
+import { Legend } from "./ui";
+import { mineralGroup, type Company, type License } from "@/lib/types";
 
 export default function MapExplorer({ licenses, companies }: { licenses: License[]; companies: Company[] }) {
   const [company, setCompany] = useState("");
@@ -22,12 +24,12 @@ export default function MapExplorer({ licenses, companies }: { licenses: License
     [licenses, company, type, group]
   );
   const missing = shown.filter((l) => !l.contour);
+  const select = { width: "auto", minHeight: 40 } as const;
 
-  const select = "rounded-md border border-line bg-surface px-3 py-2 text-sm";
   return (
-    <>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <select aria-label="Компания" className={select} value={company} onChange={(e) => setCompany(e.target.value)}>
+    <Column gap="12">
+      <Row wrap gap="8" vertical="center">
+        <select aria-label="Компания" className="field" style={select} value={company} onChange={(e) => setCompany(e.target.value)}>
           <option value="">Все компании</option>
           {companies.map((c) => (
             <option key={c.id} value={c.id}>
@@ -35,12 +37,12 @@ export default function MapExplorer({ licenses, companies }: { licenses: License
             </option>
           ))}
         </select>
-        <select aria-label="Вид лицензии" className={select} value={type} onChange={(e) => setType(e.target.value)}>
+        <select aria-label="Вид лицензии" className="field" style={select} value={type} onChange={(e) => setType(e.target.value)}>
           <option value="">Разведка и добыча</option>
           <option value="Разведка">Разведка</option>
           <option value="Добыча">Добыча</option>
         </select>
-        <select aria-label="Полезное ископаемое" className={select} value={group} onChange={(e) => setGroup(e.target.value)}>
+        <select aria-label="Полезное ископаемое" className="field" style={select} value={group} onChange={(e) => setGroup(e.target.value)}>
           <option value="">Все полезные ископаемые</option>
           {groups.map((g) => (
             <option key={g} value={g}>
@@ -48,32 +50,22 @@ export default function MapExplorer({ licenses, companies }: { licenses: License
             </option>
           ))}
         </select>
-        <label className="ml-1 inline-flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={labels} onChange={(e) => setLabels(e.target.checked)} />
-          Подписи участков
-        </label>
-        <span className="ml-auto text-sm text-muted">Показано участков: {shown.length - missing.length}</span>
-      </div>
+        <Checkbox label="Подписи участков" checked={labels} onToggle={setLabels} />
+        <Row flex={1} horizontal="end">
+          <Text variant="body-default-s" onBackground="neutral-weak">
+            Показано участков: {shown.length - missing.length}
+          </Text>
+        </Row>
+      </Row>
 
       <LicensesMap key={`${company}|${type}|${group}|${labels}`} licenses={shown} height={680} showLabels={labels} />
+      <Legend licenses={licenses} />
 
-      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted">
-        {groups.map((g) => (
-          <span key={g} className="inline-flex items-center gap-2">
-            <span
-              aria-hidden
-              className="inline-block h-3 w-5 rounded-sm"
-              style={{ background: mineralColor(licenses.find((l) => mineralGroup(l.mineral) === g)!.mineral) }}
-            />
-            {g}
-          </span>
-        ))}
-      </div>
       {missing.length > 0 && (
-        <p className="mt-3 text-sm text-ochre">
+        <Text variant="body-default-s" onBackground="warning-strong">
           Без контура: {missing.map((l) => l.deposit_name).join(", ")}. Добавьте координаты в карточке лицензии.
-        </p>
+        </Text>
       )}
-    </>
+    </Column>
   );
 }
