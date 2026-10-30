@@ -17,7 +17,11 @@ export default function HeroVideo({ children }: { children: React.ReactNode }) {
   }, []);
   return (
     <section className="hero-video">
-      <video ref={ref} className="hero-video-media" src="/media/hero.mp4" poster="/media/hero-poster.jpg" autoPlay muted loop playsInline preload="metadata" aria-hidden tabIndex={-1} />
+      <video ref={ref} className="hero-video-media" poster="/media/hero-poster.jpg" autoPlay muted loop playsInline preload="metadata" aria-hidden tabIndex={-1}>
+        {/* full-HD on computers, a lighter copy on phones so mobile internet is not strained */}
+        <source src="/media/hero-1080.mp4" type="video/mp4" media="(min-width: 900px)" />
+        <source src="/media/hero-720.mp4" type="video/mp4" />
+      </video>
       <div className="hero-video-scrim" aria-hidden />
       {/* the text sits on dark footage, so this block always uses the dark colour set, even in the light theme */}
       <div className="hero-video-content" data-theme="dark">
