@@ -1,4 +1,5 @@
 import { tr } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 import Link from "next/link";
 import { Button, Column, Row, Text } from "@once-ui-system/core";
 import { PageHeader, Panel } from "@/components/ui";
@@ -28,7 +29,7 @@ export default async function CompaniesPage() {
               return (
                 <tr key={c.id}>
                   <td>
-                    <Link href={`/companies/${c.id}`}>{c.name}</Link>
+                    <Link href={`/companies/${c.id}`}>{dn(c.name)}</Link>
                     {c.notes && <div style={{ fontSize: 12, color: "var(--neutral-on-background-weak)" }}>{c.notes}</div>}
                   </td>
                   <td>{c.bin || "—"}</td>

@@ -1,4 +1,5 @@
 import { tr, loc } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Column, Grid, Heading, Row, SmartLink, Text } from "@once-ui-system/core";
@@ -27,11 +28,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     <>
       <PageHeader
         back={{ href: "/projects", label: tr("Потенциальные проекты") }}
-        title={project.name}
+        title={dn(project.name)}
         subtitle={
           <Row as="span" gap="8" vertical="center" wrap>
             <StageBadge stage={project.stage} />
-            {[project.commodity, project.region, project.holder].filter(Boolean).join(" · ")}
+            {[project.commodity, dp(project.region), dn(project.holder)].filter(Boolean).join(" · ")}
           </Row>
         }
         actions={

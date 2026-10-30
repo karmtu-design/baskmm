@@ -1,6 +1,7 @@
 "use client";
 
 import { tr, loc } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -42,8 +43,8 @@ function makeColumns(): DataColumn<PotentialProject>[] {
     sortFn: "text",
     cell: ({ row }) => (
       <>
-        <Link href={`/projects/${row.original.id}`}>{row.original.name}</Link>
-        {row.original.holder && <div style={muted}>{row.original.holder}</div>}
+        <Link href={`/projects/${row.original.id}`}>{dn(row.original.name)}</Link>
+        {row.original.holder && <div style={muted}>{dn(row.original.holder)}</div>}
       </>
     ),
   },
@@ -56,7 +57,7 @@ function makeColumns(): DataColumn<PotentialProject>[] {
   },
   {
     id: "place",
-    accessorFn: (p) => [p.region, p.district].filter(Boolean).join(", "),
+    accessorFn: (p) => [dp(p.region), dp(p.district)].filter(Boolean).join(", "),
     header: tr("Расположение"),
     meta: { label: tr("Расположение") },
   },

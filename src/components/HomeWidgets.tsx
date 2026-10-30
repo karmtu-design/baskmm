@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Column, Row, Text } from "@once-ui-system/core";
 import { tr, loc, currentLocale } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 import { Panel } from "@/components/ui";
 import AuditList from "@/components/AuditList";
 import CurrencyConverter from "@/components/CurrencyConverter";
@@ -84,7 +85,7 @@ export async function InGroundValue({ projects }: { projects: PotentialProject[]
           {rows.map(({ p, amounts, total }) => (
             <Link key={p.id} href={`/projects/${p.id}`} style={row}>
               <Column gap="2">
-                <Text variant="label-strong-s">{p.name}</Text>
+                <Text variant="label-strong-s">{dn(p.name)}</Text>
                 {muted(amounts.map((a) => `${a.symbol} ${num(a.tonnes, a.tonnes < 100 ? 2 : 0)} ${tr("т")}`).join(" · "))}
               </Column>
               <Column horizontal="end" gap="2">

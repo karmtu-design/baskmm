@@ -1,4 +1,5 @@
 import { tr, plural } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 import Link from "next/link";
 import { Suspense } from "react";
 import MetalPrices, { MetalPricesSkeleton } from "@/components/MetalPrices";
@@ -86,9 +87,9 @@ export default async function Overview() {
               {deadlines.map(({ l }) => (
                 <Link key={l.id} href={`/licenses/${l.id}`} style={rowLink}>
                   <Column gap="2">
-                    <Text variant="label-strong-s">{l.deposit_name}</Text>
+                    <Text variant="label-strong-s">{dn(l.deposit_name)}</Text>
                     <Text variant="body-default-xs" onBackground="neutral-weak">
-                      {l.company_name}
+                      {dn(l.company_name)}
                     </Text>
                   </Column>
                   <Text variant="body-default-s" align="right">
@@ -104,7 +105,7 @@ export default async function Overview() {
           <Column>
             {companies.map((c) => (
               <Link key={c.id} href={`/companies/${c.id}`} style={rowLink}>
-                <Text variant="label-strong-s">{c.name}</Text>
+                <Text variant="label-strong-s">{dn(c.name)}</Text>
                 <Text variant="body-default-s" onBackground="neutral-weak">
                   {plural(licenses.filter((l) => l.company_id === c.id).length, "лицензия", "лицензии", "лицензий")}
                 </Text>
@@ -118,7 +119,7 @@ export default async function Overview() {
             <Column>
               {attention.map((l) => (
                 <Link key={l.id} href={`/licenses/${l.id}`} style={{ ...rowLink, alignItems: "center" }}>
-                  <Text variant="label-strong-s">{l.deposit_name}</Text>
+                  <Text variant="label-strong-s">{dn(l.deposit_name)}</Text>
                   <StatusBadge status={l.status} />
                 </Link>
               ))}

@@ -1,4 +1,5 @@
 import { tr } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 import Link from "next/link";
 import { ViewTransition } from "react";
 import { Column, Grid, Heading, Row, Text } from "@once-ui-system/core";
@@ -80,7 +81,7 @@ export default async function LicensePage({
   const update = updateLicense.bind(null, license.id);
 
   const facts: [string, React.ReactNode][] = [
-    ["Компания", license.company_id ? <Link href={`/companies/${license.company_id}`} style={{ color: "var(--brand-on-background-strong)" }}>{license.company_name}</Link> : license.company_name],
+    ["Компания", license.company_id ? <Link href={`/companies/${license.company_id}`} style={{ color: "var(--brand-on-background-strong)" }}>{dn(license.company_name)}</Link> : dn(license.company_name)],
     ["Вид лицензии", `${license.license_type ? tr(license.license_type) : "—"}${license.category ? `, ${tr(license.category)}` : ""}`],
     ["Полезное ископаемое", <MineralSwatch key="m" mineral={license.mineral} />],
     ["Дата выдачи", formatDate(license.issue_date)],
@@ -93,10 +94,10 @@ export default async function LicensePage({
   return (
     <Column>
       <PageHeader
-        back={{ href: license.company_id ? `/companies/${license.company_id}` : "/", label: license.company_name }}
+        back={{ href: license.company_id ? `/companies/${license.company_id}` : "/", label: dn(license.company_name) }}
         title={
           <ViewTransition name={`lic-title-${license.id}`} share="morph" default="none">
-            <span style={{ display: "inline-block" }}>{license.deposit_name || tr("Участок без названия")}</span>
+            <span style={{ display: "inline-block" }}>{dn(license.deposit_name) || tr("Участок без названия")}</span>
           </ViewTransition>
         }
         subtitle={

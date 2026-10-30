@@ -1,6 +1,7 @@
 "use client";
 
 import { tr } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import MapTools from "./MapTools";
@@ -214,10 +215,10 @@ export default function LicensesMapInner({
           el.appendChild(n);
           return n;
         };
-        add("strong", l.deposit_name || tr("Участок"));
+        add("strong", dn(l.deposit_name) || tr("Участок"));
         add("div", l.license_number, "muted");
         add("div", [l.mineral, l.license_type].filter(Boolean).join(", "));
-        add("div", l.company_name);
+        add("div", dn(l.company_name));
         if (linkToLicense) {
           const a = add("a", tr("Открыть лицензию")) as HTMLAnchorElement;
           a.href = `/licenses/${l.id}`;
@@ -255,7 +256,7 @@ export default function LicensesMapInner({
         const [x, y] = centroid({ type: "Feature", properties: {}, geometry: l.contour }).geometry.coordinates;
         const el = document.createElement("div");
         el.className = "map-label";
-        el.textContent = l.deposit_name || l.license_number;
+        el.textContent = dn(l.deposit_name) || l.license_number;
         markers.current.push(new maplibregl.Marker({ element: el, anchor: "left", offset: [10, 0] }).setLngLat([x, y]).addTo(m));
       });
     }

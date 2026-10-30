@@ -1,6 +1,7 @@
 "use client";
 
 import { tr, loc } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 
 import { useMemo } from "react";
 import Link from "next/link";
@@ -11,7 +12,7 @@ import type { License } from "@/lib/types";
 
 const fmt = (n: number, d = 1) => n.toLocaleString(loc(), { maximumFractionDigits: d, minimumFractionDigits: d });
 const name = (l: { id: number; deposit_name: string | null; license_number: string }) => (
-  <Link href={`/licenses/${l.id}`}>{l.deposit_name || l.license_number}</Link>
+  <Link href={`/licenses/${l.id}`}>{dn(l.deposit_name) || l.license_number}</Link>
 );
 
 export default function PortfolioGeo({ licenses }: { licenses: License[] }) {
@@ -49,11 +50,11 @@ export default function PortfolioGeo({ licenses }: { licenses: License[] }) {
                   <tr key={`${o.a.id}-${o.b.id}`}>
                     <td>
                       {name(o.a)}
-                      <div style={{ fontSize: 12, color: "var(--neutral-on-background-weak)" }}>{o.a.company_name}</div>
+                      <div style={{ fontSize: 12, color: "var(--neutral-on-background-weak)" }}>{dn(o.a.company_name)}</div>
                     </td>
                     <td>
                       {name(o.b)}
-                      <div style={{ fontSize: 12, color: "var(--neutral-on-background-weak)" }}>{o.b.company_name}</div>
+                      <div style={{ fontSize: 12, color: "var(--neutral-on-background-weak)" }}>{dn(o.b.company_name)}</div>
                     </td>
                     <td>{fmt(o.areaKm2, 2)}</td>
                     <td>{fmt(o.shareA * 100)}%</td>

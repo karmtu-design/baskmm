@@ -43,6 +43,7 @@
     "echarts": "^6.1.0",
     "exceljs": "^4.4.0",
     "frappe-gantt": "^1.2.2",
+    "fuse.js": "^7.5.0",
     "gdal3.js": "^2.8.1",
     "geotiff": "^3.0.5",
     "gsap": "^3.15.0",
