@@ -39,7 +39,7 @@ function ThemeToggle() {
   );
 }
 
-export default function AppHeader({ email }: { email?: string | null }) {
+export default function AppHeader({ email, readOnly = false }: { email?: string | null; readOnly?: boolean }) {
   const path = usePathname() ?? "";
 
   const pill = (
@@ -97,6 +97,11 @@ export default function AppHeader({ email }: { email?: string | null }) {
           {pill}
         </Row>
         <Row fillWidth horizontal="end" vertical="center" gap="12" paddingRight="12" m={{ hide: true }} className="app-header-side">
+          {readOnly && (
+            <span className="role-badge role-viewer" title={tr("Вы можете смотреть, но не менять данные. Права выдаёт администратор на странице «Сотрудники».")}>
+              {tr("Только просмотр")}
+            </span>
+          )}
           <LanguageSwitch compact />
           <Text variant="body-default-s" onBackground="neutral-weak" truncate>
             {email}

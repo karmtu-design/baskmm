@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { editDenied } from "@/lib/roles";
 
 type Corners = [[number, number], [number, number], [number, number], [number, number]];
 
@@ -10,6 +11,7 @@ const okCorners = (c: unknown): c is Corners =>
 
 /** Saves a map picture the browser has already put into storage. */
 export async function addOverlay(licenseId: number, title: string, filePath: string, corners: Corners, crs: string) {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const {
     data: { user },
@@ -30,11 +32,13 @@ export async function addOverlay(licenseId: number, title: string, filePath: str
 }
 
 export async function setOverlayOpacity(id: number, opacity: number) {
+  if (await editDenied()) return;
   const supabase = await createClient();
   await supabase.from("map_overlays").update({ opacity: Math.min(1, Math.max(0, opacity)) }).eq("id", id);
 }
 
 export async function deleteOverlay(id: number) {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const { data } = await supabase.from("map_overlays").select("file_path, license_id").eq("id", id).maybeSingle();
   if (!data) return { ok: false, message: "Карта уже удалена." };

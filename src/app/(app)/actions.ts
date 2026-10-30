@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { editDenied } from "@/lib/roles";
 import { contourAreaKm2 } from "@/lib/coords";
 import type { Contour } from "@/lib/types";
 
@@ -12,6 +13,7 @@ const text = (f: FormData, k: string) => {
 };
 
 export async function updateCompany(id: number, formData: FormData) {
+  { const denied = await editDenied(); if (denied) throw new Error(denied); }
   const supabase = await createClient();
   const name = text(formData, "name");
   if (!name) throw new Error("Укажите наименование компании");
@@ -35,6 +37,7 @@ export async function updateCompany(id: number, formData: FormData) {
 }
 
 export async function createCompany(formData: FormData) {
+  { const denied = await editDenied(); if (denied) throw new Error(denied); }
   const supabase = await createClient();
   const name = text(formData, "name");
   if (!name) throw new Error("Укажите наименование компании");
@@ -74,6 +77,7 @@ async function companyName(supabase: Awaited<ReturnType<typeof createClient>>, i
 }
 
 export async function createLicense(formData: FormData) {
+  { const denied = await editDenied(); if (denied) throw new Error(denied); }
   const supabase = await createClient();
   const companyId = Number(formData.get("company_id"));
   if (!companyId) throw new Error("Выберите компанию");
@@ -90,6 +94,7 @@ export async function createLicense(formData: FormData) {
 }
 
 export async function updateLicense(id: number, formData: FormData) {
+  { const denied = await editDenied(); if (denied) throw new Error(denied); }
   const supabase = await createClient();
   const companyId = Number(formData.get("company_id"));
   const fields = licenseFields(formData);
@@ -104,6 +109,7 @@ export async function updateLicense(id: number, formData: FormData) {
 }
 
 export async function saveContour(id: number, contour: Contour | null, source: string) {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const patch: Record<string, unknown> = {
     contour,
@@ -153,6 +159,7 @@ const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Writes rows checked in the browser. Missing companies are created by name; existing licence numbers are updated or skipped. */
 export async function importLicenses(items: LicenseImportItem[], updateExisting: boolean): Promise<ImportResult> {
+  { const denied = await editDenied(); if (denied) return { ok: false, created: 0, updated: 0, skipped: 0, companiesCreated: [], errors: [denied] }; }
   const supabase = await createClient();
   const res: ImportResult = { ok: true, created: 0, updated: 0, skipped: 0, companiesCreated: [], errors: [] };
   if (!Array.isArray(items) || items.length === 0) return { ...res, ok: false, errors: ["Нет строк для загрузки."] };
@@ -251,6 +258,7 @@ export type DrillSaveItem = {
 
 /** Saves drill holes for a licence. A hole with the same number is replaced together with its intervals. */
 export async function saveDrillholes(licenseId: number, holes: DrillSaveItem[], removeTest: boolean) {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied, saved: 0 }; }
   const supabase = await createClient();
   if (!Array.isArray(holes) || holes.length === 0) return { ok: false, message: "Нет скважин для загрузки.", saved: 0 };
   if (holes.length > 3000) return { ok: false, message: "За один раз можно загрузить до 3000 скважин.", saved: 0 };

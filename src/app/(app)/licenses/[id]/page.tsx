@@ -8,7 +8,9 @@ import LicenseMapTab from "@/components/LicenseMapTab";
 import DrillholesTab from "@/components/DrillholesTab";
 import LicenseForm from "@/components/LicenseForm";
 import { ExpiryText, MineralSwatch, PageHeader, Panel, StatusBadge, TestMark } from "@/components/ui";
-import { getCompanies, getDocuments, getDrillholes, getLicense, getAudit, getLicenses, getOverlays, getProjects, getTasks, getNotesAndBoards } from "@/lib/data";
+import { getCompanies, getDocuments, getDrillholes, getLicense, getAudit, getLicenses, getOverlays, getProjects, getTasks, getNotesAndBoards, getStaff } from "@/lib/data";
+import { staffName } from "@/lib/types";
+import { myRole } from "@/lib/roles";
 import AuditList from "@/components/AuditList";
 import NotesAndBoards from "@/components/NotesAndBoards";
 import TaskBoard from "@/components/TaskBoard";
@@ -74,10 +76,12 @@ export default async function LicensePage({
   const license = await getLicense(Number(id));
   if (!license) notFound();
   const companies = tab === "info" ? await getCompanies() : [];
+  const staffNames = tab === "info" ? (await getStaff()).staff.map(staffName) : [];
   const others = tab === "map" ? await getLicenses() : [];
   const images = tab === "map" ? await getOverlays(license.id) : [];
   const changes = tab === "info" ? await getAudit({ table: "licenses", recordId: license.id, limit: 10 }) : [];
-  const [tasks, allLic, allProj] = tab === "tasks" ? await Promise.all([getTasks({ licenseId: license.id }), getLicenses(), getProjects()]) : [[], [], []];
+  const [tasks, allLic, allProj, staffList] = tab === "tasks" ? await Promise.all([getTasks({ licenseId: license.id }), getLicenses(), getProjects(), getStaff()]) : [[], [], [], { staff: [] }];
+  const role = await myRole();
   const holes = tab === "drill" ? await getDrillholes(license.id) : [];
   const nb = tab === "notes" ? await getNotesAndBoards({ licenseId: license.id }) : null;
   const docs = tab === "docs" || tab === "history" ? await getDocuments({ licenseId: license.id, kind: tab === "history" ? "history" : "document" }) : [];
@@ -157,7 +161,7 @@ export default async function LicensePage({
             <details>
               <summary>{tr("Изменить сведения о лицензии")}</summary>
               <div style={{ marginTop: 16 }}>
-                <LicenseForm action={update} companies={companies} license={license} submitLabel={tr("Сохранить изменения")} />
+                <LicenseForm action={update} companies={companies} license={license} submitLabel={tr("Сохранить изменения")} people={staffNames} />
               </div>
             </details>
           </Panel>
@@ -197,14 +201,14 @@ export default async function LicensePage({
         </Upcoming>
       )}
 
-      {nb && <NotesAndBoards notes={nb.notes} boards={nb.boards} licenseId={license.id} />}
+      {nb && <NotesAndBoards notes={nb.notes} boards={nb.boards} licenseId={license.id} readOnly={role === "viewer"} />}
 
       {tab === "tasks" && (
         <TaskBoard
           tasks={tasks}
           licenses={allLic.map((l) => ({ id: l.id, name: l.deposit_name || l.license_number }))}
           projects={allProj.map((p) => ({ id: p.id, name: p.name }))}
-          people={[...new Set([license.responsible, ...allLic.map((l) => l.responsible)].filter(Boolean) as string[])]}
+          people={[...new Set([...staffList.staff.map(staffName), license.responsible, ...allLic.map((l) => l.responsible)].filter(Boolean) as string[])]}
           fixed={{ license_id: license.id }}
         />
       )}

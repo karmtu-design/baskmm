@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { editDenied } from "@/lib/roles";
 import type { PotentialProject } from "@/lib/types";
 
 /** Fields a person can edit; the same set comes from the form and from Excel. */
@@ -52,6 +53,7 @@ function fromForm(f: FormData) {
 }
 
 export async function createProject(formData: FormData) {
+  { const denied = await editDenied(); if (denied) throw new Error(denied); }
   const supabase = await createClient();
   const fields = fromForm(formData);
   if (!fields.name) throw new Error("Укажите название проекта");
@@ -62,6 +64,7 @@ export async function createProject(formData: FormData) {
 }
 
 export async function updateProject(id: number, formData: FormData) {
+  { const denied = await editDenied(); if (denied) throw new Error(denied); }
   const supabase = await createClient();
   const fields = fromForm(formData);
   if (!fields.name) throw new Error("Укажите название проекта");
@@ -75,6 +78,7 @@ export async function updateProject(id: number, formData: FormData) {
 }
 
 export async function deleteProject(id: number) {
+  { const denied = await editDenied(); if (denied) throw new Error(denied); }
   const supabase = await createClient();
   const { error } = await supabase.from("potential_projects").delete().eq("id", id);
   if (error) throw new Error(error.message);
@@ -89,6 +93,7 @@ export async function importProjects(
   rows: Partial<Record<keyof ProjectFields, unknown>>[],
   updateExisting: boolean
 ): Promise<ProjectImportResult> {
+  { const denied = await editDenied(); if (denied) return { ok: false, created: 0, updated: 0, skipped: 0, errors: [denied] }; }
   const supabase = await createClient();
   const res: ProjectImportResult = { ok: true, created: 0, updated: 0, skipped: 0, errors: [] };
   if (!Array.isArray(rows) || rows.length === 0) return { ...res, ok: false, errors: ["Нет строк для загрузки."] };

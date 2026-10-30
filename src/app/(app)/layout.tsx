@@ -5,6 +5,7 @@ import AssistantPanel from "@/components/AssistantPanel";
 import SiteNavigator from "@/components/SiteNavigator";
 import PageBackground from "@/components/PageBackground";
 import { createClient } from "@/lib/supabase/server";
+import { myRole } from "@/lib/roles";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -16,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <Column fillWidth minHeight="100vh" horizontal="center" background="page">
       <PageBackground />
       <a href="#main" className="skip-link">{tr("Перейти к содержимому")}</a>
-      <AppHeader email={user?.email} />
+      <AppHeader email={user?.email} readOnly={(await myRole()) === "viewer"} />
       <Column
         as="main"
         id="main"

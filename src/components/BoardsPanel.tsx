@@ -24,7 +24,7 @@ const Excalidraw = dynamic(
 type Owner = { licenseId?: number; projectId?: number };
 const when = (iso: string) => new Date(iso).toLocaleString(loc(), { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Almaty" });
 
-export default function BoardsPanel({ boards, owner }: { boards: Board[]; owner: Owner }) {
+export default function BoardsPanel({ boards, owner, readOnly = false }: { boards: Board[]; owner: Owner; readOnly?: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState<Board | null>(null);
   const [busy, setBusy] = useState(false);
@@ -44,10 +44,10 @@ export default function BoardsPanel({ boards, owner }: { boards: Board[]; owner:
 
   return (
     <div className="boards">
-      <button type="button" className="board-card board-new" onClick={create} disabled={busy}>
+      {!readOnly && <button type="button" className="board-card board-new" onClick={create} disabled={busy}>
         <span>＋</span>
         {tr("Новая схема")}
-      </button>
+      </button>}
       {boards.map((b) => (
         <button key={b.id} type="button" className="board-card" onClick={() => setOpen(b)}>
           <span className="board-thumb">{b.preview ? <img src={b.preview} alt="" /> : <span>{tr("Пустая доска")}</span>}</span>
@@ -58,12 +58,12 @@ export default function BoardsPanel({ boards, owner }: { boards: Board[]; owner:
           </small>
         </button>
       ))}
-      {open && <BoardEditor board={open} onClose={() => (setOpen(null), router.refresh())} />}
+      {open && <BoardEditor board={open} readOnly={readOnly} onClose={() => (setOpen(null), router.refresh())} />}
     </div>
   );
 }
 
-function BoardEditor({ board, onClose }: { board: Board; onClose: () => void }) {
+function BoardEditor({ board, onClose, readOnly }: { board: Board; onClose: () => void; readOnly: boolean }) {
   const [scene, setScene] = useState<Record<string, unknown> | null>(null);
   const [title, setTitle] = useState(board.title);
   const [state, setState] = useState<"saved" | "saving" | "dirty" | "error">("saved");
@@ -144,14 +144,14 @@ function BoardEditor({ board, onClose }: { board: Board; onClose: () => void }) 
   return createPortal(
     <div className="pdf-overlay board-overlay" role="dialog" aria-modal="true" aria-label={title}>
       <div className="pdf-bar">
-        <input className="note-title board-title" value={title} onChange={(e) => (setTitle(e.target.value), schedule())} aria-label={tr("Название схемы")} />
+        <input className="note-title board-title" readOnly={readOnly} value={title} onChange={(e) => (setTitle(e.target.value), schedule())} aria-label={tr("Название схемы")} />
         <div className="pdf-tools">
           <span className={`note-state is-${state}`} role="status">
             {state === "saved" ? tr("Сохранено") : state === "saving" ? tr("Сохраняю…") : state === "dirty" ? tr("Изменения…") : tr("Не сохранилось, проверьте интернет")}
           </span>
-          <button type="button" className="chip" onClick={remove}>
+          {!readOnly && <button type="button" className="chip" onClick={remove}>
             {tr("Удалить")}
-          </button>
+          </button>}
           <button type="button" className="nav-close" onClick={close} aria-label={tr("Закрыть")}>
             ×
           </button>
@@ -163,6 +163,7 @@ function BoardEditor({ board, onClose }: { board: Board; onClose: () => void }) 
             excalidrawAPI={(a: Api) => (api.current = a)}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             initialData={{ elements: (scene.elements as any[]) ?? [], appState: { ...((scene.appState as object) ?? {}), collaborators: new Map() }, files: (scene.files as any) ?? {}, scrollToContent: true }}
+            viewModeEnabled={readOnly}
             langCode={lang === "ru" ? "ru-RU" : lang === "zh" ? "zh-CN" : "en"}
             onChange={(elements: readonly { version: number }[]) => {
               const v = elements.reduce((s, e) => s + e.version, 0) + elements.length;

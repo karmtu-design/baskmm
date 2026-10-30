@@ -8,7 +8,9 @@ import { TeaserButton } from "@/components/ExportButtons";
 import ProjectForm from "@/components/ProjectForm";
 import { StageBadge } from "@/components/ProjectRegister";
 import { PageHeader, Panel } from "@/components/ui";
-import { getDocuments, getNotesAndBoards, getPresentations, getProject } from "@/lib/data";
+import { getDocuments, getNotesAndBoards, getPresentations, getProject, getStaff } from "@/lib/data";
+import { staffName } from "@/lib/types";
+import { myRole } from "@/lib/roles";
 import NotesAndBoards from "@/components/NotesAndBoards";
 import DocumentsPanel from "@/components/DocumentsPanel";
 import { updateProject } from "../actions";
@@ -27,6 +29,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     getMetalBoard().catch(() => ({ quotes: [] })),
     getNotesAndBoards({ projectId: project.id }),
   ]);
+  const [{ staff }, role] = await Promise.all([getStaff(), myRole()]);
   const prices = board.quotes.map((q) => ({ key: q.key, symbol: q.symbol, price: q.price, unit: q.unit }));
 
   return (
@@ -49,7 +52,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       />
       <Grid columns="3" gap="32" m={{ columns: "1" }}>
         <Column className="span-2">
-          <ProjectForm action={updateProject.bind(null, project.id)} project={project} submitLabel={tr("Сохранить изменения")} />
+          <ProjectForm action={updateProject.bind(null, project.id)} project={project} submitLabel={tr("Сохранить изменения")} people={staff.map(staffName)} />
         </Column>
         <Column gap="24">
           <Panel title={tr("Презентации")} padding="16">
@@ -87,7 +90,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <DocumentsPanel kind="document" projectId={project.id} items={docs} />
       </Column>
       <Column gap="16" marginTop="48">
-        <NotesAndBoards notes={nb.notes} boards={nb.boards} projectId={project.id} />
+        <NotesAndBoards notes={nb.notes} boards={nb.boards} projectId={project.id} readOnly={role === "viewer"} />
       </Column>
     </>
   );
