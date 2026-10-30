@@ -71,3 +71,18 @@ export async function getProject(id: number): Promise<import("./types").Potentia
   const { data } = await supabase.from("potential_projects").select("*").eq("id", id).maybeSingle();
   return data ? projectNumbers(data) : null;
 }
+
+const DOC_COLUMNS =
+  "id, kind, license_id, project_id, title, category, doc_date, year, source, notes, file_path, file_name, mime_type, size_bytes, pages, text_status, uploaded_by, created_at";
+
+/** Documents without their (possibly long) extracted text. */
+export async function getDocuments(filter: { licenseId?: number; projectId?: number; kind?: "document" | "history" } = {}) {
+  const supabase = await createClient();
+  let q = supabase.from("documents").select(DOC_COLUMNS).order("created_at", { ascending: false });
+  if (filter.licenseId) q = q.eq("license_id", filter.licenseId);
+  if (filter.projectId) q = q.eq("project_id", filter.projectId);
+  if (filter.kind) q = q.eq("kind", filter.kind);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((d: any) => ({ ...d, size_bytes: d.size_bytes == null ? null : Number(d.size_bytes) })) as import("./types").DocumentRow[];
+}

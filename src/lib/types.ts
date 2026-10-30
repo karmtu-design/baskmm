@@ -149,3 +149,47 @@ export type PotentialProject = {
 /** Stages a potential project moves through, in order. */
 export const PROJECT_STAGES = ["Новый", "Изучаем", "Переговоры", "Due diligence", "Сделка", "Отложен", "Отклонён"];
 export const DEAL_TYPES = ["Покупка доли", "Покупка 100%", "Совместное предприятие", "Новая лицензия", "Партнёрство"];
+
+export type DocKind = "document" | "history";
+export type DocumentRow = {
+  id: number;
+  kind: DocKind;
+  license_id: number | null;
+  project_id: number | null;
+  title: string;
+  category: string | null;
+  doc_date: string | null;
+  year: number | null;
+  source: string | null;
+  notes: string | null;
+  file_path: string;
+  file_name: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  pages: number | null;
+  text_status: "none" | "done" | "ocr" | "failed" | "unsupported";
+  uploaded_by: string | null;
+  created_at: string;
+};
+
+export const DOC_CATEGORIES = [
+  "Лицензия и приложения",
+  "Контракт, договор",
+  "План разведки / горных работ",
+  "Отчёт по обязательствам",
+  "Экология",
+  "Земля, сервитут",
+  "Финансы, налоги",
+  "Корпоративные документы",
+  "Переписка",
+  "Прочее",
+];
+export const HISTORY_CATEGORIES = [
+  "Геологический отчёт",
+  "Подсчёт запасов",
+  "Протокол ГКЗ / ТКЗ",
+  "Геологическая карта",
+  "Скважины и пробы",
+  "Геофизика",
+  "Прочее",
+];

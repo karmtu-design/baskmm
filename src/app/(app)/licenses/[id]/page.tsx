@@ -6,7 +6,8 @@ import LicenseMapTab from "@/components/LicenseMapTab";
 import DrillholesTab from "@/components/DrillholesTab";
 import LicenseForm from "@/components/LicenseForm";
 import { ExpiryText, MineralSwatch, PageHeader, Panel, StatusBadge, TestMark } from "@/components/ui";
-import { getCompanies, getDrillholes, getLicense, getLicenses } from "@/lib/data";
+import { getCompanies, getDocuments, getDrillholes, getLicense, getLicenses } from "@/lib/data";
+import DocumentsPanel from "@/components/DocumentsPanel";
 import { formatDate, isTest } from "@/lib/types";
 import { updateLicense } from "../../actions";
 
@@ -68,6 +69,7 @@ export default async function LicensePage({
   const companies = tab === "info" ? await getCompanies() : [];
   const others = tab === "map" ? await getLicenses() : [];
   const holes = tab === "drill" ? await getDrillholes(license.id) : [];
+  const docs = tab === "docs" || tab === "history" ? await getDocuments({ licenseId: license.id, kind: tab === "history" ? "history" : "document" }) : [];
   const update = updateLicense.bind(null, license.id);
 
   const facts: [string, React.ReactNode][] = [
@@ -162,23 +164,9 @@ export default async function LicensePage({
         <DrillholesTab license={{ id: license.id, deposit_name: license.deposit_name, license_number: license.license_number, contour: license.contour }} holes={holes} />
       )}
 
-      {tab === "docs" && (
-        <Upcoming title="Документы появятся на следующем этапе">
-          <Text as="p">
-            Здесь можно будет загружать файлы по лицензии (PDF, Word, Excel, сканы) с категорией и датой, а также
-            добавлять ссылки на папки в Google Drive. Поиск будет работать и по содержанию документов.
-          </Text>
-        </Upcoming>
-      )}
+      {tab === "docs" && <DocumentsPanel key="docs" kind="document" licenseId={license.id} items={docs} />}
 
-      {tab === "history" && (
-        <Upcoming title="Исторические данные появятся на следующем этапе">
-          <Text as="p">
-            Отчёты прошлых лет, данные по скважинам и пробам, подсчёты запасов и геологические карты, с годом и
-            источником. Можно будет хранить как файлы, так и ссылки на архив.
-          </Text>
-        </Upcoming>
-      )}
+      {tab === "history" && <DocumentsPanel key="history" kind="history" licenseId={license.id} items={docs} />}
 
       {tab === "checklist" && (
         <Upcoming title="Чек-лист полноты документов появится на следующем этапе">

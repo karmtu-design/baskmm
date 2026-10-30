@@ -2,10 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Button, Column, Heading, Icon, Row, Text } from "@once-ui-system/core";
 import { createClient } from "@/lib/supabase/client";
 import { PRESENTATION_LANGUAGES, type Presentation } from "@/lib/types";
 import { addPresentation, deletePresentation, updatePresentation } from "@/app/(app)/presentations/actions";
+
+const PdfViewer = dynamic(() => import("./PdfViewer"), { ssr: false });
 
 const BUCKET = "presentations";
 const MAX_BYTES = 50 * 1024 * 1024;
@@ -258,6 +261,7 @@ function PresentationCard({ p, onShare, onEdit }: { p: Presentation; onShare: ()
   const [err, setErr] = useState("");
   const ext = extOf(p.file_name);
 
+  const [viewerUrl, setViewerUrl] = useState("");
   async function open(download: boolean) {
     setErr("");
     try {
@@ -267,7 +271,8 @@ function PresentationCard({ p, onShare, onEdit }: { p: Presentation; onShare: ()
         a.href = url;
         a.download = p.file_name;
         a.click();
-      } else window.open(url, "_blank", "noopener");
+      } else if (ext === "pdf") setViewerUrl(url);
+      else window.open(url, "_blank", "noopener");
     } catch (e) {
       setErr((e as Error).message);
     }
@@ -275,6 +280,7 @@ function PresentationCard({ p, onShare, onEdit }: { p: Presentation; onShare: ()
 
   return (
     <article className="pres-card">
+      {viewerUrl && <PdfViewer url={viewerUrl} title={p.title} onClose={() => setViewerUrl("")} onDownload={() => open(true)} />}
       <div className="pres-top">
         <span className={`pres-kind kind-${KIND[ext] ?? "FILE"}`}>{KIND[ext] ?? ext.toUpperCase().slice(0, 4)}</span>
         <div style={{ minWidth: 0 }}>
