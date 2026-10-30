@@ -5,7 +5,8 @@ import MetalPrices, { MetalPricesSkeleton } from "@/components/MetalPrices";
 import { Badge, Column, Grid, Heading, Row, Text } from "@once-ui-system/core";
 import { NavigatorButton } from "@/components/SiteNavigator";
 import { ButtonLink, ExpiryText, Panel, StatusBadge } from "@/components/ui";
-import { getCompanies, getLicenses } from "@/lib/data";
+import { getCompanies, getDocuments, getLicenses, getPresentations, getProjects, getTasks } from "@/lib/data";
+import { ExchangeRates, InGroundValue, IndustryNews, KeyFigures, PanelSkeleton, ProjectFunnel, RecentChanges, RecentFiles, WeekTasks } from "@/components/HomeWidgets";
 import { BRAND } from "@/lib/brand";
 import { daysUntil, isTest } from "@/lib/types";
 
@@ -20,7 +21,14 @@ const rowLink: React.CSSProperties = {
 };
 
 export default async function Overview() {
-  const [companies, licenses] = await Promise.all([getCompanies(), getLicenses()]);
+  const [companies, licenses, projects, tasks, presentations, documents] = await Promise.all([
+    getCompanies(),
+    getLicenses(),
+    getProjects(),
+    getTasks(),
+    getPresentations(),
+    getDocuments(),
+  ]);
   const exploration = licenses.filter((l) => l.license_type === "Разведка").length;
   const mining = licenses.filter((l) => l.license_type === "Добыча").length;
   const deadlines = licenses
@@ -45,12 +53,23 @@ export default async function Overview() {
         </Row>
       </Column>
 
+      <KeyFigures licenses={licenses} projects={projects} tasks={tasks} docs={documents.length} />
+
       <Column gap="12">
         <Text variant="label-strong-m">{tr("Цены на металлы")}</Text>
         <Suspense fallback={<MetalPricesSkeleton />}>
           <MetalPrices />
         </Suspense>
       </Column>
+
+      <div className="home-grid home-grid-2-1">
+        <Suspense fallback={<PanelSkeleton title={tr("Металл в недрах по сегодняшним ценам")} />}>
+          <InGroundValue projects={projects} />
+        </Suspense>
+        <Suspense fallback={<PanelSkeleton title={tr("Курсы Нацбанка РК")} />}>
+          <ExchangeRates />
+        </Suspense>
+      </div>
 
       {licenses.some(isTest) && (
         <Row background="warning-alpha-weak" border="warning-alpha-medium" radius="l" padding="16">
@@ -107,6 +126,21 @@ export default async function Overview() {
           </Panel>
         )}
       </Grid>
+
+      <div className="home-grid home-grid-3">
+        <WeekTasks tasks={tasks} />
+        <ProjectFunnel projects={projects} />
+        <Suspense fallback={<PanelSkeleton title={tr("Последние изменения")} />}>
+          <RecentChanges />
+        </Suspense>
+      </div>
+
+      <div className="home-grid home-grid-1-1">
+        <RecentFiles presentations={presentations} documents={documents} />
+        <Suspense fallback={<PanelSkeleton title={tr("Новости отрасли")} />}>
+          <IndustryNews />
+        </Suspense>
+      </div>
     </Column>
   );
 }

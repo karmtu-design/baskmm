@@ -8,7 +8,8 @@ import { PROJECT_STAGES } from "@/lib/types";
 
 export const generateMetadata = pageTitle("Потенциальные проекты");
 
-export default async function ProjectsPage() {
+export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
+  const { stage } = await searchParams;
   const projects = await getProjects();
   const count = (s: string) => projects.filter((p) => p.stage === s).length;
   const active = PROJECT_STAGES.filter((s) => s !== "Отложен" && s !== "Отклонён");
@@ -36,7 +37,7 @@ export default async function ProjectsPage() {
           ))}
         </Grid>
       )}
-      <ProjectRegister projects={projects} />
+      <ProjectRegister projects={projects} initialStage={stage && PROJECT_STAGES.includes(stage) ? stage : ""} />
     </Column>
   );
 }

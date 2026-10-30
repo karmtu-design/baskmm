@@ -152,3 +152,58 @@ export async function getAudit(f: { table?: string; recordId?: number; before?: 
   if (error) throw new Error(error.message);
   return (data ?? []) as import("./types").AuditEntry[];
 }
+
+/** Current names of the objects mentioned in the log, so links show today's names. */
+export async function getAuditNames(entries: { table_name: string; record_id: number | null }[]) {
+  const supabase = await createClient();
+  const by = new Map<string, number[]>();
+  for (const e of entries) if (e.record_id != null) by.set(e.table_name, [...(by.get(e.table_name) ?? []), e.record_id]);
+  const cols: Record<string, string> = {
+    licenses: "id, deposit_name, license_number",
+    companies: "id, name",
+    potential_projects: "id, name",
+    documents: "id, title",
+    presentations: "id, title",
+    tasks: "id, title",
+    map_overlays: "id, title",
+    drillholes: "id, hole_id",
+  };
+  const names = new Map<string, string>();
+  await Promise.all(
+    [...by].map(async ([table, ids]) => {
+      if (!cols[table]) return;
+      const { data } = await supabase.from(table).select(cols[table]).in("id", [...new Set(ids)]);
+      for (const r of (data ?? []) as unknown as Record<string, unknown>[])
+        names.set(`${table}:${r.id}`, String(r.deposit_name || r.name || r.title || r.license_number || r.hole_id || r.id));
+    })
+  );
+  return names;
+}
+
+/** Official tenge rates of the National Bank of Kazakhstan for today (their RSS page; no key needed). */
+export async function getRates(): Promise<import("./feeds").Rates | null> {
+  const { parseRates } = await import("./feeds");
+  const now = new Date(Date.now() + 5 * 3600e3); // Kazakhstan time
+  const d = `${String(now.getUTCDate()).padStart(2, "0")}.${String(now.getUTCMonth() + 1).padStart(2, "0")}.${now.getUTCFullYear()}`;
+  try {
+    const res = await fetch(`https://nationalbank.kz/rss/get_rates.cfm?fdate=${d}`, { next: { revalidate: 3 * 3600 }, signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    return parseRates(await res.text(), d);
+  } catch {
+    return null;
+  }
+}
+
+/** A few fresh industry headlines from Google News, in the interface language (no key needed). */
+export async function getNews(lang: string): Promise<import("./feeds").NewsItem[] | null> {
+  const { parseNews, NEWS_QUERY } = await import("./feeds");
+  const q = NEWS_QUERY[lang] ?? NEWS_QUERY.ru;
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q.q + " when:14d")}&hl=${q.hl}&gl=${q.gl}&ceid=${q.ceid}`;
+  try {
+    const res = await fetch(url, { next: { revalidate: 3 * 3600 }, signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    return parseNews(await res.text(), 6);
+  } catch {
+    return null;
+  }
+}

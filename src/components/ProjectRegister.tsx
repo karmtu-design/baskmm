@@ -109,10 +109,10 @@ function makeColumns(): DataColumn<PotentialProject>[] {
   ];
 }
 
-export default function ProjectRegister({ projects }: { projects: PotentialProject[] }) {
+export default function ProjectRegister({ projects, initialStage = "" }: { projects: PotentialProject[]; initialStage?: string }) {
   const columns = useMemo(() => makeColumns(), []);
   const [search, setSearch] = useState("");
-  const [stage, setStage] = useState("");
+  const [stage, setStage] = useState(initialStage);
   const [hideClosed, setHideClosed] = useState(false);
   const [exporting, setExporting] = useState(false);
   const visible = useRef<PotentialProject[]>([]);
