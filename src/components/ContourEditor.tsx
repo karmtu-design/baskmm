@@ -54,6 +54,33 @@ export default function ContourEditor({
   const [swapped, setSwapped] = useState(false);
   const [crsNote, setCrsNote] = useState("");
 
+  // corner points read from a scanned appendix
+  const [scan, setScan] = useState<{ busy: boolean; note: string; ok?: boolean }>({ busy: false, note: "" });
+  async function readScan(file: File) {
+    setScan({ busy: true, note: tr("открываю файл…") });
+    try {
+      const { readCornersFromScan, pointsAsText } = await import("@/lib/scanCoords");
+      const r = await readCornersFromScan(file, (note) => setScan({ busy: true, note }));
+      if (r.points.length < 3) {
+        setScan({ busy: false, ok: false, note: tr("Координаты в файле не нашлись (найдено точек: {0}). Проверьте, что это страница с таблицей угловых точек и скан чёткий, или введите точки вручную.", { 0: r.points.length }) });
+        return;
+      }
+      setText(pointsAsText(r.points));
+      if (r.system) setSystem(r.system);
+      setLonFirst(false);
+      setScan({
+        busy: false,
+        ok: true,
+        note: tr("Найдено точек: {0}{1}. Сверьте их с документом (распознавание может ошибиться в цифре) и нажмите «Показать на карте».", {
+          0: r.points.length,
+          1: r.system ? tr(", система координат по тексту: {0}", { 0: r.system === "sk42" ? "СК-42" : "WGS-84" }) : "",
+        }),
+      });
+    } catch (e) {
+      setScan({ busy: false, ok: false, note: tr("Не удалось прочитать файл: {0}", { 0: (e as Error).message }) });
+    }
+  }
+
   const current = license.contour;
   const shown = preview ?? current;
   const area = contourAreaKm2(shown);
@@ -305,6 +332,15 @@ export default function ContourEditor({
         ) : mode === "points" ? (
           <Column gap="12">
             <Text variant="body-default-s" onBackground="neutral-weak">{tr("Вставьте точки из приложения к лицензии, по одной на строку: сначала широта, затем долгота. Подходят градусы-минуты-секунды и десятичные градусы, можно копировать прямо из Word или Excel.")}</Text>
+            <label className={`scan-pick${scan.busy ? " is-busy" : ""}`}>
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" disabled={scan.busy} onChange={(e) => e.target.files?.[0] && readScan(e.target.files[0])} />
+              📄 {scan.busy ? scan.note : tr("Распознать из скана приложения (PDF или фото)")}
+            </label>
+            {!scan.busy && scan.note && (
+              <Text variant="body-default-s" onBackground={scan.ok ? "success-strong" : "danger-strong"} role="status">
+                {scan.note}
+              </Text>
+            )}
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}

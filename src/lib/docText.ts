@@ -81,7 +81,7 @@ async function fromPdf(data: ArrayBuffer, opts: { ocr: boolean; onProgress?: Pro
   return { text, pages: n, status: "done" };
 }
 
-async function renderPage(pdf: PDFDocumentProxy, n: number, scale: number): Promise<Blob> {
+export async function renderPage(pdf: PDFDocumentProxy, n: number, scale: number): Promise<Blob> {
   const page = await pdf.getPage(n);
   const vp = page.getViewport({ scale });
   const canvas = document.createElement("canvas");
@@ -91,7 +91,7 @@ async function renderPage(pdf: PDFDocumentProxy, n: number, scale: number): Prom
   return new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error(tr("страница не отрисовалась")))), "image/png"));
 }
 
-async function ocr(images: Blob[], onProgress?: Progress): Promise<string> {
+export async function ocr(images: Blob[], onProgress?: Progress): Promise<string> {
   const { createWorker } = await import("tesseract.js");
   // the engine and language data are served by the site itself (see scripts/copy-map-worker.mjs)
   const worker = await createWorker(["rus", "eng"], 1, {
