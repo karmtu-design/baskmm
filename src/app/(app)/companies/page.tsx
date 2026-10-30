@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import Link from "next/link";
 import { Button, Column, Row, Text } from "@once-ui-system/core";
 import { PageHeader, Panel } from "@/components/ui";
@@ -8,17 +9,17 @@ export default async function CompaniesPage() {
   const [companies, licenses] = await Promise.all([getCompanies(), getLicenses()]);
   return (
     <Column gap="32">
-      <PageHeader title="Компании группы" subtitle="Недропользователи под управлением BASK Metals and Mining" />
+      <PageHeader title={tr("Компании группы")} subtitle={tr("Недропользователи под управлением BASK Metals and Mining")} />
 
       <div className="data-table-wrap">
         <table className="data-table">
           <thead>
             <tr>
-              <th>Компания</th>
-              <th>БИН</th>
-              <th>Руководитель</th>
-              <th>Разведка</th>
-              <th>Добыча</th>
+              <th>{tr("Компания")}</th>
+              <th>{tr("БИН")}</th>
+              <th>{tr("Руководитель")}</th>
+              <th>{tr("Разведка")}</th>
+              <th>{tr("Добыча")}</th>
             </tr>
           </thead>
           <tbody>
@@ -44,31 +45,21 @@ export default async function CompaniesPage() {
       <Column maxWidth="s">
         <Panel>
           <details>
-            <summary>Добавить компанию</summary>
+            <summary>{tr("Добавить компанию")}</summary>
             <form action={createCompany} style={{ marginTop: 16 }}>
               <Column gap="12">
-                <label className="field-label">
-                  Наименование
-                  <input name="name" required className="field" />
+                <label className="field-label">{tr("Наименование")}<input name="name" required className="field" />
                 </label>
                 <Row gap="12" s={{ direction: "column" }}>
-                  <label className="field-label" style={{ flex: 1 }}>
-                    БИН
-                    <input name="bin" inputMode="numeric" className="field" />
+                  <label className="field-label" style={{ flex: 1 }}>{tr("БИН")}<input name="bin" inputMode="numeric" className="field" />
                   </label>
-                  <label className="field-label" style={{ flex: 1 }}>
-                    Руководитель
-                    <input name="director" className="field" />
+                  <label className="field-label" style={{ flex: 1 }}>{tr("Руководитель")}<input name="director" className="field" />
                   </label>
                 </Row>
                 <Row>
-                  <Button type="submit" prefixIcon="plus">
-                    Добавить компанию
-                  </Button>
+                  <Button type="submit" prefixIcon="plus">{tr("Добавить компанию")}</Button>
                 </Row>
-                <Text variant="body-default-xs" onBackground="neutral-weak">
-                  Остальные реквизиты можно заполнить в карточке компании.
-                </Text>
+                <Text variant="body-default-xs" onBackground="neutral-weak">{tr("Остальные реквизиты можно заполнить в карточке компании.")}</Text>
               </Column>
             </form>
           </details>

@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { tr } from "@/i18n";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import MapTools from "./MapTools";
+import dynamic from "next/dynamic";
+const MapDraw = dynamic(() => import("./MapDraw"), { ssr: false });
 import { useRouter } from "next/navigation";
 import * as maplibregl from "maplibre-gl";
 import type { GeoJSONSource, LngLatBoundsLike, MapLayerMouseEvent, StyleSpecification } from "maplibre-gl";
@@ -41,7 +46,7 @@ const KZ_BOUNDS: LngLatBoundsLike = [
 let workerSet = false;
 
 /** Raster basemaps plus a free elevation model (terrain tiles from the AWS open data registry). */
-function baseStyle(): StyleSpecification {
+export function baseStyle(): StyleSpecification {
   return {
     version: 8,
     sources: {
@@ -50,14 +55,14 @@ function baseStyle(): StyleSpecification {
         tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
         tileSize: 256,
         maxzoom: 19,
-        attribution: "© участники OpenStreetMap",
+        attribution: tr("© участники OpenStreetMap"),
       },
       satellite: {
         type: "raster",
         tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
         tileSize: 256,
         maxzoom: 19,
-        attribution: "Снимки © Esri, Maxar, Earthstar Geographics",
+        attribution: tr("Снимки © Esri, Maxar, Earthstar Geographics"),
       },
       topo: {
         type: "raster",
@@ -72,7 +77,7 @@ function baseStyle(): StyleSpecification {
         tileSize: 256,
         maxzoom: 14,
         encoding: "terrarium",
-        attribution: "Рельеф: Terrain Tiles (AWS Open Data)",
+        attribution: tr("Рельеф: Terrain Tiles (AWS Open Data)"),
       },
     },
     layers: [
@@ -130,6 +135,10 @@ export default function LicensesMapInner({
   linkToLicense = true,
   overlay,
   initial3d = false,
+  tools = true,
+  title,
+  draw,
+  fitTo,
 }: {
   licenses: MapLicense[];
   height?: number;
@@ -138,9 +147,18 @@ export default function LicensesMapInner({
   linkToLicense?: boolean;
   overlay?: MapOverlay;
   initial3d?: boolean;
+  /** ruler, area, terrain profile, swipe and saving as PNG/PDF */
+  tools?: boolean;
+  /** heading for saved pictures */
+  title?: string;
+  /** draw or correct a contour on the map */
+  draw?: { initial: Contour | null; onChange: (c: Contour | null) => void };
+  /** an extra outline to include when zooming to the data */
+  fitTo?: Contour | null;
 }) {
   const router = useRouter();
   const box = useRef<HTMLDivElement>(null);
+  const shell = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markers = useRef<maplibregl.Marker[]>([]);
   const [ready, setReady] = useState(false);
@@ -182,6 +200,7 @@ export default function LicensesMapInner({
       m.on("mouseenter", "lic-fill", () => (m.getCanvas().style.cursor = "pointer"));
       m.on("mouseleave", "lic-fill", () => (m.getCanvas().style.cursor = ""));
       m.on("click", "lic-fill", (e: MapLayerMouseEvent) => {
+        if (m.getCanvas().dataset.tool) return; // a measuring tool is in use
         const id = e.features?.[0]?.properties?.id as number | undefined;
         const l = licRef.current.find((x) => x.id === id);
         if (!l) return;
@@ -195,12 +214,12 @@ export default function LicensesMapInner({
           el.appendChild(n);
           return n;
         };
-        add("strong", l.deposit_name || "Участок");
+        add("strong", l.deposit_name || tr("Участок"));
         add("div", l.license_number, "muted");
         add("div", [l.mineral, l.license_type].filter(Boolean).join(", "));
         add("div", l.company_name);
         if (linkToLicense) {
-          const a = add("a", "Открыть лицензию") as HTMLAnchorElement;
+          const a = add("a", tr("Открыть лицензию")) as HTMLAnchorElement;
           a.href = `/licenses/${l.id}`;
           a.onclick = (ev) => {
             ev.preventDefault();
@@ -240,8 +259,8 @@ export default function LicensesMapInner({
         markers.current.push(new maplibregl.Marker({ element: el, anchor: "left", offset: [10, 0] }).setLngLat([x, y]).addTo(m));
       });
     }
-    const b = boundsOf([...licenses.map((l) => l.contour).filter((c): c is Contour => !!c), ...(preview ? [preview] : [])]);
-    m.fitBounds(b ?? KZ_BOUNDS, { padding: 48, maxZoom: 13, duration: 600, pitch: is3d ? 55 : 0 });
+    const b = boundsOf([...licenses.map((l) => l.contour).filter((c): c is Contour => !!c), ...(preview ? [preview] : []), ...(fitTo ? [fitTo] : [])]);
+    m.fitBounds(b ?? KZ_BOUNDS, { padding: draw ? { top: 96, bottom: 48, left: 64, right: 64 } : 48, maxZoom: 13, duration: 600, pitch: is3d ? 55 : 0 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, licenses, preview, showLabels]);
 
@@ -321,31 +340,36 @@ export default function LicensesMapInner({
     }
   }, [ready, is3d]);
 
+  const contours = useMemo(() => licensesGeoJSON(licenses), [licenses]);
   const btn = (active: boolean) => `map-switch-btn${active ? " is-active" : ""}`;
   return (
-    <div className="map-shell" style={{ height }}>
+    <div className="map-shell" style={{ height }} ref={shell}>
       <div ref={box} style={{ position: "absolute", inset: 0 }} />
-      <div className="map-switch" role="group" aria-label="Подложка карты">
-        <button type="button" className={btn(basemap === "scheme")} onClick={() => setBasemap("scheme")}>
-          Схема
-        </button>
-        <button type="button" className={btn(basemap === "satellite")} onClick={() => setBasemap("satellite")}>
-          Спутник
-        </button>
-        <button type="button" className={btn(basemap === "topo")} onClick={() => setBasemap("topo")}>
-          Топо
-        </button>
+      <div className="map-switch" role="group" aria-label={tr("Подложка карты")}>
+        <button type="button" className={btn(basemap === "scheme")} onClick={() => setBasemap("scheme")}>{tr("Схема")}</button>
+        <button type="button" className={btn(basemap === "satellite")} onClick={() => setBasemap("satellite")}>{tr("Спутник")}</button>
+        <button type="button" className={btn(basemap === "topo")} onClick={() => setBasemap("topo")}>{tr("Топо")}</button>
         <span className="map-switch-sep" />
         <button
           type="button"
           className={btn(is3d)}
           onClick={() => setIs3d((v) => !v)}
           aria-pressed={is3d}
-          title="Объёмный рельеф: наклоните карту правой кнопкой мыши или двумя пальцами"
-        >
-          3D-рельеф
-        </button>
+          title={tr("Объёмный рельеф: наклоните карту правой кнопкой мыши или двумя пальцами")}
+        >{tr("3D-рельеф")}</button>
       </div>
+      {draw && <MapDraw map={map.current} ready={ready} initial={draw.initial} onChange={draw.onChange} />}
+      {tools && !draw && (
+        <MapTools
+          map={map.current}
+          ready={ready}
+          shell={shell.current}
+          baseStyle={baseStyle}
+          basemap={basemap}
+          title={title ?? (licenses.length === 1 ? licenses[0].deposit_name || licenses[0].license_number : tr("Карта участков"))}
+          contours={contours}
+        />
+      )}
     </div>
   );
 }

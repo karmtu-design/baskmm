@@ -14,7 +14,12 @@ const files = [
   ["node_modules/tesseract.js-core/tesseract-core-relaxedsimd-lstm.wasm.js", "public/vendor/tesseract/tesseract-core-relaxedsimd-lstm.wasm.js"],
   ["node_modules/@tesseract.js-data/rus/4.0.0_best_int/rus.traineddata.gz", "public/vendor/tesseract/lang/rus.traineddata.gz"],
   ["node_modules/@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz", "public/vendor/tesseract/lang/eng.traineddata.gz"],
+  // GDAL for reading MapInfo and GeoPackage files in the browser (loaded only when such a file is chosen)
+  ["node_modules/gdal3.js/dist/package/gdal3.js", "public/vendor/gdal/gdal3.js"],
+  ["node_modules/gdal3.js/dist/package/gdal3WebAssembly.wasm", "public/vendor/gdal/gdal3WebAssembly.wasm"],
+  ["node_modules/gdal3.js/dist/package/gdal3WebAssembly.data", "public/vendor/gdal/gdal3WebAssembly.data"],
 ];
+mkdirSync("public/vendor/gdal", { recursive: true });
 mkdirSync("public/vendor/tesseract/lang", { recursive: true });
 mkdirSync("public/vendor/fonts", { recursive: true });
 for (const [from, to] of files) if (existsSync(from)) copyFileSync(from, to);

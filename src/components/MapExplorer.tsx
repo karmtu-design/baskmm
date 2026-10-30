@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useMemo, useState } from "react";
 import { Checkbox, Column, Row, Text } from "@once-ui-system/core";
 import LicensesMap from "./LicensesMap";
@@ -29,31 +31,30 @@ export default function MapExplorer({ licenses, companies }: { licenses: License
   return (
     <Column gap="12">
       <Row wrap gap="8" vertical="center">
-        <select aria-label="Компания" className="field" style={select} value={company} onChange={(e) => setCompany(e.target.value)}>
-          <option value="">Все компании</option>
+        <select aria-label={tr("Компания")} className="field" style={select} value={company} onChange={(e) => setCompany(e.target.value)}>
+          <option value="">{tr("Все компании")}</option>
           {companies.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
             </option>
           ))}
         </select>
-        <select aria-label="Вид лицензии" className="field" style={select} value={type} onChange={(e) => setType(e.target.value)}>
-          <option value="">Разведка и добыча</option>
-          <option value="Разведка">Разведка</option>
-          <option value="Добыча">Добыча</option>
+        <select aria-label={tr("Вид лицензии")} className="field" style={select} value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="">{tr("Разведка и добыча")}</option>
+          <option value="Разведка">{tr("Разведка")}</option>
+          <option value="Добыча">{tr("Добыча")}</option>
         </select>
-        <select aria-label="Полезное ископаемое" className="field" style={select} value={group} onChange={(e) => setGroup(e.target.value)}>
-          <option value="">Все полезные ископаемые</option>
+        <select aria-label={tr("Полезное ископаемое")} className="field" style={select} value={group} onChange={(e) => setGroup(e.target.value)}>
+          <option value="">{tr("Все полезные ископаемые")}</option>
           {groups.map((g) => (
-            <option key={g} value={g}>
-              {g}
+            <option key={tr(g)} value={g}>
+              {tr(g)}
             </option>
           ))}
         </select>
-        <Checkbox label="Подписи участков" checked={labels} onToggle={setLabels} />
+        <Checkbox label={tr("Подписи участков")} checked={labels} onToggle={setLabels} />
         <Row flex={1} horizontal="end">
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            Показано участков: {shown.length - missing.length}
+          <Text variant="body-default-s" onBackground="neutral-weak">{tr("Показано участков:")}{" "}{shown.length - missing.length}
           </Text>
         </Row>
       </Row>
@@ -62,9 +63,7 @@ export default function MapExplorer({ licenses, companies }: { licenses: License
       <Legend licenses={licenses} />
 
       {missing.length > 0 && (
-        <Text variant="body-default-s" onBackground="warning-strong">
-          Без контура: {missing.map((l) => l.deposit_name).join(", ")}. Добавьте координаты в карточке лицензии.
-        </Text>
+        <Text variant="body-default-s" onBackground="warning-strong">{tr("Без контура:")}{" "}{missing.map((l) => l.deposit_name).join(", ")}{tr(". Добавьте координаты в карточке лицензии.")}</Text>
       )}
     </Column>
   );

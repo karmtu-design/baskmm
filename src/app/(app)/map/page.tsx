@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import MapExplorer from "@/components/MapExplorer";
 import { PageHeader } from "@/components/ui";
 import { getCompanies, getLicenses } from "@/lib/data";
@@ -7,8 +8,8 @@ export default async function MapPage() {
   return (
     <>
       <PageHeader
-        title="Карта участков"
-        subtitle="Нажмите на контур, чтобы открыть лицензию. Подложку можно переключить в правом верхнем углу карты."
+        title={tr("Карта участков")}
+        subtitle={tr("Нажмите на контур, чтобы открыть лицензию. Подложку можно переключить в правом верхнем углу карты.")}
       />
       <MapExplorer licenses={licenses} companies={companies} />
     </>

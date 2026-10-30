@@ -1,7 +1,8 @@
-// Turning a GeoTIFF (a geological map or a satellite scene with coordinates) into a picture laid on the map.
-// Read in the browser: the image is scaled down to at most 2048 px, saved as WebP, and placed by its four corners.
 "use client";
 
+import { tr } from "@/i18n";
+// Turning a GeoTIFF (a geological map or a satellite scene with coordinates) into a picture laid on the map.
+// Read in the browser: the image is scaled down to at most 2048 px, saved as WebP, and placed by its four corners.
 import proj4 from "proj4";
 import { crsLabel, type Crs } from "./geoImport";
 
@@ -14,12 +15,12 @@ export type OverlayImage = { blob: Blob; corners: Corners; crsName: string; widt
 /** EPSG codes seen on Kazakh maps → a proj4 definition. */
 function fromEpsg(code: number): { def: string | null; name: string } | null {
   if (code === 4326) return { def: null, name: "WGS-84 (EPSG:4326)" };
-  if (code === 4284) return { def: `+proj=longlat ${SK42} +no_defs`, name: "СК-42, градусы (EPSG:4284)" };
+  if (code === 4284) return { def: `+proj=longlat ${SK42} +no_defs`, name: tr("СК-42, градусы (EPSG:4284)") };
   if (code === 3857 || code === 900913) return { def: "EPSG:3857", name: "Web Mercator (EPSG:3857)" };
   if (code >= 32601 && code <= 32660) return { def: `+proj=utm +zone=${code - 32600} +datum=WGS84 +units=m +no_defs`, name: `WGS-84 / UTM ${code - 32600}N` };
   if (code >= 28404 && code <= 28432) {
     const z = code - 28400;
-    return { def: `+proj=tmerc +lat_0=0 +lon_0=${z * 6 - 3} +k=1 +x_0=${z * 1e6 + 5e5} +y_0=0 ${SK42} +units=m +no_defs`, name: `СК-42 / Гаусс–Крюгер, зона ${z}` };
+    return { def: `+proj=tmerc +lat_0=0 +lon_0=${z * 6 - 3} +k=1 +x_0=${z * 1e6 + 5e5} +y_0=0 ${SK42} +units=m +no_defs`, name: tr("СК-42 / Гаусс–Крюгер, зона {0}", { 0: z }) };
   }
   return null;
 }
@@ -45,7 +46,7 @@ export async function readGeoTiff(file: File, manual?: Crs): Promise<OverlayImag
   try {
     bbox = image.getBoundingBox();
   } catch {
-    throw new Error("в файле нет привязки к координатам (это обычная картинка TIFF, а не GeoTIFF)");
+    throw new Error(tr("в файле нет привязки к координатам (это обычная картинка TIFF, а не GeoTIFF)"));
   }
   const [minX, minY, maxX, maxY] = bbox;
   const to = (x: number, y: number): [number, number] => {
@@ -54,7 +55,7 @@ export async function readGeoTiff(file: File, manual?: Crs): Promise<OverlayImag
   };
   const corners: Corners = [to(minX, maxY), to(maxX, maxY), to(maxX, minY), to(minX, minY)];
   if (corners.some(([lon, lat]) => !isFinite(lon) || !isFinite(lat) || Math.abs(lat) > 85 || Math.abs(lon) > 180))
-    throw new Error("координаты углов не получились: проверьте систему координат");
+    throw new Error(tr("координаты углов не получились: проверьте систему координат"));
 
   const w0 = image.getWidth(),
     h0 = image.getHeight();
@@ -98,7 +99,7 @@ export async function readGeoTiff(file: File, manual?: Crs): Promise<OverlayImag
   canvas.height = height;
   canvas.getContext("2d")!.putImageData(new ImageData(rgba, width, height), 0, 0);
   const blob = await new Promise<Blob>((res, rej) =>
-    canvas.toBlob((b) => (b ? res(b) : rej(new Error("картинка не сохранилась"))), "image/webp", 0.85)
+    canvas.toBlob((b) => (b ? res(b) : rej(new Error(tr("картинка не сохранилась")))), "image/webp", 0.85)
   );
   return { blob, corners, crsName: sys.name, width, height };
 }

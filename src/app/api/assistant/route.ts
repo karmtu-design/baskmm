@@ -125,8 +125,10 @@ export async function POST(req: Request) {
     );
 
   let turns: Turn[];
+  let lang = "ru";
   try {
     const body = await req.json();
+    if (body?.locale === "en" || body?.locale === "zh") lang = body.locale;
     turns = (Array.isArray(body?.messages) ? body.messages : [])
       .filter((m: Turn) => (m?.role === "user" || m?.role === "assistant") && typeof m.content === "string" && m.content.trim())
       .slice(-MAX_TURNS)
@@ -156,6 +158,15 @@ export async function POST(req: Request) {
       cache_control: { type: "ephemeral" },
     },
   ];
+  // the interface language: the register stays in Russian, the answer follows the user's choice
+  if (lang !== "ru")
+    system.push({
+      type: "text",
+      text:
+        lang === "en"
+          ? "The user has the interface in English. Answer in English unless they write in another language; keep names of licences, companies and places as they are in the register."
+          : "用户的界面语言是中文。除非用户使用其他语言提问，请用简体中文回答；许可证、公司和地名保持登记册中的原文。",
+    });
 
   const encoder = new TextEncoder();
   let current: { abort: () => void } | null = null;

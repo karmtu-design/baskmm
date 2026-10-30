@@ -7,6 +7,10 @@ import { ThemeInit } from "@once-ui-system/core";
 import IntroSplash from "@/components/IntroSplash";
 import { Providers } from "@/components/Providers";
 import { INTRO_KEY } from "@/lib/brand";
+import { getLocale } from "next-intl/server";
+import LocaleProvider from "@/i18n/LocaleProvider";
+import "@/i18n/server";
+import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/i18n";
 import { dataStyle, style } from "@/resources/once-ui.config";
 
 export const metadata: Metadata = {
@@ -25,9 +29,11 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, view
 // or when the visitor has asked the system to reduce motion.
 const introGate = `try{if(sessionStorage.getItem(${JSON.stringify(INTRO_KEY)})||matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.dataset.intro="seen"}catch(e){document.documentElement.dataset.intro="seen"}`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const l = (await getLocale()) as Locale;
+  const locale = LOCALES.includes(l) ? l : DEFAULT_LOCALE;
   return (
-    <html lang="ru" suppressHydrationWarning>
+    <html lang={locale === "zh" ? "zh-CN" : locale} suppressHydrationWarning>
       <head>
         {/* sets the light or dark theme and BASK colours before the first paint */}
         <ThemeInit config={style} dataStyle={dataStyle} />
@@ -37,10 +43,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </noscript>
       </head>
       <body>
-        <Providers>
-          {children}
-          <IntroSplash />
-        </Providers>
+        <LocaleProvider locale={locale}>
+          <Providers>
+            {children}
+            <IntroSplash />
+          </Providers>
+        </LocaleProvider>
       </body>
     </html>
   );

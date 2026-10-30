@@ -1,11 +1,14 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Fade, Line, Row, Text, ToggleButton, useTheme, type IconName } from "@once-ui-system/core";
 import BrandLogo from "./BrandLogo";
 import { signOut } from "@/app/login/actions";
 import { openNavigator } from "./SiteNavigator";
+import LanguageSwitch from "./LanguageSwitch";
 
 const NAV: { href: string; label: string; icon: IconName }[] = [
   { href: "/map", label: "Карта", icon: "globe" },
@@ -31,7 +34,7 @@ function ThemeToggle() {
     <ToggleButton
       prefixIcon={current === "dark" ? "light" : "dark"}
       onClick={() => setTheme(next)}
-      aria-label={next === "light" ? "Светлая тема" : "Тёмная тема"}
+      aria-label={next === "light" ? tr("Светлая тема") : tr("Тёмная тема")}
     />
   );
 }
@@ -50,23 +53,23 @@ export default function AppHeader({ email }: { email?: string | null }) {
       vertical="center"
       textVariant="body-default-s"
     >
-      <ToggleButton prefixIcon="home" href="/" aria-label="Обзор портфеля" selected={path === "/"} />
+      <ToggleButton prefixIcon="home" href="/" aria-label={tr("Обзор портфеля")} selected={path === "/"} />
       <Line background="neutral-alpha-medium" vert maxHeight="24" />
       {NAV.map((item) => (
         <Row key={item.href}>
           <Row m={{ hide: true }}>
-            <ToggleButton prefixIcon={item.icon} href={item.href} label={item.label} selected={path.startsWith(item.href)} />
+            <ToggleButton prefixIcon={item.icon} href={item.href} label={tr(item.label)} selected={path.startsWith(item.href)} />
           </Row>
           <Row hide m={{ hide: false }}>
-            <ToggleButton prefixIcon={item.icon} href={item.href} aria-label={item.label} title={item.label} selected={path.startsWith(item.href)} />
+            <ToggleButton prefixIcon={item.icon} href={item.href} aria-label={tr(item.label)} title={tr(item.label)} selected={path.startsWith(item.href)} />
           </Row>
         </Row>
       ))}
       <Line background="neutral-alpha-medium" vert maxHeight="24" />
-      <ToggleButton prefixIcon="grid" onClick={openNavigator} aria-label="Все разделы (Ctrl+K)" />
+      <ToggleButton prefixIcon="grid" onClick={openNavigator} aria-label={tr("Все разделы (Ctrl+K)")} />
       <ThemeToggle />
       <form action={signOut} style={{ display: "contents" }}>
-        <ToggleButton prefixIcon="logout" aria-label="Выйти" type="submit" />
+        <ToggleButton prefixIcon="logout" aria-label={tr("Выйти")} type="submit" />
       </form>
     </Row>
   );
@@ -93,7 +96,8 @@ export default function AppHeader({ email }: { email?: string | null }) {
         <Row fillWidth horizontal="center" className="app-header-pill">
           {pill}
         </Row>
-        <Row fillWidth horizontal="end" paddingRight="12" m={{ hide: true }}>
+        <Row fillWidth horizontal="end" vertical="center" gap="12" paddingRight="12" m={{ hide: true }}>
+          <LanguageSwitch compact />
           <Text variant="body-default-s" onBackground="neutral-weak" truncate>
             {email}
           </Text>

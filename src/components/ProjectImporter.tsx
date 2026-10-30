@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useMemo, useState, useTransition } from "react";
 import { Button, Checkbox, Column, Heading, Row, Tag, Text } from "@once-ui-system/core";
 import { downloadProjectWorkbook, readProjectWorkbook, type ProjectImportRow } from "@/lib/projectsExcel";
@@ -26,7 +28,7 @@ export default function ProjectImporter({ existingNames }: { existingNames: stri
       setProblems(r.problems);
     } catch (e) {
       setRows(null);
-      setProblems([`Файл не открылся как таблица Excel (.xlsx): ${(e as Error).message}`]);
+      setProblems([tr("Файл не открылся как таблица Excel (.xlsx): {0}", { 0: (e as Error).message })]);
     } finally {
       setReading(false);
     }
@@ -46,28 +48,17 @@ export default function ProjectImporter({ existingNames }: { existingNames: stri
     <Column gap="24">
       <Row gap="24" s={{ direction: "column" }}>
         <Column flex={1} background="surface" border radius="l" padding="24" gap="12">
-          <Heading as="h2" variant="heading-strong-m">
-            1. Возьмите шаблон
-          </Heading>
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            Один лист «Проекты», одна строка на проект. Подойдёт и выгрузка со страницы проектов: её можно поправить и
-            загрузить обратно.
-          </Text>
+          <Heading as="h2" variant="heading-strong-m">{tr("1. Возьмите шаблон")}</Heading>
+          <Text variant="body-default-s" onBackground="neutral-weak">{tr("Один лист «Проекты», одна строка на проект. Подойдёт и выгрузка со страницы проектов: её можно поправить и загрузить обратно.")}</Text>
           <Row>
-            <Button variant="secondary" prefixIcon="download" onClick={() => downloadProjectWorkbook(null, "Шаблон потенциальных проектов BASK.xlsx")}>
-              Скачать шаблон
-            </Button>
+            <Button variant="secondary" prefixIcon="download" onClick={() => downloadProjectWorkbook(null, "Шаблон потенциальных проектов BASK.xlsx")}>{tr("Скачать шаблон")}</Button>
           </Row>
         </Column>
         <Column flex={1} background="surface" border radius="l" padding="24" gap="12">
-          <Heading as="h2" variant="heading-strong-m">
-            2. Выберите заполненный файл
-          </Heading>
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            Формат .xlsx. Названия столбцов как в шаблоне, порядок любой. Обязателен только столбец «Название проекта».
-          </Text>
-          <input type="file" accept=".xlsx" className="field" aria-label="Файл Excel" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
-          {reading && <Text variant="body-default-s">Читаю файл…</Text>}
+          <Heading as="h2" variant="heading-strong-m">{tr("2. Выберите заполненный файл")}</Heading>
+          <Text variant="body-default-s" onBackground="neutral-weak">{tr("Формат .xlsx. Названия столбцов как в шаблоне, порядок любой. Обязателен только столбец «Название проекта».")}</Text>
+          <input type="file" accept=".xlsx" className="field" aria-label={tr("Файл Excel")} onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+          {reading && <Text variant="body-default-s">{tr("Читаю файл…")}</Text>}
         </Column>
       </Row>
 
@@ -83,26 +74,24 @@ export default function ProjectImporter({ existingNames }: { existingNames: stri
 
       {rows && rows.length > 0 && (
         <Column gap="16">
-          <Heading as="h2" variant="heading-strong-l">
-            3. Проверьте, что будет загружено
-          </Heading>
+          <Heading as="h2" variant="heading-strong-l">{tr("3. Проверьте, что будет загружено")}</Heading>
           <Row wrap gap="8">
-            <Tag scheme="success" label={`новых: ${willCreate.length}`} />
-            <Tag scheme="info" label={`обновится: ${willUpdate.length}`} />
-            <Tag scheme="danger" label={`с ошибками: ${rows.length - valid.length}`} />
+            <Tag scheme="success" label={tr("новых: {0}", { 0: willCreate.length })} />
+            <Tag scheme="info" label={tr("обновится: {0}", { 0: willUpdate.length })} />
+            <Tag scheme="danger" label={tr("с ошибками: {0}", { 0: rows.length - valid.length })} />
           </Row>
           <div className="data-table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Строка</th>
-                  <th>Что будет</th>
-                  <th>Проект</th>
-                  <th>Полезное ископаемое</th>
-                  <th>Область</th>
-                  <th>Этап</th>
-                  <th>Срок шага</th>
-                  <th>Замечания</th>
+                  <th>{tr("Строка")}</th>
+                  <th>{tr("Что будет")}</th>
+                  <th>{tr("Проект")}</th>
+                  <th>{tr("Полезное ископаемое")}</th>
+                  <th>{tr("Область")}</th>
+                  <th>{tr("Этап")}</th>
+                  <th>{tr("Срок шага")}</th>
+                  <th>{tr("Замечания")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -113,17 +102,17 @@ export default function ProjectImporter({ existingNames }: { existingNames: stri
                       <td>{r.line}</td>
                       <td>
                         {r.errors.length ? (
-                          <Tag as="span" size="s" scheme="danger" label="ошибка" />
+                          <Tag as="span" size="s" scheme="danger" label={tr("ошибка")} />
                         ) : upd ? (
-                          <Tag as="span" size="s" scheme={updateExisting ? "info" : "neutral"} label={updateExisting ? "обновится" : "пропустится"} />
+                          <Tag as="span" size="s" scheme={updateExisting ? "info" : "neutral"} label={updateExisting ? tr("обновится") : tr("пропустится")} />
                         ) : (
-                          <Tag as="span" size="s" scheme="success" label="новый" />
+                          <Tag as="span" size="s" scheme="success" label={tr("новый")} />
                         )}
                       </td>
                       <td>{r.values.name ?? "—"}</td>
                       <td>{r.values.commodity ?? "—"}</td>
                       <td>{r.values.region ?? "—"}</td>
-                      <td>{r.values.stage ?? "—"}</td>
+                      <td>{r.values.stage ? tr(String(r.values.stage)) : "—"}</td>
                       <td>{formatDate((r.values.next_date as string) ?? null)}</td>
                       <td style={{ maxWidth: 320 }}>
                         {r.errors.map((e) => (
@@ -143,15 +132,13 @@ export default function ProjectImporter({ existingNames }: { existingNames: stri
               </tbody>
             </table>
           </div>
-          <Checkbox label="Обновлять проекты, названия которых уже есть в системе" checked={updateExisting} onToggle={setUpdateExisting} />
+          <Checkbox label={tr("Обновлять проекты, названия которых уже есть в системе")} checked={updateExisting} onToggle={setUpdateExisting} />
           <Row wrap gap="12" vertical="center">
             <Button prefixIcon="upload" onClick={upload} loading={pending} disabled={toSend.length === 0 || !!result?.ok}>
-              {`Загрузить проектов: ${toSend.length}`}
+              {tr("Загрузить проектов: {0}", { 0: toSend.length })}
             </Button>
             {rows.length - valid.length > 0 && (
-              <Text variant="body-default-s" onBackground="neutral-weak">
-                Строки с ошибками будут пропущены. Исправьте их в файле {fileName} и загрузите его ещё раз.
-              </Text>
+              <Text variant="body-default-s" onBackground="neutral-weak">{tr("Строки с ошибками будут пропущены. Исправьте их в файле")}{" "}{fileName}{" "}{tr("и загрузите его ещё раз.")}</Text>
             )}
           </Row>
         </Column>
@@ -166,9 +153,8 @@ export default function ProjectImporter({ existingNames }: { existingNames: stri
           gap="8"
           role="status"
         >
-          <Text variant="label-strong-m">
-            Готово: добавлено {result.created}, обновлено {result.updated}
-            {result.skipped ? `, пропущено ${result.skipped}` : ""}.
+          <Text variant="label-strong-m">{tr("Готово: добавлено")}{" "}{result.created}{tr(", обновлено")}{" "}{result.updated}
+            {result.skipped ? tr(", пропущено {0}", { 0: result.skipped }) : ""}.
           </Text>
           {result.errors.map((e) => (
             <Text key={e} variant="body-default-s" onBackground="danger-strong">
@@ -176,9 +162,7 @@ export default function ProjectImporter({ existingNames }: { existingNames: stri
             </Text>
           ))}
           <Row>
-            <Button href="/projects" variant="secondary" size="s" suffixIcon="arrowRight">
-              Открыть проекты
-            </Button>
+            <Button href="/projects" variant="secondary" size="s" suffixIcon="arrowRight">{tr("Открыть проекты")}</Button>
           </Row>
         </Column>
       )}

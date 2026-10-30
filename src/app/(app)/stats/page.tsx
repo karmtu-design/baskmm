@@ -1,3 +1,5 @@
+import { pageTitle } from "@/i18n/meta";
+import { tr, loc } from "@/i18n";
 import { Column, Grid, Text } from "@once-ui-system/core";
 import { BarCard, ColumnCard, PriceCard } from "@/components/StatsCharts";
 import { PageHeader } from "@/components/ui";
@@ -5,7 +7,7 @@ import { getDocuments, getLicenses, getMetalHistory, getProjects, getTasks } fro
 import { METALS } from "@/lib/metals";
 import { PROJECT_STAGES, daysUntil, mineralGroup } from "@/lib/types";
 
-export const metadata = { title: "Аналитика" };
+export const generateMetadata = pageTitle("Аналитика");
 
 const count = <T,>(items: T[], key: (t: T) => string) => {
   const m = new Map<string, number>();
@@ -45,32 +47,32 @@ export default async function StatsPage() {
 
   const years = Array.from({ length: 10 }, (_, i) => String(nowYear + i));
   const byYear = [
-    { label: "Истекли", value: expired },
+    { label: tr("Истекли"), value: expired },
     ...years.map((y) => ({ label: y, value: licenses.filter((l) => l.expiry_date?.startsWith(y) && (daysUntil(l.expiry_date) ?? -1) >= 0).length })),
-    { label: "Позже", value: licenses.filter((l) => l.expiry_date && Number(l.expiry_date.slice(0, 4)) > nowYear + 9).length },
+    { label: tr("Позже"), value: licenses.filter((l) => l.expiry_date && Number(l.expiry_date.slice(0, 4)) > nowYear + 9).length },
   ];
-  const stages = PROJECT_STAGES.map((s) => ({ label: s, value: projects.filter((p) => p.stage === s).length }));
+  const stages = PROJECT_STAGES.map((s) => ({ label: tr(s), value: projects.filter((p) => p.stage === s).length }));
 
   return (
     <Column gap="24">
-      <PageHeader title="Аналитика" subtitle="Портфель в цифрах и графиках. Наведите на столбик, чтобы увидеть значение; под каждым графиком те же данные таблицей." />
+      <PageHeader title={tr("Аналитика")} subtitle={tr("Портфель в цифрах и графиках. Наведите на столбик, чтобы увидеть значение; под каждым графиком те же данные таблицей.")} />
       <Grid columns="6" gap="12" m={{ columns: "3" }} s={{ columns: "2" }}>
-        <Tile value={String(licenses.length)} label="лицензий" />
-        <Tile value={`${Math.round(totalArea).toLocaleString("ru-RU")} км²`} label="площадь по лицензиям" />
-        <Tile value={String(soon)} label="истекают в течение года" tone={soon ? "warn" : undefined} />
-        <Tile value={String(activeProjects)} label="проектов в работе" />
-        <Tile value={String(open.length)} label={overdue ? `открытых задач, просрочено ${overdue}` : "открытых задач"} tone={overdue ? "bad" : undefined} />
-        <Tile value={String(docs.length)} label="документов" />
+        <Tile value={String(licenses.length)} label={tr("лицензий")} />
+        <Tile value={tr("{0} км²", { 0: Math.round(totalArea).toLocaleString(loc()) })} label={tr("площадь по лицензиям")} />
+        <Tile value={String(soon)} label={tr("истекают в течение года")} tone={soon ? "warn" : undefined} />
+        <Tile value={String(activeProjects)} label={tr("проектов в работе")} />
+        <Tile value={String(open.length)} label={overdue ? tr("открытых задач, просрочено {0}", { 0: overdue }) : tr("открытых задач")} tone={overdue ? "bad" : undefined} />
+        <Tile value={String(docs.length)} label={tr("документов")} />
       </Grid>
       <Grid columns="2" gap="16" m={{ columns: "1" }}>
-        <BarCard title="Лицензии по полезным ископаемым" data={count(licenses, (l) => mineralGroup(l.mineral))} head={["Группа", "Лицензий"]} />
-        <BarCard title="Площадь по компаниям" note="По площади, указанной в лицензии." data={areaByCompany} unit="км²" digits={1} head={["Компания", "Площадь"]} />
-        <ColumnCard title="Окончание сроков лицензий по годам" note="Оранжевым — лицензии, срок которых уже истёк." data={byYear} highlight="Истекли" head={["Год", "Лицензий"]} />
-        <BarCard title="Лицензии по областям" data={count(licenses, (l) => l.region || "Не указана")} head={["Область", "Лицензий"]} />
-        <BarCard title="Потенциальные проекты по этапам" note="В порядке этапов: от нового до сделки." data={stages} head={["Этап", "Проектов"]} />
+        <BarCard title={tr("Лицензии по полезным ископаемым")} data={count(licenses, (l) => tr(mineralGroup(l.mineral)))} head={[tr("Группа"), tr("Лицензий")]} />
+        <BarCard title={tr("Площадь по компаниям")} note={tr("По площади, указанной в лицензии.")} data={areaByCompany} unit={tr("км²")} digits={1} head={[tr("Компания"), tr("Площадь")]} />
+        <ColumnCard title={tr("Окончание сроков лицензий по годам")} note={tr("Оранжевым — лицензии, срок которых уже истёк.")} data={byYear} highlight={tr("Истекли")} head={[tr("Год"), tr("Лицензий")]} />
+        <BarCard title={tr("Лицензии по областям")} data={count(licenses, (l) => l.region || tr("Не указана"))} head={[tr("Область"), tr("Лицензий")]} />
+        <BarCard title={tr("Потенциальные проекты по этапам")} note={tr("В порядке этапов: от нового до сделки.")} data={stages} head={[tr("Этап"), tr("Проектов")]} />
         <PriceCard
           history={history.map((h) => ({ metal: h.metal, date: h.price_date, price: h.price }))}
-          metals={METALS.map((m) => ({ key: m.key, name: m.name, unit: m.unit }))}
+          metals={METALS.map((m) => ({ key: m.key, name: tr(m.name), unit: tr(m.unit) }))}
         />
       </Grid>
     </Column>

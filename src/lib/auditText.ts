@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Turning change-log rows into plain Russian: what object, which field, from what to what.
 import type { AuditEntry } from "./types";
 
@@ -71,22 +72,22 @@ const TASK_STATUS: Record<string, string> = { new: "Новые", in_progress: "�
 const PRIORITY: Record<string, string> = { high: "высокая", normal: "обычная", low: "низкая" };
 
 export function fieldLabel(k: string) {
-  return FIELDS[k] ?? k;
+  return tr(FIELDS[k] ?? k);
 }
 
 export function valueText(k: string, v: unknown): string {
   if (v == null || v === "") return "—";
-  if (k === "contour") return v ? "есть" : "нет";
-  if (k === "status" && typeof v === "string" && TASK_STATUS[v]) return TASK_STATUS[v];
-  if (k === "priority" && typeof v === "string") return PRIORITY[v] ?? v;
+  if (k === "contour") return v ? tr("есть") : tr("нет");
+  if (k === "status" && typeof v === "string" && TASK_STATUS[v]) return tr(TASK_STATUS[v]);
+  if (k === "priority" && typeof v === "string") return tr(PRIORITY[v] ?? v);
   if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}/.test(v)) {
     const [y, m, d] = v.slice(0, 10).split("-");
     return `${d}.${m}.${y}`;
   }
-  if (typeof v === "boolean") return v ? "да" : "нет";
+  if (typeof v === "boolean") return v ? tr("да") : tr("нет");
   if (typeof v === "object") return JSON.stringify(v).slice(0, 80);
   const s = String(v);
-  return s.length > 120 ? `${s.slice(0, 117)}…` : s;
+  return s.length > 120 ? `${s.slice(0, 117)}…` : tr(s); // stored words like «на продлении» are shown translated
 }
 
 /** The object's name as it was recorded (works for deleted ones too). */
@@ -98,4 +99,4 @@ export function recordName(e: AuditEntry, names: Map<string, string>): string {
   return String(r.deposit_name || r.name || r.title || r.license_number || r.hole_id || fromChange("title") || fromChange("name") || `№ ${e.record_id ?? "?"}`);
 }
 
-export const verb = (e: AuditEntry) => (e.op === "INSERT" ? "добавил(а)" : e.op === "DELETE" ? "удалил(а)" : "изменил(а)");
+export const verb = (e: AuditEntry) => (e.op === "INSERT" ? tr("добавил(а)") : e.op === "DELETE" ? tr("удалил(а)") : tr("изменил(а)"));

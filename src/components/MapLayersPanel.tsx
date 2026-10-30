@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Column, Heading, Row, Text } from "@once-ui-system/core";
@@ -51,7 +53,7 @@ export default function MapLayersPanel({
         await supabase.storage.from("documents").remove([path]);
         throw new Error(s.message);
       }
-      setMsg({ ok: true, text: `Карта добавлена (${r.crsName}, ${r.width}×${r.height} пикс.).` });
+      setMsg({ ok: true, text: tr("Карта добавлена ({0}, {1}×{2} пикс.).", { 0: r.crsName, 1: r.width, 2: r.height }) });
       setFile(null);
       setTitle("");
       setNeedCrs(false);
@@ -59,7 +61,7 @@ export default function MapLayersPanel({
       if (input.current) input.current.value = "";
       router.refresh();
     } catch (e) {
-      setMsg({ ok: false, text: `Не получилось: ${(e as Error).message}` });
+      setMsg({ ok: false, text: tr("Не получилось: {0}", { 0: (e as Error).message }) });
     }
     setBusy(false);
   }
@@ -72,14 +74,9 @@ export default function MapLayersPanel({
 
   return (
     <Column background="surface" border radius="l" padding="24" gap="16">
-      <Heading as="h2" variant="heading-strong-m">
-        Геологические карты на подложке
-      </Heading>
+      <Heading as="h2" variant="heading-strong-m">{tr("Геологические карты на подложке")}</Heading>
       {images.length === 0 ? (
-        <Text variant="body-default-s" onBackground="neutral-weak">
-          Добавьте карту в формате GeoTIFF (с привязкой к координатам): геологическую карту, карту фактического
-          материала, космоснимок. Она ляжет под контуры участков.
-        </Text>
+        <Text variant="body-default-s" onBackground="neutral-weak">{tr("Добавьте карту в формате GeoTIFF (с привязкой к координатам): геологическую карту, карту фактического материала, космоснимок. Она ляжет под контуры участков.")}</Text>
       ) : (
         <ul className="layer-list">
           {images.map((img) => {
@@ -103,19 +100,19 @@ export default function MapLayersPanel({
                     value={op}
                     disabled={!on}
                     onChange={(e) => opacity(img.id, Number(e.target.value))}
-                    aria-label={`Прозрачность: ${img.title}`}
+                    aria-label={tr("Прозрачность: {0}", { 0: img.title })}
                     className="layer-range"
                   />
                   <Button
                     size="s"
                     variant="tertiary"
                     prefixIcon="trash"
-                    aria-label={`Удалить карту ${img.title}`}
+                    aria-label={tr("Удалить карту {0}", { 0: img.title })}
                     loading={pending}
                     onClick={() =>
                       start(async () => {
                         const r = await deleteOverlay(img.id);
-                        if (!r.ok) setMsg({ ok: false, text: r.message ?? "Ошибка" });
+                        if (!r.ok) setMsg({ ok: false, text: r.message ?? tr("Ошибка") });
                         router.refresh();
                       })
                     }
@@ -133,7 +130,7 @@ export default function MapLayersPanel({
           type="file"
           accept=".tif,.tiff,.geotiff"
           className="field"
-          aria-label="Файл GeoTIFF"
+          aria-label={tr("Файл GeoTIFF")}
           onChange={(e) => {
             const f = e.target.files?.[0] ?? null;
             setFile(f);
@@ -144,29 +141,23 @@ export default function MapLayersPanel({
         />
         {file && (
           <>
-            <label className="field-label">
-              Название карты
-              <input className="field" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <label className="field-label">{tr("Название карты")}<input className="field" value={title} onChange={(e) => setTitle(e.target.value)} />
             </label>
             {needCrs !== false && (
               <label className="field-label">
-                {needCrs ? `Система координат файла не распознана (EPSG:${needCrs}). Выберите её:` : "В файле не указана система координат. Выберите её:"}
+                {needCrs ? tr("Система координат файла не распознана (EPSG:{0}). Выберите её:", { 0: needCrs }) : tr("В файле не указана система координат. Выберите её:")}
                 <select className="field" value={crs} onChange={(e) => setCrs(e.target.value)}>
-                  <option value="" disabled>
-                    Выберите систему координат
-                  </option>
-                  <option value="wgs84">WGS-84, градусы</option>
-                  <optgroup label="СК-42, Гаусс–Крюгер (номер зоны в начале X)">
+                  <option value="" disabled>{tr("Выберите систему координат")}</option>
+                  <option value="wgs84">{tr("WGS-84, градусы")}</option>
+                  <optgroup label={tr("СК-42, Гаусс–Крюгер (номер зоны в начале X)")}>
                     {GK_ZONES.map((z) => (
-                      <option key={z} value={`gk:${z}:1`}>
-                        Зона {z}
+                      <option key={z} value={`gk:${z}:1`}>{tr("Зона")}{" "}{z}
                       </option>
                     ))}
                   </optgroup>
-                  <optgroup label="СК-42, Гаусс–Крюгер (без номера зоны)">
+                  <optgroup label={tr("СК-42, Гаусс–Крюгер (без номера зоны)")}>
                     {GK_ZONES.map((z) => (
-                      <option key={z} value={`gk:${z}:0`}>
-                        Зона {z}
+                      <option key={z} value={`gk:${z}:0`}>{tr("Зона")}{" "}{z}
                       </option>
                     ))}
                   </optgroup>
@@ -187,9 +178,7 @@ export default function MapLayersPanel({
                 loading={busy}
                 disabled={needCrs !== false && !crs}
                 onClick={() => upload(file, needCrs !== false ? crs : undefined)}
-              >
-                Добавить на карту
-              </Button>
+              >{tr("Добавить на карту")}</Button>
             </Row>
           </>
         )}
@@ -198,10 +187,7 @@ export default function MapLayersPanel({
             {msg.text}
           </Text>
         )}
-        <Text variant="body-default-xs" onBackground="neutral-weak">
-          Большие карты уменьшаются до 2048 пикселей по длинной стороне. Исходный файл можно сохранить во вкладке
-          «Исторические данные».
-        </Text>
+        <Text variant="body-default-xs" onBackground="neutral-weak">{tr("Большие карты уменьшаются до 2048 пикселей по длинной стороне. Исходный файл можно сохранить во вкладке «Исторические данные».")}</Text>
       </Column>
     </Column>
   );

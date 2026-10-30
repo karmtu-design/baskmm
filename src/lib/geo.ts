@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Geo-analysis of licence areas with Turf.js: overlaps, buffer zones, distances,
 // and nearby settlements, roads and railways from OpenStreetMap (Overpass API).
 import {
@@ -120,7 +121,7 @@ out geom;`;
     method: "POST",
     body: new URLSearchParams({ data: q }),
   });
-  if (!res.ok) throw new Error(res.status === 429 ? "сервис занят, попробуйте через минуту" : `ошибка ${res.status}`);
+  if (!res.ok) throw new Error(res.status === 429 ? tr("сервис занят, попробуйте через минуту") : tr("ошибка {0}", { 0: res.status }));
   const data = (await res.json()) as { elements: any[] };
   const poly = f(c) as never;
   const verts = ringsOf(c).flat();
@@ -140,7 +141,7 @@ out geom;`;
     const t = el.tags ?? {};
     if (el.type === "node" && t.place) {
       const km = Math.max(0, pointToPolygonDistance(point([el.lon, el.lat]), poly, { units: "kilometers" }));
-      places.push({ name: t["name:ru"] || t.name || "без названия", kind: PLACE_KIND[t.place] ?? t.place, lon: el.lon, lat: el.lat, km, population: t.population });
+      places.push({ name: t["name:ru"] || t.name || tr("без названия"), kind: PLACE_KIND[t.place] ?? t.place, lon: el.lon, lat: el.lat, km, population: t.population });
     } else if (el.type === "way" && el.geometry?.length > 1) {
       const coords = el.geometry.map((g: { lon: number; lat: number }) => [g.lon, g.lat]) as [number, number][];
       const km = lineKm(coords);
@@ -150,9 +151,9 @@ out geom;`;
         const prev = roads.get(key);
         if (!prev || km < prev.km) roads.set(key, { name, kind: ROAD_KIND[t.highway] ?? t.highway, km, coordinates: coords });
       } else if (t.railway === "rail") {
-        if (!rail || km < rail.km) rail = { name: t["name:ru"] || t.name || "железная дорога", km, coordinates: coords };
+        if (!rail || km < rail.km) rail = { name: t["name:ru"] || t.name || tr("железная дорога"), km, coordinates: coords };
       } else if (t.power === "line") {
-        const name = t.voltage ? `ЛЭП ${Math.round(Number(String(t.voltage).split(";")[0]) / 1000)} кВ` : "ЛЭП";
+        const name = t.voltage ? tr("ЛЭП {0} кВ", { 0: Math.round(Number(String(t.voltage).split(";")[0]) / 1000) }) : tr("ЛЭП");
         if (!power || km < power.km) power = { name, km, coordinates: coords };
       }
     }

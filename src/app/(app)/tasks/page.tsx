@@ -1,3 +1,5 @@
+import { pageTitle } from "@/i18n/meta";
+import { tr } from "@/i18n";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Column, Row } from "@once-ui-system/core";
@@ -5,10 +7,10 @@ import TaskBoard from "@/components/TaskBoard";
 import { PageHeader } from "@/components/ui";
 import { getLicenses, getProjects, getTasks } from "@/lib/data";
 
-export const metadata = { title: "Задачи и сроки" };
+export const generateMetadata = pageTitle("Задачи и сроки");
 
-const TaskCalendar = dynamic(() => import("@/components/TaskCalendar"), { loading: () => <p className="muted">Загружается календарь…</p> });
-const LicenseGantt = dynamic(() => import("@/components/LicenseGantt"), { loading: () => <p className="muted">Загружается диаграмма…</p> });
+const TaskCalendar = dynamic(() => import("@/components/TaskCalendar"), { loading: () => <p className="muted">{tr("Загружается календарь…")}</p> });
+const LicenseGantt = dynamic(() => import("@/components/LicenseGantt"), { loading: () => <p className="muted">{tr("Загружается диаграмма…")}</p> });
 
 const VIEWS = [
   { id: "board", label: "Доска задач" },
@@ -27,13 +29,13 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   return (
     <Column>
       <PageHeader
-        title="Задачи и сроки"
-        subtitle="Задачи сотрудников, календарь всех сроков и диаграмма сроков лицензий. За 90 дней до окончания лицензии задача на продление появляется сама."
+        title={tr("Задачи и сроки")}
+        subtitle={tr("Задачи сотрудников, календарь всех сроков и диаграмма сроков лицензий. За 90 дней до окончания лицензии задача на продление появляется сама.")}
       />
-      <Row as="nav" gap="4" marginBottom="24" borderBottom overflowX="auto" aria-label="Вид" className="tab-row">
+      <Row as="nav" gap="4" marginBottom="24" borderBottom overflowX="auto" aria-label={tr("Вид")} className="tab-row">
         {VIEWS.map((x) => (
           <Link key={x.id} href={`/tasks?view=${x.id}`} aria-current={view === x.id ? "page" : undefined} className="tab-link">
-            {x.label}
+            {tr(x.label)}
           </Link>
         ))}
       </Row>

@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Icon, Row, Text } from "@once-ui-system/core";
 import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
@@ -34,7 +36,7 @@ export default function PdfViewer({
         doc = d;
         if (alive) setPdf(d);
       })
-      .catch((e) => alive && setErr(`Файл не открылся: ${(e as Error).message}`));
+      .catch((e) => alive && setErr(tr("Файл не открылся: {0}", { 0: (e as Error).message })));
     return () => {
       alive = false;
       doc?.loadingTask.destroy();
@@ -93,32 +95,30 @@ export default function PdfViewer({
   });
 
   return (
-    <div className="pdf-overlay" role="dialog" aria-modal="true" aria-label={`Просмотр: ${title}`}>
+    <div className="pdf-overlay" role="dialog" aria-modal="true" aria-label={tr("Просмотр: {0}", { 0: title })}>
       <div className="pdf-bar">
         <span className="pdf-title" title={title}>
           {title}
         </span>
         <Row gap="4" vertical="center" wrap>
-          <Button size="s" variant="tertiary" prefixIcon="chevronLeft" aria-label="Предыдущая страница" onClick={() => go(page - 1)} disabled={page <= 1} />
+          <Button size="s" variant="tertiary" prefixIcon="chevronLeft" aria-label={tr("Предыдущая страница")} onClick={() => go(page - 1)} disabled={page <= 1} />
           <Text variant="body-default-s" style={{ minWidth: 72, textAlign: "center" }}>
-            {pages ? `${page} из ${pages}` : "…"}
+            {pages ? tr("{0} из {1}", { 0: page, 1: pages }) : "…"}
           </Text>
-          <Button size="s" variant="tertiary" prefixIcon="chevronRight" aria-label="Следующая страница" onClick={() => go(page + 1)} disabled={page >= pages} />
+          <Button size="s" variant="tertiary" prefixIcon="chevronRight" aria-label={tr("Следующая страница")} onClick={() => go(page + 1)} disabled={page >= pages} />
           <span className="pdf-sep" />
-          <Button size="s" variant="tertiary" prefixIcon="minus" aria-label="Уменьшить" onClick={() => setZoom(Math.max(0.4, (curZoom ?? 1) - 0.25))} />
+          <Button size="s" variant="tertiary" prefixIcon="minus" aria-label={tr("Уменьшить")} onClick={() => setZoom(Math.max(0.4, (curZoom ?? 1) - 0.25))} />
           <button type="button" className="chip" onClick={() => setZoom("fit")} aria-pressed={zoom === "fit"}>
-            {zoom === "fit" ? "По ширине" : `${Math.round((curZoom ?? 1) * 100)}%`}
+            {zoom === "fit" ? tr("По ширине") : `${Math.round((curZoom ?? 1) * 100)}%`}
           </button>
-          <Button size="s" variant="tertiary" prefixIcon="plus" aria-label="Увеличить" onClick={() => setZoom(Math.min(4, (curZoom ?? 1) + 0.25))} />
+          <Button size="s" variant="tertiary" prefixIcon="plus" aria-label={tr("Увеличить")} onClick={() => setZoom(Math.min(4, (curZoom ?? 1) + 0.25))} />
           {onDownload && (
             <>
               <span className="pdf-sep" />
-              <Button size="s" variant="secondary" prefixIcon="download" onClick={onDownload}>
-                Скачать
-              </Button>
+              <Button size="s" variant="secondary" prefixIcon="download" onClick={onDownload}>{tr("Скачать")}</Button>
             </>
           )}
-          <button type="button" className="nav-close" onClick={onClose} aria-label="Закрыть">
+          <button type="button" className="nav-close" onClick={onClose} aria-label={tr("Закрыть")}>
             <Icon name="close" size="s" />
           </button>
         </Row>

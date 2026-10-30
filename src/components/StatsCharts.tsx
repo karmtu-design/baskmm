@@ -1,5 +1,7 @@
 "use client";
 
+import { tr, loc } from "@/i18n";
+
 import { useCallback, useMemo, useState } from "react";
 import type { EChartsCoreOption } from "echarts/core";
 import { Column, Heading, Text } from "@once-ui-system/core";
@@ -9,8 +11,8 @@ export type Pair = { label: string; value: number };
 export type PricePoint = { metal: string; date: string; price: number };
 export type MetalInfo = { key: string; name: string; unit: string };
 
-const nf = (d = 0) => (v: number) => v.toLocaleString("ru-RU", { maximumFractionDigits: d });
-const compact = (v: number) => (Math.abs(v) >= 1000 ? `${(v / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} тыс.` : v.toLocaleString("ru-RU"));
+const nf = (d = 0) => (v: number) => v.toLocaleString(loc(), { maximumFractionDigits: d });
+const compact = (v: number) => (Math.abs(v) >= 1000 ? tr("{0} тыс.", { 0: (v / 1000).toLocaleString(loc(), { maximumFractionDigits: 1 }) }) : v.toLocaleString(loc()));
 // category names come from the database: escaped before they go into tooltip HTML
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -63,7 +65,7 @@ function columns(data: Pair[], highlight?: string) {
     tooltip: {
       trigger: "item",
       ...tip(t),
-      formatter: (p: { name: string; value: number }) => `<b>${p.value} ${p.value === 1 ? "лицензия" : p.value < 5 && p.value > 1 ? "лицензии" : "лицензий"}</b><br/><span style="opacity:.75">${esc(p.name)}</span>`,
+      formatter: (p: { name: string; value: number }) => tr("<b>{0} {1}</b><br/><span style=\"opacity:.75\">{2}</span>", { 0: p.value, 1: tr(p.value === 1 ? "лицензия" : p.value < 5 && p.value > 1 ? "лицензии" : "лицензий"), 2: esc(p.name) }),
     },
     series: [
       {
@@ -81,7 +83,7 @@ function columns(data: Pair[], highlight?: string) {
 function TableView({ head, rows }: { head: [string, string]; rows: [string, string][] }) {
   return (
     <details className="chart-table">
-      <summary>Показать таблицей</summary>
+      <summary>{tr("Показать таблицей")}</summary>
       <div className="data-table-wrap" style={{ marginTop: 8 }}>
         <table className="data-table" style={{ minWidth: 0 }}>
           <thead>
@@ -128,9 +130,7 @@ export function BarCard({ title, note, data, unit, digits = 0, head }: { title: 
   return (
     <Card title={title} note={note}>
       {data.length === 0 ? (
-        <Text variant="body-default-s" onBackground="neutral-weak">
-          Нет данных.
-        </Text>
+        <Text variant="body-default-s" onBackground="neutral-weak">{tr("Нет данных.")}</Text>
       ) : (
         <>
           <EChart option={option} height={Math.max(140, data.length * 36 + 24)} label={`${title}: ${data.map((d) => `${d.label} ${fmt(d.value)}`).join(", ")}`} />
@@ -157,7 +157,7 @@ export function PriceCard({ history, metals }: { history: PricePoint[]; metals: 
   const [key, setKey] = useState(available.find((m) => m.key === "copper")?.key ?? available[0]?.key ?? "");
   const m = metals.find((x) => x.key === key);
   const pts = useMemo(() => history.filter((h) => h.metal === key), [history, key]);
-  const fmt = useCallback((v: number) => v.toLocaleString("ru-RU", { maximumFractionDigits: m?.unit === "$/унц" ? 2 : 0 }), [m]);
+  const fmt = useCallback((v: number) => v.toLocaleString(loc(), { maximumFractionDigits: m?.key === "gold" || m?.key === "silver" ? 2 : 0 }), [m]);
   const dd = (iso: string) => iso.split("-").reverse().slice(0, 2).join(".");
 
   const option = useMemo(
@@ -196,14 +196,12 @@ export function PriceCard({ history, metals }: { history: PricePoint[]; metals: 
   );
 
   return (
-    <Card title="История цен на металлы" note="Цены записываются каждый рабочий день с момента подключения; график растёт сам. Каждый металл на своём графике: у них разный масштаб.">
+    <Card title={tr("История цен на металлы")} note={tr("Цены записываются каждый рабочий день с момента подключения; график растёт сам. Каждый металл на своём графике: у них разный масштаб.")}>
       {available.length === 0 ? (
-        <Text variant="body-default-s" onBackground="neutral-weak">
-          Цены ещё не записывались.
-        </Text>
+        <Text variant="body-default-s" onBackground="neutral-weak">{tr("Цены ещё не записывались.")}</Text>
       ) : (
         <>
-          <div className="chip-row" role="tablist" aria-label="Металл">
+          <div className="chip-row" role="tablist" aria-label={tr("Металл")}>
             {available.map((x) => (
               <button key={x.key} type="button" role="tab" aria-selected={x.key === key} className={`chip${x.key === key ? " is-on" : ""}`} onClick={() => setKey(x.key)}>
                 {x.name}
@@ -212,13 +210,12 @@ export function PriceCard({ history, metals }: { history: PricePoint[]; metals: 
           </div>
           {pts.length < 2 ? (
             <Text variant="body-default-s" onBackground="neutral-weak">
-              Пока записана одна цена ({fmt(pts[0]?.price ?? 0)} {m?.unit} на {pts[0]?.date.split("-").reverse().join(".")}). Линия появится со
-              следующего рабочего дня.
+              {tr("Пока записана одна цена ({0} {1} на {2}). Линия появится со следующего рабочего дня.", { 0: fmt(pts[0]?.price ?? 0), 1: m?.unit, 2: pts[0]?.date.split("-").reverse().join(".") })}
             </Text>
           ) : (
-            <EChart option={option} height={260} label={`Цена: ${m?.name}, от ${fmt(pts[0].price)} до ${fmt(pts[pts.length - 1].price)} ${m?.unit}`} />
+            <EChart option={option} height={260} label={tr("Цена: {0}, от {1} до {2} {3}", { 0: m?.name, 1: fmt(pts[0].price), 2: fmt(pts[pts.length - 1].price), 3: m?.unit })} />
           )}
-          <TableView head={["Дата", `Цена, ${m?.unit ?? ""}`]} rows={[...pts].reverse().map((p) => [p.date.split("-").reverse().join("."), fmt(p.price)])} />
+          <TableView head={[tr("Дата"), tr("Цена, {0}", { 0: m?.unit ?? "" })]} rows={[...pts].reverse().map((p) => [p.date.split("-").reverse().join("."), fmt(p.price)])} />
         </>
       )}
     </Card>

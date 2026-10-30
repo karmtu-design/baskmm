@@ -1,5 +1,7 @@
 "use client";
 
+import { tr, loc } from "@/i18n";
+
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,7 +35,7 @@ const dueText = (t: Task) => {
   return (
     <span className={`task-due${late ? " is-late" : soon ? " is-soon" : ""}`}>
       <Icon name="calendar" size="xs" /> {formatDate(t.due_date)}
-      {late ? `, просрочено на ${-d} дн.` : d === 0 && t.status !== "done" ? ", сегодня" : ""}
+      {late ? tr(", просрочено на {0} дн.", { 0: -d }) : d === 0 && t.status !== "done" ? tr(", сегодня") : ""}
     </span>
   );
 };
@@ -41,11 +43,11 @@ const dueText = (t: Task) => {
 function Card({ t, licenses, projects, onOpen, dragging }: { t: Task; licenses: Map<number, string>; projects: Map<number, string>; onOpen: () => void; dragging?: boolean }) {
   const link = t.license_id ? (
     <Link href={`/licenses/${t.license_id}?tab=tasks`} onClick={(e) => e.stopPropagation()}>
-      {licenses.get(t.license_id) ?? "лицензия"}
+      {licenses.get(t.license_id) ?? tr("лицензия")}
     </Link>
   ) : t.project_id ? (
     <Link href={`/projects/${t.project_id}`} onClick={(e) => e.stopPropagation()}>
-      {projects.get(t.project_id) ?? "проект"}
+      {projects.get(t.project_id) ?? tr("проект")}
     </Link>
   ) : null;
   return (
@@ -54,7 +56,7 @@ function Card({ t, licenses, projects, onOpen, dragging }: { t: Task; licenses: 
         {t.title}
       </button>
       <div className="task-meta">
-        {t.priority === "high" && <span className="task-prio">важно</span>}
+        {t.priority === "high" && <span className="task-prio">{tr("важно")}</span>}
         {t.assignee && (
           <span>
             <Icon name="person" size="xs" /> {t.assignee}
@@ -62,7 +64,7 @@ function Card({ t, licenses, projects, onOpen, dragging }: { t: Task; licenses: 
         )}
         {dueText(t)}
         {link && <span className="task-link">{link}</span>}
-        {t.auto_key && <span className="task-auto">авто</span>}
+        {t.auto_key && <span className="task-auto">{tr("авто")}</span>}
       </div>
     </div>
   );
@@ -76,7 +78,7 @@ function SortableCard(props: { t: Task; licenses: Map<number, string>; projects:
       style={{ transform: CSS.Translate.toString(transform), transition, opacity: isDragging ? 0.35 : 1 }}
       {...attributes}
       {...listeners}
-      aria-roledescription="Перетаскиваемая задача"
+      aria-roledescription={tr("Перетаскиваемая задача")}
     >
       <Card {...props} />
     </li>
@@ -91,7 +93,7 @@ function ColumnBox({ id, label, children, count, onAdd }: { id: TaskStatus; labe
         <span>
           {label} <b>{count}</b>
         </span>
-        <button type="button" className="nav-close" onClick={onAdd} aria-label={`Добавить задачу в колонку «${label}»`}>
+        <button type="button" className="nav-close" onClick={onAdd} aria-label={tr("Добавить задачу в колонку «{0}»", { 0: label })}>
           <Icon name="plus" size="s" />
         </button>
       </header>
@@ -171,35 +173,29 @@ export default function TaskBoard({
   return (
     <Column gap="16">
       <Row wrap gap="8" vertical="center">
-        <Button prefixIcon="plus" onClick={() => setDialog({ status: "new" })}>
-          Новая задача
-        </Button>
-        <select className="field" aria-label="Исполнитель" style={{ width: "auto", minHeight: 40 }} value={who} onChange={(e) => setWho(e.target.value)}>
-          <option value="">Все исполнители</option>
+        <Button prefixIcon="plus" onClick={() => setDialog({ status: "new" })}>{tr("Новая задача")}</Button>
+        <select className="field" aria-label={tr("Исполнитель")} style={{ width: "auto", minHeight: 40 }} value={who} onChange={(e) => setWho(e.target.value)}>
+          <option value="">{tr("Все исполнители")}</option>
           {allPeople.map((p) => (
             <option key={p}>{p}</option>
           ))}
         </select>
         <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 14 }}>
-          <input type="checkbox" checked={hideOld} onChange={(e) => setHideOld(e.target.checked)} />
-          Скрыть выполненные больше месяца назад
-        </label>
-        <Text variant="body-default-xs" onBackground="neutral-weak" style={{ marginLeft: "auto" }}>
-          Перетаскивайте карточки между колонками. На телефоне: нажмите и подержите.
-        </Text>
+          <input type="checkbox" checked={hideOld} onChange={(e) => setHideOld(e.target.checked)} />{tr("Скрыть выполненные больше месяца назад")}</label>
+        <Text variant="body-default-xs" onBackground="neutral-weak" style={{ marginLeft: "auto" }}>{tr("Перетаскивайте карточки между колонками. На телефоне: нажмите и подержите.")}</Text>
       </Row>
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={() => setItems(tasks)}>
         <div className="task-board">
           {TASK_COLUMNS.map((c) => {
             const list = col(c.id);
             return (
-              <ColumnBox key={c.id} id={c.id} label={c.label} count={list.length} onAdd={() => setDialog({ status: c.id })}>
+              <ColumnBox key={c.id} id={c.id} label={tr(c.label)} count={list.length} onAdd={() => setDialog({ status: c.id })}>
                 <SortableContext items={list.map((t) => t.id)} strategy={verticalListSortingStrategy}>
                   {list.map((t) => (
                     <SortableCard key={t.id} t={t} licenses={licMap} projects={projMap} onOpen={() => setDialog({ task: t })} />
                   ))}
                 </SortableContext>
-                {list.length === 0 && <li className="task-empty">Перетащите сюда задачу</li>}
+                {list.length === 0 && <li className="task-empty">{tr("Перетащите сюда задачу")}</li>}
               </ColumnBox>
             );
           })}
@@ -268,7 +264,7 @@ export function TaskDialog({
   function save() {
     start(async () => {
       const r = task ? await updateTask(task.id, f) : await createTask(f);
-      if (!r.ok) return setErr(r.message ?? "Ошибка");
+      if (!r.ok) return setErr(r.message ?? tr("Ошибка"));
       onSaved();
     });
   }
@@ -276,10 +272,10 @@ export function TaskDialog({
 
   return (
     <div className="nav-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="nav-dialog share-dialog" role="dialog" aria-modal="true" aria-label={task ? "Задача" : "Новая задача"}>
+      <div className="nav-dialog share-dialog" role="dialog" aria-modal="true" aria-label={task ? tr("Задача") : tr("Новая задача")}>
         <div className="nav-head">
-          <span>{task ? "Задача" : "Новая задача"}</span>
-          <button type="button" className="nav-close" onClick={onClose} aria-label="Закрыть">
+          <span>{task ? tr("Задача") : tr("Новая задача")}</span>
+          <button type="button" className="nav-close" onClick={onClose} aria-label={tr("Закрыть")}>
             <Icon name="close" size="s" />
           </button>
         </div>
@@ -290,51 +286,37 @@ export function TaskDialog({
             save();
           }}
         >
-          <label className="field-label" style={{ gridColumn: "1 / -1" }}>
-            Что сделать
-            <input className="field" required autoFocus value={f.title} onChange={(e) => set("title", e.target.value)} placeholder="например, подать отчёт по обязательствам" />
+          <label className="field-label" style={{ gridColumn: "1 / -1" }}>{tr("Что сделать")}<input className="field" required autoFocus value={f.title} onChange={(e) => set("title", e.target.value)} placeholder={tr("например, подать отчёт по обязательствам")} />
           </label>
-          <label className="field-label" style={{ gridColumn: "1 / -1" }}>
-            Подробности
-            <textarea className="field" rows={3} value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} />
+          <label className="field-label" style={{ gridColumn: "1 / -1" }}>{tr("Подробности")}<textarea className="field" rows={3} value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} />
           </label>
-          <label className="field-label">
-            Исполнитель
-            <input className="field" list="task-people" value={f.assignee ?? ""} onChange={(e) => set("assignee", e.target.value)} />
+          <label className="field-label">{tr("Исполнитель")}<input className="field" list="task-people" value={f.assignee ?? ""} onChange={(e) => set("assignee", e.target.value)} />
             <datalist id="task-people">
               {people.map((p) => (
                 <option key={p} value={p} />
               ))}
             </datalist>
           </label>
-          <label className="field-label">
-            Срок
-            <input className="field" type="date" value={f.due_date ?? ""} onChange={(e) => set("due_date", e.target.value)} />
+          <label className="field-label">{tr("Срок")}<input className="field" type="date" value={f.due_date ?? ""} onChange={(e) => set("due_date", e.target.value)} />
           </label>
-          <label className="field-label">
-            Статус
-            <select className="field" value={f.status} onChange={(e) => set("status", e.target.value as TaskStatus)}>
+          <label className="field-label">{tr("Статус")}<select className="field" value={f.status} onChange={(e) => set("status", e.target.value as TaskStatus)}>
               {TASK_COLUMNS.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.label}
+                  {tr(c.label)}
                 </option>
               ))}
             </select>
           </label>
-          <label className="field-label">
-            Важность
-            <select className="field" value={f.priority} onChange={(e) => set("priority", e.target.value as Task["priority"])}>
+          <label className="field-label">{tr("Важность")}<select className="field" value={f.priority} onChange={(e) => set("priority", e.target.value as Task["priority"])}>
               {PRIORITIES.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.label}
+                  {tr(p.label)}
                 </option>
               ))}
             </select>
           </label>
           {!fixed && (
-            <label className="field-label" style={{ gridColumn: "1 / -1" }}>
-              Относится к
-              <select
+            <label className="field-label" style={{ gridColumn: "1 / -1" }}>{tr("Относится к")}<select
                 className="field"
                 value={link}
                 onChange={(e) => {
@@ -342,15 +324,15 @@ export function TaskDialog({
                   setF((p) => ({ ...p, license_id: k === "l" ? Number(id) : null, project_id: k === "p" ? Number(id) : null }));
                 }}
               >
-                <option value="">— ни к чему не привязана</option>
-                <optgroup label="Лицензии">
+                <option value="">{tr("— ни к чему не привязана")}</option>
+                <optgroup label={tr("Лицензии")}>
                   {licenses.map((l) => (
                     <option key={l.id} value={`l:${l.id}`}>
                       {l.name}
                     </option>
                   ))}
                 </optgroup>
-                <optgroup label="Потенциальные проекты">
+                <optgroup label={tr("Потенциальные проекты")}>
                   {projects.map((p) => (
                     <option key={p.id} value={`p:${p.id}`}>
                       {p.name}
@@ -362,11 +344,9 @@ export function TaskDialog({
           )}
           <Row gap="8" wrap style={{ gridColumn: "1 / -1" }}>
             <Button type="submit" loading={pending}>
-              {task ? "Сохранить" : "Создать задачу"}
+              {task ? tr("Сохранить") : tr("Создать задачу")}
             </Button>
-            <Button type="button" variant="tertiary" onClick={onClose}>
-              Отмена
-            </Button>
+            <Button type="button" variant="tertiary" onClick={onClose}>{tr("Отмена")}</Button>
             {task && (
               <span style={{ marginLeft: "auto" }}>
                 {ask ? (
@@ -378,29 +358,24 @@ export function TaskDialog({
                       onClick={() =>
                         start(async () => {
                           const r = await deleteTask(task.id);
-                          if (!r.ok) return setErr(r.message ?? "Ошибка");
+                          if (!r.ok) return setErr(r.message ?? tr("Ошибка"));
                           onSaved();
                         })
                       }
                     >
-                      {task.auto_key ? "Закрыть задачу" : "Удалить задачу"}
+                      {task.auto_key ? tr("Закрыть задачу") : tr("Удалить задачу")}
                     </Button>
-                    <Button type="button" variant="tertiary" onClick={() => setAsk(false)}>
-                      Нет
-                    </Button>
+                    <Button type="button" variant="tertiary" onClick={() => setAsk(false)}>{tr("Нет")}</Button>
                   </Row>
                 ) : (
-                  <Button type="button" variant="tertiary" prefixIcon="trash" onClick={() => setAsk(true)}>
-                    Удалить
-                  </Button>
+                  <Button type="button" variant="tertiary" prefixIcon="trash" onClick={() => setAsk(true)}>{tr("Удалить")}</Button>
                 )}
               </span>
             )}
           </Row>
           {task && (
-            <Text variant="body-default-xs" onBackground="neutral-weak" style={{ gridColumn: "1 / -1" }}>
-              Создал {task.created_by ?? "—"} {new Date(task.created_at).toLocaleDateString("ru-RU")}
-              {task.auto_key ? ". Задача создана системой: при удалении она закрывается, чтобы не появиться снова." : ""}
+            <Text variant="body-default-xs" onBackground="neutral-weak" style={{ gridColumn: "1 / -1" }}>{tr("Создал")}{" "}{task.created_by ?? "—"} {new Date(task.created_at).toLocaleDateString(loc())}
+              {task.auto_key ? tr(". Задача создана системой: при удалении она закрывается, чтобы не появиться снова.") : ""}
             </Text>
           )}
           {err && (

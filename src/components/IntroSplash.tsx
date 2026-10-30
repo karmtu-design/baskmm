@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { BRAND, INTRO_KEY } from "@/lib/brand";
@@ -110,7 +112,7 @@ export default function IntroSplash() {
   if (gone) return null;
 
   return (
-    <div ref={root} className="intro" role="dialog" aria-modal="true" aria-label={`Заставка ${BRAND.name}`}>
+    <div ref={root} className="intro" role="dialog" aria-modal="true" aria-label={tr("Заставка {0}", { 0: BRAND.name })}>
       <svg className="veins" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden>
         {VEINS.map((d, i) => (
           <path key={i} className="vein" d={d} pathLength={1} />
@@ -137,9 +139,7 @@ export default function IntroSplash() {
         <p className="slogan">{BRAND.slogan}</p>
       </div>
 
-      <button type="button" className="intro-skip" onClick={skip}>
-        Пропустить
-      </button>
+      <button type="button" className="intro-skip" onClick={skip}>{tr("Пропустить")}</button>
     </div>
   );
 }
