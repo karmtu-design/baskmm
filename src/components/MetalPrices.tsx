@@ -34,6 +34,7 @@ export default async function MetalPrices() {
               <div className="metal-price">
                 {fmtPrice(q.price, q.unit)} <span className="metal-unit">{q.unit}</span>
               </div>
+              {q.history.length >= 3 && <Spark values={q.history} />}
               <div className={`metal-change${up ? " is-up" : down ? " is-down" : ""}`}>
                 {q.change == null ? (
                   <span className="metal-muted">{fmtDate(q.date)}</span>
@@ -63,6 +64,20 @@ export default async function MetalPrices() {
         )}
       </Row>
     </Column>
+  );
+}
+
+/** A tiny trend line of the last recorded prices (shape only; the change is written below it). */
+function Spark({ values }: { values: number[] }) {
+  const w = 120,
+    h = 24;
+  const lo = Math.min(...values),
+    hi = Math.max(...values);
+  const pts = values.map((v, i) => `${((i / (values.length - 1)) * w).toFixed(1)},${(h - 2 - ((v - lo) / (hi - lo || 1)) * (h - 4)).toFixed(1)}`).join(" ");
+  return (
+    <svg className="metal-spark" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden>
+      <polyline points={pts} fill="none" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+    </svg>
   );
 }
 

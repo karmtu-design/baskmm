@@ -1694,3 +1694,29 @@ th[aria-sort] .sort-mark {
   color: var(--neutral-on-background-strong);
   border: 1px solid var(--neutral-alpha-medium);
 }
+
+/* ---------- Charts ---------- */
+.chart-card {
+  min-width: 0;
+}
+.chart-table summary {
+  font-size: 13px;
+  font-weight: 500;
+}
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tile-warn {
+  color: var(--warning-on-background-strong) !important;
+}
+.tile-bad {
+  color: var(--danger-on-background-strong) !important;
+}
+.metal-spark {
+  width: 100%;
+  height: 24px;
+  stroke: var(--neutral-on-background-medium);
+  opacity: 0.8;
+}

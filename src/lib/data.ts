@@ -132,3 +132,10 @@ export async function getTasks(filter: { licenseId?: number; projectId?: number 
   if (error) throw new Error(error.message);
   return (data ?? []) as import("./types").Task[];
 }
+
+/** Stored daily metal prices (oldest first), for the price history chart. */
+export async function getMetalHistory(): Promise<{ metal: string; price_date: string; price: number }[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("metal_prices").select("metal, price_date, price").order("price_date").limit(5000);
+  return (data ?? []).map((r) => ({ ...r, price: Number(r.price) }));
+}
