@@ -230,8 +230,22 @@ export async function getNotesAndBoards(f: { licenseId?: number; projectId?: num
 export async function getStaff() {
   const supabase = await createClient();
   const [{ data }, { data: u }] = await Promise.all([
-    supabase.from("staff").select("user_id, email, full_name, position, phone, role, created_at").order("full_name", { nullsFirst: false }).order("email"),
+    supabase.from("staff").select("user_id, email, full_name, position, phone, role, founding_access, created_at").order("full_name", { nullsFirst: false }).order("email"),
     supabase.auth.getUser(),
   ]);
   return { staff: (data ?? []) as import("./types").StaffMember[], me: u.user?.id ?? null };
+}
+
+/** Founding documents of a company — only for people an administrator allowed (the database checks it too). */
+export async function getFoundingDocs(companyId: number): Promise<{ allowed: boolean; canEdit: boolean; docs: import("./types").FoundingDoc[] }> {
+  const supabase = await createClient();
+  const [{ data: allowed }, { data: canEdit }] = await Promise.all([supabase.rpc("can_founding"), supabase.rpc("can_edit")]);
+  if (!allowed) return { allowed: false, canEdit: false, docs: [] };
+  const { data } = await supabase
+    .from("founding_documents")
+    .select("id, company_id, title, category, doc_date, file_name, file_path, size_bytes, uploaded_by, created_at")
+    .eq("company_id", companyId)
+    .order("doc_date", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false });
+  return { allowed: true, canEdit: !!canEdit, docs: (data ?? []) as import("./types").FoundingDoc[] };
 }

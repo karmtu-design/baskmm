@@ -277,7 +277,34 @@ export type StaffMember = {
   position: string | null;
   phone: string | null;
   role: "admin" | "editor" | "viewer";
+  /** may open the founding documents of companies (administrators always may) */
+  founding_access: boolean;
   created_at: string;
 };
+
+/** A founding document of a company (charter, registration certificate, founders' decision…): access is limited. */
+export type FoundingDoc = {
+  id: number;
+  company_id: number;
+  title: string;
+  category: string | null;
+  doc_date: string | null;
+  file_name: string;
+  file_path: string;
+  size_bytes: number | null;
+  uploaded_by: string | null;
+  created_at: string;
+};
+export const FOUNDING_CATEGORIES = [
+  "Устав",
+  "Учредительный договор",
+  "Решение / протокол учредителей",
+  "Справка о регистрации",
+  "Свидетельство / талон",
+  "Приказ о назначении руководителя",
+  "Доверенность",
+  "Изменения в устав",
+  "Другое",
+];
 /** How a person is shown in lists: their name, or the e-mail while no name is entered. */
 export const staffName = (s: Pick<StaffMember, "full_name" | "email">) => s.full_name?.trim() || s.email;

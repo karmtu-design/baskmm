@@ -1,10 +1,12 @@
 import { tr } from "@/i18n";
 import { dn, dp } from "@/lib/translit";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button, Column, Grid, Text } from "@once-ui-system/core";
+import { Button, Column, Grid, Row, Text } from "@once-ui-system/core";
+import FoundingDocs from "@/components/FoundingDocs";
 import LicensesMap from "@/components/LicensesMap";
 import { ButtonLink, LicenseTable, PageHeader, Panel } from "@/components/ui";
-import { getCompany, getLicenses } from "@/lib/data";
+import { getCompany, getFoundingDocs, getLicenses } from "@/lib/data";
 import { updateCompany } from "../../actions";
 
 const FIELDS: { key: string; label: string; multiline?: boolean }[] = [
@@ -17,11 +19,18 @@ const FIELDS: { key: string; label: string; multiline?: boolean }[] = [
   { key: "notes", label: "Примечания", multiline: true },
 ];
 
-export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+const TABS = [
+  { id: "info", label: "Лицензии и реквизиты" },
+  { id: "founding", label: "Учредительные документы" },
+];
+
+export default async function CompanyPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
+  const [{ id }, { tab: rawTab }] = await Promise.all([params, searchParams]);
+  const tab = rawTab === "founding" ? "founding" : "info";
   const company = await getCompany(Number(id));
   if (!company) notFound();
-  const licenses = await getLicenses({ companyId: company.id });
+  const licenses = tab === "info" ? await getLicenses({ companyId: company.id }) : [];
+  const founding = tab === "founding" ? await getFoundingDocs(company.id) : null;
   const update = updateCompany.bind(null, company.id);
   const value = (k: string) => (company as Record<string, unknown>)[k] as string | null;
 
@@ -36,6 +45,28 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
         }
       />
 
+      <Row as="nav" gap="4" marginBottom="24" borderBottom overflowX="auto" aria-label={tr("Разделы компании")} className="tab-row">
+        {TABS.map((t) => (
+          <Link key={t.id} href={`/companies/${company.id}${t.id === "info" ? "" : `?tab=${t.id}`}`} aria-current={tab === t.id ? "page" : undefined} className="tab-link">
+            {t.id === "founding" && <span aria-hidden>🔒 </span>}
+            {tr(t.label)}
+          </Link>
+        ))}
+      </Row>
+
+      {founding && (founding.allowed ? (
+        <FoundingDocs companyId={company.id} docs={founding.docs} canEdit={founding.canEdit} />
+      ) : (
+        <div className="founding-locked">
+          <span aria-hidden>🔒</span>
+          <Text variant="heading-strong-s">{tr("Нет доступа к учредительным документам")}</Text>
+          <Text variant="body-default-s" onBackground="neutral-weak">
+            {tr("Этот раздел закрыт. Доступ открывает администратор на странице «Сотрудники» — попросите его, если документы нужны вам для работы.")}
+          </Text>
+        </div>
+      ))}
+
+      {tab === "info" && (
       <Grid columns="3" gap="24" m={{ columns: "1" }}>
         <Column gap="24" className="span-2">
           <LicenseTable licenses={licenses} showCompany={false} />
@@ -75,6 +106,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           </details>
         </Panel>
       </Grid>
+      )}
     </Column>
   );
 }

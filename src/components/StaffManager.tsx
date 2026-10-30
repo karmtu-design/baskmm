@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Column, Row, Text } from "@once-ui-system/core";
 import { tr } from "@/i18n";
-import { addStaff, changeMyPassword, deleteStaff, setStaffPassword, updateStaff } from "@/app/(app)/staff/actions";
+import { addStaff, changeMyPassword, deleteStaff, setFoundingAccess, setStaffPassword, updateStaff } from "@/app/(app)/staff/actions";
 import type { StaffMember } from "@/lib/types";
 
 const ROLE_LABEL: Record<StaffMember["role"], string> = { admin: "Администратор", editor: "Редактор", viewer: "Просмотр" };
@@ -41,6 +41,7 @@ export default function StaffManager({ staff, me, isAdmin, serviceKey }: { staff
               <th>{tr("Должность")}</th>
               <th>{tr("Телефон")}</th>
               <th>{tr("Роль")}</th>
+              <th title={tr("Доступ к учредительным документам компаний. Выдаёт и снимает администратор.")}>{tr("Учредительные документы")}</th>
               {isAdmin && <th />}
             </tr>
           </thead>
@@ -117,6 +118,9 @@ function StaffRow({ s, isMe, isAdmin, serviceKey, onDone }: { s: StaffMember; is
           )}
         </td>
         <td>
+          <FoundingCell s={s} isAdmin={isAdmin} onDone={onDone} />
+        </td>
+        <td>
           <Row gap="8">
             <Button size="s" onClick={save} loading={pending}>{tr("Сохранить")}</Button>
             <Button size="s" variant="tertiary" onClick={() => setEdit(false)}>{tr("Отмена")}</Button>
@@ -137,6 +141,9 @@ function StaffRow({ s, isMe, isAdmin, serviceKey, onDone }: { s: StaffMember; is
       <td>
         <RoleBadge role={s.role} />
       </td>
+      <td>
+        <FoundingCell s={s} isAdmin={isAdmin} onDone={onDone} />
+      </td>
       {(isAdmin || canEdit) && (
         <td>
           <Row gap="4" wrap>
@@ -147,6 +154,32 @@ function StaffRow({ s, isMe, isAdmin, serviceKey, onDone }: { s: StaffMember; is
         </td>
       )}
     </tr>
+  );
+}
+
+/** Access to founding documents: a switch for the administrator, a plain «есть / нет» for everyone else. */
+function FoundingCell({ s, isAdmin, onDone }: { s: StaffMember; isAdmin: boolean; onDone: (m: { ok: boolean; text: string }) => void }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  if (s.role === "admin") return <span className="access-note">{tr("есть всегда")}</span>;
+  if (!isAdmin) return <span className={`access-note${s.founding_access ? " is-on" : ""}`}>{s.founding_access ? tr("есть") : tr("нет")}</span>;
+  function toggle(on: boolean) {
+    start(async () => {
+      const r = await setFoundingAccess(s.user_id, on);
+      onDone(
+        r.ok
+          ? { ok: true, text: on ? tr("{0} теперь видит учредительные документы.", { 0: s.full_name || s.email }) : tr("{0} больше не видит учредительные документы.", { 0: s.full_name || s.email }) }
+          : { ok: false, text: r.message ?? "" }
+      );
+      if (r.ok) router.refresh();
+    });
+  }
+  return (
+    <label className={`access-switch${pending ? " is-busy" : ""}`}>
+      <input type="checkbox" role="switch" checked={s.founding_access} disabled={pending} onChange={(e) => toggle(e.target.checked)} />
+      <span aria-hidden />
+      {s.founding_access ? tr("есть доступ") : tr("нет доступа")}
+    </label>
   );
 }
 
