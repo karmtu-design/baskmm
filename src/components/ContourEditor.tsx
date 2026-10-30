@@ -39,7 +39,7 @@ export default function ContourEditor({
   aside?: React.ReactNode;
 }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"points" | "file">("points");
+  const [mode, setMode] = useState<"points" | "file" | "draw">("points");
   const [text, setText] = useState("");
   const [system, setSystem] = useState<CoordSystem>("wgs84");
   const [lonFirst, setLonFirst] = useState(false);
@@ -93,18 +93,22 @@ export default function ContourEditor({
     const exts = files.map((f) => (f.name.split(".").pop() ?? "").toLowerCase());
     setRaw(null);
     setCrsNote("");
-    if (exts.some((e) => ["zip", "shp", "dxf"].includes(e))) {
+    const gdalFile = exts.some((e) => ["tab", "mif", "gpkg"].includes(e));
+    if (gdalFile || exts.some((e) => ["zip", "shp", "dxf"].includes(e))) {
       setMessage(null);
       setErrors([]);
       try {
-        const { readDxf, readShapefile } = await import("@/lib/geoImport");
+        const { readDxf, readShapefile, readGdal } = await import("@/lib/geoImport");
         const dxf = files.find((f) => f.name.toLowerCase().endsWith(".dxf"));
         let polys: RawPolygons;
         let projected = false;
-        if (dxf) polys = await readDxf(dxf);
+        if (gdalFile) {
+          setCrsNote(tr("Загружаю модуль чтения MapInfo (один раз, около 40 МБ)…"));
+          ({ polys, projected } = await readGdal(files));
+        } else if (dxf) polys = await readDxf(dxf);
         else ({ polys, projected } = await readShapefile(files));
         if (!polys.length) throw new Error(dxf ? tr("в чертеже нет замкнутых полилиний") : tr("в файле нет полигонов"));
-        const name = (dxf ?? files[0]).name;
+        const name = (dxf ?? files.find((f) => /\.(tab|mif|gpkg)$/i.test(f.name)) ?? files[0]).name;
         const g = projected ? { crs: { kind: "wgs84" as const }, swapped: false } : guessCrs(polys);
         const key = g.crs ? crsKey(g.crs) : "";
         setRaw({ polys, name });
@@ -112,7 +116,9 @@ export default function ContourEditor({
         setSwapped(g.swapped);
         setCrsNote(
           projected
-            ? tr("Система координат взята из файла .prj, контур пересчитан в WGS-84.")
+            ? gdalFile
+              ? tr("Система координат взята из файла, контур пересчитан в WGS-84. Для старых карт в СК-42 сверьте положение со снимком.")
+              : tr("Система координат взята из файла .prj, контур пересчитан в WGS-84.")
             : g.crs
               ? tr("Система координат определена по числам: {0}. Если контур встал не туда, выберите другую.", { 0: crsLabel(g.crs) })
               : tr("В файле нет сведений о системе координат. Выберите её ниже: обычно она указана на чертеже или в паспорте участка.")
@@ -193,7 +199,27 @@ export default function ContourEditor({
   return (
     <Grid columns="3" gap="24" m={{ columns: "1" }}>
       <Column gap="12" className="span-2">
-        <LicensesMap licenses={preview ? [] : [license]} preview={preview} height={560} linkToLicense={false} overlay={overlay} />
+        {mode === "draw" ? (
+          <LicensesMap
+            licenses={[]}
+            preview={null}
+            height={560}
+            linkToLicense={false}
+            overlay={overlay}
+            fitTo={current}
+            draw={{
+              initial: current,
+              onChange: (c) => {
+                setMessage(null);
+                setErrors([]);
+                setPreview(c);
+                setSource(tr("Нарисовано на карте"));
+              },
+            }}
+          />
+        ) : (
+          <LicensesMap licenses={preview ? [] : [license]} preview={preview} height={560} linkToLicense={false} overlay={overlay} />
+        )}
         <Row wrap gap="24" vertical="center" textVariant="body-default-s">
           <span>{tr("Площадь по контуру:")}{" "}<b>{area ? tr("{0} км²", { 0: area.toFixed(2) }) : "—"}</b>
             {areaDiff != null && Math.abs(areaDiff) > 2 && (
@@ -265,11 +291,18 @@ export default function ContourEditor({
           onChange={(v) => setMode(v as typeof mode)}
           buttons={[
             { value: "points", label: tr("Угловые точки") },
-            { value: "file", label: tr("Файл: KML, Shapefile, DXF") },
+            { value: "file", label: tr("Файл") },
+            { value: "draw", label: tr("На карте") },
           ]}
         />
 
-        {mode === "points" ? (
+        {mode === "draw" ? (
+          <Text variant="body-default-s" onBackground="neutral-weak">
+            {current
+              ? tr("Текущий контур можно поправить прямо на карте: тяните углы мышкой. Или нажмите «Рисовать новый» и обведите участок заново. Когда закончите, нажмите «Сохранить контур».")
+              : tr("Нажимайте на карте на углы участка по порядку, затем на первую точку, чтобы замкнуть контур. Потом углы можно подвинуть. Когда закончите, нажмите «Сохранить контур».")}
+          </Text>
+        ) : mode === "points" ? (
           <Column gap="12">
             <Text variant="body-default-s" onBackground="neutral-weak">{tr("Вставьте точки из приложения к лицензии, по одной на строку: сначала широта, затем долгота. Подходят градусы-минуты-секунды и десятичные градусы, можно копировать прямо из Word или Excel.")}</Text>
             <textarea
@@ -292,11 +325,11 @@ export default function ContourEditor({
           </Column>
         ) : (
           <Column gap="12">
-            <Text variant="body-default-s" onBackground="neutral-weak">{tr("Подойдут: KML или KMZ из Google Earth; GeoJSON; Shapefile из ArcGIS, QGIS или MapInfo (ZIP-архив со всеми частями, либо файлы .shp, .prj и .dbf, выбранные вместе); чертёж AutoCAD в формате DXF (берутся замкнутые полилинии).")}</Text>
+            <Text variant="body-default-s" onBackground="neutral-weak">{tr("Подойдут: KML или KMZ из Google Earth; GeoJSON; Shapefile из ArcGIS или QGIS (ZIP-архив со всеми частями, либо файлы .shp, .prj и .dbf, выбранные вместе); таблица MapInfo (все файлы .tab, .dat, .map, .id вместе) или .mif с .mid; GeoPackage (.gpkg) из QGIS; чертёж AutoCAD в формате DXF (берутся замкнутые полилинии).")}</Text>
             <input
               type="file"
               multiple
-              accept=".kml,.kmz,.geojson,.json,.zip,.shp,.shx,.dbf,.prj,.cpg,.dxf"
+              accept=".kml,.kmz,.geojson,.json,.zip,.shp,.shx,.dbf,.prj,.cpg,.dxf,.tab,.dat,.map,.id,.ind,.mif,.mid,.gpkg"
               onChange={(e) => e.target.files?.length && readFiles(e.target.files)}
               className="field"
               aria-label={tr("Файл с контуром")}

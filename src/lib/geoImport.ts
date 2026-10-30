@@ -68,6 +68,68 @@ export async function readShapefile(files: File[]): Promise<{ polys: RawPolygons
   return { polys, projected: hasPrj };
 }
 
+// ---------- MapInfo and GeoPackage, through GDAL compiled for the browser (gdal3.js) ----------
+
+export const GDAL_EXTS = ["tab", "map", "dat", "id", "ind", "mif", "mid", "gpkg"];
+
+type GdalApi = {
+  open: (files: File[]) => Promise<{ datasets: unknown[]; errors: unknown[] }>;
+  ogr2ogr: (ds: unknown, opts: string[], name?: string) => Promise<{ local: string; real: string }>;
+  getFileBytes: (f: { local: string; real: string }) => Promise<Uint8Array>;
+  close: (ds: unknown) => Promise<void>;
+};
+let gdal: Promise<GdalApi> | null = null;
+
+/** Loads GDAL once (about 40 MB, only when such a file is chosen) from /vendor/gdal. */
+function loadGdal(): Promise<GdalApi> {
+  if (!gdal)
+    gdal = new Promise<GdalApi>((resolve, reject) => {
+      const w = window as unknown as { initGdalJs?: (o: object) => Promise<GdalApi> };
+      const start = () => w.initGdalJs!({ path: "/vendor/gdal", useWorker: false }).then(resolve, reject);
+      if (w.initGdalJs) return start();
+      const s = document.createElement("script");
+      s.src = "/vendor/gdal/gdal3.js";
+      s.onload = start;
+      s.onerror = () => reject(new Error(tr("не удалось загрузить модуль чтения MapInfo")));
+      document.head.appendChild(s);
+    }).catch((e) => {
+      gdal = null;
+      throw e;
+    });
+  return gdal;
+}
+
+/**
+ * Polygons from a MapInfo table (.tab with its .dat/.map/.id), MapInfo exchange (.mif with .mid) or a GeoPackage.
+ * When the file says its coordinate system, GDAL converts to WGS-84; otherwise the raw numbers come back.
+ */
+export async function readGdal(files: File[]): Promise<{ polys: RawPolygons; projected: boolean }> {
+  const main = files.find((f) => ["tab", "mif", "gpkg"].includes(extOf(f.name)));
+  if (!main) throw new Error(tr("для MapInfo выберите вместе все файлы таблицы (.tab, .dat, .map, .id) или .mif вместе с .mid"));
+  const G = await loadGdal();
+  const opened = await G.open(files);
+  const ds = opened.datasets[0];
+  if (!ds) throw new Error(tr("файл не открылся"));
+  let projected = true;
+  let out: { local: string; real: string };
+  try {
+    out = await G.ogr2ogr(ds, ["-f", "GeoJSON", "-t_srs", "EPSG:4326", "-nlt", "PROMOTE_TO_MULTI"], "contour");
+  } catch {
+    // no coordinate system in the file: keep its own numbers and let the person choose
+    projected = false;
+    out = await G.ogr2ogr(ds, ["-f", "GeoJSON", "-nlt", "PROMOTE_TO_MULTI"], "contour_raw");
+  }
+  const geo = JSON.parse(new TextDecoder().decode(await G.getFileBytes(out))) as { features: { geometry: { type: string; coordinates: unknown } | null }[] };
+  await G.close(ds).catch(() => {});
+  const polys: RawPolygons = [];
+  for (const f of geo.features ?? []) {
+    const g = f.geometry;
+    if (g?.type === "Polygon") polys.push(g.coordinates as Ring[]);
+    if (g?.type === "MultiPolygon") (g.coordinates as Ring[][]).forEach((p) => polys.push(p));
+  }
+  return { polys, projected };
+}
+
 /** Closed polylines from an AutoCAD DXF drawing. */
 export async function readDxf(file: File): Promise<RawPolygons> {
   const DxfParser = (await import("dxf-parser")).default;

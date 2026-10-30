@@ -2,7 +2,10 @@
 
 import { tr } from "@/i18n";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import MapTools from "./MapTools";
+import dynamic from "next/dynamic";
+const MapDraw = dynamic(() => import("./MapDraw"), { ssr: false });
 import { useRouter } from "next/navigation";
 import * as maplibregl from "maplibre-gl";
 import type { GeoJSONSource, LngLatBoundsLike, MapLayerMouseEvent, StyleSpecification } from "maplibre-gl";
@@ -43,7 +46,7 @@ const KZ_BOUNDS: LngLatBoundsLike = [
 let workerSet = false;
 
 /** Raster basemaps plus a free elevation model (terrain tiles from the AWS open data registry). */
-function baseStyle(): StyleSpecification {
+export function baseStyle(): StyleSpecification {
   return {
     version: 8,
     sources: {
@@ -132,6 +135,10 @@ export default function LicensesMapInner({
   linkToLicense = true,
   overlay,
   initial3d = false,
+  tools = true,
+  title,
+  draw,
+  fitTo,
 }: {
   licenses: MapLicense[];
   height?: number;
@@ -140,9 +147,18 @@ export default function LicensesMapInner({
   linkToLicense?: boolean;
   overlay?: MapOverlay;
   initial3d?: boolean;
+  /** ruler, area, terrain profile, swipe and saving as PNG/PDF */
+  tools?: boolean;
+  /** heading for saved pictures */
+  title?: string;
+  /** draw or correct a contour on the map */
+  draw?: { initial: Contour | null; onChange: (c: Contour | null) => void };
+  /** an extra outline to include when zooming to the data */
+  fitTo?: Contour | null;
 }) {
   const router = useRouter();
   const box = useRef<HTMLDivElement>(null);
+  const shell = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markers = useRef<maplibregl.Marker[]>([]);
   const [ready, setReady] = useState(false);
@@ -184,6 +200,7 @@ export default function LicensesMapInner({
       m.on("mouseenter", "lic-fill", () => (m.getCanvas().style.cursor = "pointer"));
       m.on("mouseleave", "lic-fill", () => (m.getCanvas().style.cursor = ""));
       m.on("click", "lic-fill", (e: MapLayerMouseEvent) => {
+        if (m.getCanvas().dataset.tool) return; // a measuring tool is in use
         const id = e.features?.[0]?.properties?.id as number | undefined;
         const l = licRef.current.find((x) => x.id === id);
         if (!l) return;
@@ -242,8 +259,8 @@ export default function LicensesMapInner({
         markers.current.push(new maplibregl.Marker({ element: el, anchor: "left", offset: [10, 0] }).setLngLat([x, y]).addTo(m));
       });
     }
-    const b = boundsOf([...licenses.map((l) => l.contour).filter((c): c is Contour => !!c), ...(preview ? [preview] : [])]);
-    m.fitBounds(b ?? KZ_BOUNDS, { padding: 48, maxZoom: 13, duration: 600, pitch: is3d ? 55 : 0 });
+    const b = boundsOf([...licenses.map((l) => l.contour).filter((c): c is Contour => !!c), ...(preview ? [preview] : []), ...(fitTo ? [fitTo] : [])]);
+    m.fitBounds(b ?? KZ_BOUNDS, { padding: draw ? { top: 96, bottom: 48, left: 64, right: 64 } : 48, maxZoom: 13, duration: 600, pitch: is3d ? 55 : 0 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, licenses, preview, showLabels]);
 
@@ -323,9 +340,10 @@ export default function LicensesMapInner({
     }
   }, [ready, is3d]);
 
+  const contours = useMemo(() => licensesGeoJSON(licenses), [licenses]);
   const btn = (active: boolean) => `map-switch-btn${active ? " is-active" : ""}`;
   return (
-    <div className="map-shell" style={{ height }}>
+    <div className="map-shell" style={{ height }} ref={shell}>
       <div ref={box} style={{ position: "absolute", inset: 0 }} />
       <div className="map-switch" role="group" aria-label={tr("Подложка карты")}>
         <button type="button" className={btn(basemap === "scheme")} onClick={() => setBasemap("scheme")}>{tr("Схема")}</button>
@@ -340,6 +358,18 @@ export default function LicensesMapInner({
           title={tr("Объёмный рельеф: наклоните карту правой кнопкой мыши или двумя пальцами")}
         >{tr("3D-рельеф")}</button>
       </div>
+      {draw && <MapDraw map={map.current} ready={ready} initial={draw.initial} onChange={draw.onChange} />}
+      {tools && !draw && (
+        <MapTools
+          map={map.current}
+          ready={ready}
+          shell={shell.current}
+          baseStyle={baseStyle}
+          basemap={basemap}
+          title={title ?? (licenses.length === 1 ? licenses[0].deposit_name || licenses[0].license_number : tr("Карта участков"))}
+          contours={contours}
+        />
+      )}
     </div>
   );
 }
