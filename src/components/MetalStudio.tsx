@@ -46,7 +46,8 @@ export default function MetalStudio({ quotes, history, usdKzt }: { quotes: Metal
               <div className="metal-price">
                 {nf(x.price, isOz(x) || x.price < 100 ? 2 : 0)} <span className="metal-unit">{tr(x.unit)}</span>
               </div>
-              {x.history.length >= 3 && <Spark values={x.history} />}
+              {/* the line is drawn from the second recorded day; until then an empty strip keeps the cards even */}
+              {x.history.length >= 2 ? <Spark values={x.history} /> : <span className="metal-spark" aria-hidden />}
               <div className={`metal-change${up ? " is-up" : down ? " is-down" : ""}`}>
                 {x.change == null ? (
                   <span className="metal-muted">{fmtDate(x.date)}</span>
