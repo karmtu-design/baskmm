@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Column, Grid, Row, SmartLink, Text } from "@once-ui-system/core";
+import { Column, Grid, Heading, Row, SmartLink, Text } from "@once-ui-system/core";
 import DeleteProjectButton from "@/components/DeleteProjectButton";
 import ProjectForm from "@/components/ProjectForm";
 import { StageBadge } from "@/components/ProjectRegister";
 import { PageHeader, Panel } from "@/components/ui";
-import { getPresentations, getProject } from "@/lib/data";
+import { getDocuments, getPresentations, getProject } from "@/lib/data";
+import DocumentsPanel from "@/components/DocumentsPanel";
 import { updateProject } from "../actions";
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
@@ -16,6 +17,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     (p) => p.project && p.project.trim().toLowerCase() === project.name.trim().toLowerCase()
   );
   const hasPoint = project.lat != null && project.lon != null;
+  const docs = await getDocuments({ projectId: project.id });
 
   return (
     <>
@@ -74,6 +76,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </Text>
         </Column>
       </Grid>
+      <Column gap="16" marginTop="48">
+        <Heading as="h2" variant="heading-strong-l">
+          Документы проекта
+        </Heading>
+        <DocumentsPanel kind="document" projectId={project.id} items={docs} />
+      </Column>
     </>
   );
 }
