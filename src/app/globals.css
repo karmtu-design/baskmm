@@ -1377,3 +1377,320 @@ th[aria-sort] .sort-mark {
   flex: 1;
   accent-color: var(--bask-gold);
 }
+
+/* ---------- Task board ---------- */
+.task-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(240px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+@media (max-width: 1024px) {
+  .task-board {
+    grid-template-columns: repeat(4, minmax(250px, 80vw));
+    scroll-snap-type: x mandatory;
+  }
+  .task-col {
+    scroll-snap-align: start;
+  }
+}
+.task-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 16px;
+  background: var(--surface-background);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.task-col.is-over {
+  border-color: var(--bask-gold);
+  background: var(--brand-alpha-weak);
+}
+.task-col header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 10px 6px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neutral-on-background-strong);
+}
+.task-col header b {
+  margin-left: 6px;
+  font-weight: 500;
+  color: var(--neutral-on-background-weak);
+}
+.task-col ul {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 6px 10px 12px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+.task-col li {
+  touch-action: manipulation;
+}
+.task-empty {
+  padding: 16px 8px;
+  border: 1px dashed var(--neutral-alpha-medium);
+  border-radius: 12px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--neutral-on-background-weak);
+}
+.task-card {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-left: 3px solid var(--neutral-alpha-strong);
+  border-radius: 12px;
+  background: var(--page-background);
+  cursor: grab;
+}
+.task-card.prio-high {
+  border-left-color: var(--danger-solid-medium, #e5484d);
+}
+.task-card.prio-low {
+  border-left-color: var(--neutral-alpha-medium);
+}
+.task-card.is-dragging {
+  cursor: grabbing;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  transform: rotate(1.5deg);
+}
+.task-card.is-done .task-title {
+  text-decoration: line-through;
+  color: var(--neutral-on-background-weak);
+}
+.task-title {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--neutral-on-background-strong);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 12px;
+  color: var(--neutral-on-background-weak);
+}
+.task-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.task-due.is-late {
+  color: var(--danger-on-background-strong);
+  font-weight: 500;
+}
+.task-due.is-soon {
+  color: var(--warning-on-background-strong);
+}
+.task-prio {
+  color: var(--danger-on-background-strong);
+  font-weight: 600;
+}
+.task-link a {
+  color: var(--brand-on-background-strong);
+  text-decoration: none;
+}
+.task-auto {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--neutral-alpha-weak);
+}
+.muted {
+  margin: 0;
+  font-size: 13px;
+  color: var(--neutral-on-background-weak);
+}
+
+/* ---------- Calendar (FullCalendar) ---------- */
+.cal-shell {
+  padding: 16px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 16px;
+  background: var(--surface-background);
+  --fc-border-color: var(--neutral-alpha-medium);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: var(--neutral-alpha-weak);
+  --fc-list-event-hover-bg-color: var(--neutral-alpha-weak);
+  --fc-today-bg-color: var(--brand-alpha-weak);
+  --fc-button-bg-color: transparent;
+  --fc-button-border-color: var(--neutral-alpha-medium);
+  --fc-button-text-color: var(--neutral-on-background-strong);
+  --fc-button-hover-bg-color: var(--neutral-alpha-weak);
+  --fc-button-hover-border-color: var(--neutral-alpha-strong);
+  --fc-button-active-bg-color: var(--brand-alpha-medium);
+  --fc-button-active-border-color: var(--bask-gold);
+  --fc-event-border-color: transparent;
+  color: var(--neutral-on-background-strong);
+}
+.cal-shell .fc .fc-toolbar-title {
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.cal-shell .fc .fc-button {
+  font-size: 13px;
+  text-transform: none;
+  box-shadow: none !important;
+}
+.cal-shell .fc a {
+  color: inherit;
+  text-decoration: none;
+}
+.cal-shell .fc .fc-col-header-cell-cushion {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--neutral-on-background-weak);
+  text-transform: capitalize;
+}
+.cal-shell .fc-event {
+  padding: 1px 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.cal-shell .fc-daygrid-event {
+  white-space: normal;
+}
+.cal-shell .ev-task,
+.cal-dot.ev-task {
+  background: #3b6ea8;
+  color: #fff;
+}
+.cal-shell .ev-task.ev-high {
+  background: #b5452f;
+}
+.cal-shell .ev-done {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+.cal-shell .ev-expiry,
+.cal-dot.ev-expiry {
+  background: #8f2d2d;
+  color: #fff;
+}
+.cal-shell .ev-step,
+.cal-dot.ev-step {
+  background: #8a6d3b;
+  color: #fff;
+}
+.cal-shell .fc-list-event-title,
+.cal-shell .fc-list-event-time {
+  color: var(--neutral-on-background-strong);
+}
+.cal-shell .fc-list-event:hover td {
+  background: var(--neutral-alpha-weak);
+}
+.cal-shell .fc .fc-list-day-cushion {
+  background: var(--neutral-alpha-weak);
+}
+.cal-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--neutral-on-background-medium);
+  cursor: pointer;
+}
+.cal-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+@media (max-width: 640px) {
+  .cal-shell .fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .cal-shell .fc .fc-toolbar-title {
+    font-size: 16px;
+  }
+}
+
+/* ---------- Licence timeline (frappe-gantt) ---------- */
+.gantt-shell {
+  padding: 16px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 16px;
+  background: var(--surface-background);
+}
+.gantt-box {
+  overflow: hidden;
+  border-radius: 10px;
+  --g-bar-color: #3b6ea8;
+  --g-bar-border: transparent;
+  --g-tick-color: var(--neutral-alpha-weak);
+  --g-tick-color-thick: var(--neutral-alpha-medium);
+  --g-arrow-color: var(--neutral-alpha-strong);
+  --g-header-background: var(--page-background);
+  --g-row-color: transparent;
+  --g-row-border-color: var(--neutral-alpha-weak);
+  --g-today-highlight: var(--bask-gold);
+  --g-text-muted: var(--neutral-on-background-weak);
+  --g-text-light: #fff;
+  --g-text-dark: var(--neutral-on-background-strong);
+  --g-progress-color: rgba(255, 255, 255, 0.28);
+  --g-handle-color: transparent;
+  --g-weekend-label-color: transparent;
+  --g-expected-progress: transparent;
+  --g-popup-actions: var(--neutral-alpha-weak);
+  --g-border-color: var(--neutral-alpha-medium);
+}
+.gantt-box .gantt-container {
+  background: transparent;
+}
+.gantt-box .grid-background {
+  fill: transparent;
+}
+.gantt-box .bar-label {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+}
+.gantt-box .bar-label.big {
+  fill: var(--neutral-on-background-strong);
+}
+.gantt-box .gantt .bar-wrapper.g-explore .bar,
+.cal-dot.g-explore {
+  fill: #3b6ea8;
+  background: #3b6ea8;
+}
+.gantt-box .gantt .bar-wrapper.g-mining .bar,
+.cal-dot.g-mining {
+  fill: #2e7d4f;
+  background: #2e7d4f;
+}
+.gantt-box .gantt .bar-wrapper.g-soon .bar,
+.cal-dot.g-soon {
+  fill: #a8531e;
+  background: #a8531e;
+}
+.gantt-box .gantt .bar-wrapper.g-expired .bar,
+.cal-dot.g-expired {
+  fill: #6b2b2b;
+  background: #6b2b2b;
+}
+.gantt-box .bar-progress {
+  fill: rgba(255, 255, 255, 0.22) !important;
+}
+.gantt-box .popup-wrapper {
+  background: var(--page-background);
+  color: var(--neutral-on-background-strong);
+  border: 1px solid var(--neutral-alpha-medium);
+}

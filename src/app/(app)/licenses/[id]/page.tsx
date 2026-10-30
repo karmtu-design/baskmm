@@ -6,7 +6,8 @@ import LicenseMapTab from "@/components/LicenseMapTab";
 import DrillholesTab from "@/components/DrillholesTab";
 import LicenseForm from "@/components/LicenseForm";
 import { ExpiryText, MineralSwatch, PageHeader, Panel, StatusBadge, TestMark } from "@/components/ui";
-import { getCompanies, getDocuments, getDrillholes, getLicense, getLicenses, getOverlays } from "@/lib/data";
+import { getCompanies, getDocuments, getDrillholes, getLicense, getLicenses, getOverlays, getProjects, getTasks } from "@/lib/data";
+import TaskBoard from "@/components/TaskBoard";
 import DocumentsPanel from "@/components/DocumentsPanel";
 import { formatDate, isTest } from "@/lib/types";
 import { updateLicense } from "../../actions";
@@ -69,6 +70,7 @@ export default async function LicensePage({
   const companies = tab === "info" ? await getCompanies() : [];
   const others = tab === "map" ? await getLicenses() : [];
   const images = tab === "map" ? await getOverlays(license.id) : [];
+  const [tasks, allLic, allProj] = tab === "tasks" ? await Promise.all([getTasks({ licenseId: license.id }), getLicenses(), getProjects()]) : [[], [], []];
   const holes = tab === "drill" ? await getDrillholes(license.id) : [];
   const docs = tab === "docs" || tab === "history" ? await getDocuments({ licenseId: license.id, kind: tab === "history" ? "history" : "document" }) : [];
   const update = updateLicense.bind(null, license.id);
@@ -186,12 +188,13 @@ export default async function LicensePage({
       )}
 
       {tab === "tasks" && (
-        <Upcoming title="Задачи появятся на следующем этапе">
-          <Text as="p">
-            Задачи сотрудников, привязанные к этой лицензии: исполнитель, срок, статус. За 90, 30 и 7 дней до
-            окончания срока лицензии задача будет создаваться автоматически.
-          </Text>
-        </Upcoming>
+        <TaskBoard
+          tasks={tasks}
+          licenses={allLic.map((l) => ({ id: l.id, name: l.deposit_name || l.license_number }))}
+          projects={allProj.map((p) => ({ id: p.id, name: p.name }))}
+          people={[...new Set([license.responsible, ...allLic.map((l) => l.responsible)].filter(Boolean) as string[])]}
+          fixed={{ license_id: license.id }}
+        />
       )}
     </Column>
   );

@@ -95,3 +95,40 @@ export async function getOverlays(licenseId: number): Promise<import("./types").
   const { data: urls } = await supabase.storage.from("documents").createSignedUrls(data.map((d) => d.file_path), 3600);
   return data.map((d, i) => ({ id: d.id, title: d.title, url: urls?.[i]?.signedUrl ?? "", corners: d.corners, opacity: Number(d.opacity), crs: d.crs })).filter((d) => d.url);
 }
+
+/**
+ * Tasks, after making sure every licence that expires within 90 days has its renewal task
+ * (created once per licence and expiry date; a task already closed is not reopened).
+ */
+export async function getTasks(filter: { licenseId?: number; projectId?: number } = {}): Promise<import("./types").Task[]> {
+  const supabase = await createClient();
+  const { data: lic } = await supabase.from("licenses").select("id, deposit_name, license_number, expiry_date, status, responsible");
+  const today = new Date();
+  const auto = (lic ?? [])
+    .filter((l) => l.expiry_date && l.status !== "истекла")
+    .map((l) => ({ l, days: Math.ceil((new Date(l.expiry_date + "T00:00:00").getTime() - today.getTime()) / 86400000) }))
+    .filter(({ days }) => days <= 90 && days > -30)
+    .map(({ l, days }) => {
+      const due = new Date(new Date(l.expiry_date + "T00:00:00").getTime() - 30 * 86400000);
+      const dueIso = (due < today ? today : due).toISOString().slice(0, 10);
+      const [y, m, d] = l.expiry_date.split("-");
+      return {
+        title: `Продление лицензии ${l.deposit_name || l.license_number}: срок до ${d}.${m}.${y}`,
+        description: `Задача создана автоматически: ${days >= 0 ? `до окончания срока лицензии осталось ${days} дн.` : `срок лицензии истёк ${-days} дн. назад`} Проверьте с юристом сроки подачи заявления на продление.`,
+        priority: "high",
+        assignee: l.responsible,
+        due_date: dueIso,
+        license_id: l.id,
+        auto_key: `expiry:${l.id}:${l.expiry_date}`,
+        created_by: "система",
+      };
+    });
+  if (auto.length) await supabase.from("tasks").upsert(auto, { onConflict: "auto_key", ignoreDuplicates: true });
+
+  let q = supabase.from("tasks").select("*").order("position").order("id");
+  if (filter.licenseId) q = q.eq("license_id", filter.licenseId);
+  if (filter.projectId) q = q.eq("project_id", filter.projectId);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as import("./types").Task[];
+}
