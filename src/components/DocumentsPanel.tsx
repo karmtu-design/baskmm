@@ -4,7 +4,7 @@ import { tr, loc } from "@/i18n";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Checkbox, Column, Heading, Icon, Row, Tag, Text } from "@once-ui-system/core";
 import { createClient } from "@/lib/supabase/client";
@@ -12,6 +12,7 @@ import { DOC_CATEGORIES, HISTORY_CATEGORIES, formatDate, type DocKind, type Docu
 import { addDocument, deleteDocument, searchDocuments, updateDocument, type DocHit } from "@/app/(app)/documents/actions";
 
 const PdfViewer = dynamic(() => import("./PdfViewer"), { ssr: false });
+import { SignButton, SignatureList, type DocSignature } from "./DocSignatures";
 const OfficeViewer = dynamic(() => import("./OfficeViewer"), { ssr: false });
 const officeViewable = (n: string) => ["docx", "xlsx", "csv", "txt", "las", "laz"].includes(extOf(n));
 const isCloud = (n: string) => ["las", "laz"].includes(extOf(n));
@@ -86,6 +87,21 @@ export default function DocumentsPanel({
 
   const allCats = useMemo(() => [...new Set([...categories, ...(items.map((i) => i.category).filter(Boolean) as string[])])], [categories, items]);
   const byId = useMemo(() => new Map(items.map((d) => [d.id, d])), [items]);
+  // signatures (ЭЦП) of the documents shown here, without the signature data itself
+  const [sigs, setSigs] = useState<DocSignature[]>([]);
+  const ids = useMemo(() => items.map((d) => d.id).join(","), [items]);
+  const loadSigs = useCallback(async () => {
+    if (!ids) return setSigs([]);
+    const { data } = await createClient()
+      .from("signatures")
+      .select("id, document_id, signer_name, signer_org, signer_bin, signed_at, created_by")
+      .in("document_id", ids.split(",").map(Number))
+      .order("signed_at");
+    setSigs((data ?? []) as DocSignature[]);
+  }, [ids]);
+  useEffect(() => {
+    void loadSigs();
+  }, [loadSigs]);
   const list = hits ? (hits.map((h) => byId.get(h.id)).filter(Boolean) as DocumentRow[]) : items.filter((d) => !cat || d.category === cat);
   const snippet = useMemo(() => new Map((hits ?? []).map((h) => [h.id, h.snippet])), [hits]);
 
@@ -196,6 +212,8 @@ export default function DocumentsPanel({
               <DocItem
                 key={d.id}
                 d={d}
+                signatures={sigs.filter((x) => x.document_id === d.id)}
+                onSigned={loadSigs}
                 owner={owner(d)}
                 snippet={snippet.get(d.id)}
                 onOpen={() => open(d)}
@@ -244,6 +262,8 @@ function Highlight({ text }: { text: string }) {
 
 function DocItem({
   d,
+  signatures,
+  onSigned,
   owner,
   snippet,
   onOpen,
@@ -252,6 +272,8 @@ function DocItem({
   onChanged,
 }: {
   d: DocumentRow;
+  signatures: DocSignature[];
+  onSigned: () => void;
   owner: React.ReactNode;
   snippet?: string;
   onOpen: () => void;
@@ -304,8 +326,10 @@ function DocItem({
         </div>
         {snippet && <Highlight text={snippet} />}
         {d.notes && !snippet && <p className="doc-notes">{d.notes}</p>}
+        <SignatureList list={signatures} fileName={d.file_name} canDelete onChanged={onSigned} />
         <Row gap="8" wrap vertical="center" style={{ marginTop: 6 }}>
           <Tag as="span" size="s" scheme={st.scheme} label={tr(st.label)} />
+          <SignButton documentId={d.id} getFile={async () => (await fetch(await signedUrl(d.file_path, d.file_name, false))).blob()} onSigned={onSigned} />
           {step && (
             <Text variant="body-default-xs" onBackground="neutral-weak" role="status">
               {step}

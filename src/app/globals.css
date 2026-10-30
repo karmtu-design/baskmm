@@ -2775,3 +2775,47 @@ a.chip {
   flex: 0 0 auto;
   width: auto;
 }
+
+/* ---------- Electronic signatures (ЭЦП) ---------- */
+.eds-sign {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.eds-err {
+  max-width: 520px;
+  font-size: 12px;
+  color: var(--danger-on-background-strong);
+}
+.eds-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.eds-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-size: 13px;
+  color: var(--neutral-on-background-strong);
+}
+.eds-mark {
+  color: var(--success-on-background-strong);
+}
+.eds-time {
+  color: var(--neutral-on-background-weak);
+}
+.eds-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand-on-background-strong);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}

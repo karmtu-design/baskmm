@@ -18,6 +18,8 @@ const files = [
   ["node_modules/gdal3.js/dist/package/gdal3.js", "public/vendor/gdal/gdal3.js"],
   ["node_modules/gdal3.js/dist/package/gdal3WebAssembly.wasm", "public/vendor/gdal/gdal3WebAssembly.wasm"],
   ["node_modules/gdal3.js/dist/package/gdal3WebAssembly.data", "public/vendor/gdal/gdal3WebAssembly.data"],
+  // the NCALayer client for signing with a Kazakh EDS (loaded as a plain script when someone signs)
+  ["node_modules/ncalayer-js-client/ncalayer-client.js", "public/vendor/ncalayer-client.js"],
 ];
 mkdirSync("public/vendor/gdal", { recursive: true });
 mkdirSync("public/vendor/tesseract/lang", { recursive: true });
