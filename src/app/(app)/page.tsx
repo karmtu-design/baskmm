@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import MetalPrices, { MetalPricesSkeleton } from "@/components/MetalPrices";
 import { Badge, Column, Heading, Row, Text } from "@once-ui-system/core";
+import HeroVideo from "@/components/HeroVideo";
 import { NavigatorButton } from "@/components/SiteNavigator";
 import { ButtonLink, Panel, StatusBadge } from "@/components/ui";
 import { getCompanies, getDocuments, getLicenses, getProjects, getTasks } from "@/lib/data";
@@ -19,7 +20,8 @@ export default async function Overview() {
 
   return (
     <Column gap="40">
-      <Column gap="16" paddingTop="24" maxWidth="m">
+      <HeroVideo>
+      <Column gap="16" maxWidth="m">
         <Row>
           <Badge title={BRAND.slogan} icon="sparkle" arrow={false} />
         </Row>
@@ -32,6 +34,7 @@ export default async function Overview() {
           <ButtonLink href="/map">{tr("Открыть карту")}</ButtonLink>
         </Row>
       </Column>
+      </HeroVideo>
 
       <KeyFigures licenses={licenses} projects={projects} tasks={tasks} docs={documents.length} />
 

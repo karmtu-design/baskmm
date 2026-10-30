@@ -2850,6 +2850,7 @@ a.chip {
 .scan-pick.is-busy {
   cursor: progress;
   font-weight: 500;
+}
 
 /* ---------- Staff ---------- */
 .role-badge {
@@ -2932,4 +2933,56 @@ a.chip {
 }
 .staff-key span {
   color: var(--neutral-on-background-weak);
+}
+
+/* ---------- home: background video behind the title ---------- */
+.hero-video {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: clamp(380px, 56vh, 560px);
+  margin-top: 16px;
+  border-radius: 24px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #10151b url("/media/hero-poster.jpg") center / cover no-repeat;
+}
+.hero-video-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+  pointer-events: none;
+}
+/* darker at the bottom-left, where the text sits, so it reads on any frame */
+.hero-video-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(to top, rgba(8, 11, 15, 0.82) 0%, rgba(8, 11, 15, 0.45) 45%, rgba(8, 11, 15, 0.15) 100%),
+    linear-gradient(to right, rgba(8, 11, 15, 0.55) 0%, rgba(8, 11, 15, 0) 70%);
+}
+.hero-video-content {
+  width: 100%;
+  padding: 40px;
+  background: none;
+}
+.hero-video-content :is(h1, p) {
+  color: #fff !important;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+}
+.hero-video-content p {
+  color: rgba(255, 255, 255, 0.86) !important;
+}
+@media (max-width: 640px) {
+  .hero-video {
+    min-height: 420px;
+    border-radius: 16px;
+  }
+  .hero-video-content {
+    padding: 20px;
+  }
 }
