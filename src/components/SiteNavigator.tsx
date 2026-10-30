@@ -29,7 +29,7 @@ export const PAGES: { href: string; title: string; icon: IconName }[] = [
   { href: "/presentations", title: "Презентации", icon: "screen" },
   { href: "/documents", title: "Документы", icon: "document" },
   { href: "/analysis", title: "Геоанализ портфеля", icon: "radialGauge" },
-  { href: "/tasks", title: "Задачи сотрудников", icon: "checkbox" },
+  { href: "/tasks", title: "Задачи и сроки", icon: "checkbox" },
 ];
 
 export default function SiteNavigator() {

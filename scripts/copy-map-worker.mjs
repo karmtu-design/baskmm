@@ -1,10 +1,11 @@
 // Copies files the browser loads by URL into /public/vendor (not kept in git; recreated on every install and build):
-// the map and PDF workers, and the text-recognition engine with its Russian and English language data,
+// the map and PDF workers, the timeline chart styles, and the text-recognition engine with its Russian and English language data,
 // so scans are recognised without depending on outside download sites.
 import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 const files = [
   ["node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs", "public/vendor/maplibre-gl-worker.mjs"],
   ["node_modules/pdfjs-dist/build/pdf.worker.min.mjs", "public/vendor/pdf.worker.min.mjs"],
+  ["node_modules/frappe-gantt/dist/frappe-gantt.css", "public/vendor/frappe-gantt.css"],
   ["node_modules/tesseract.js/dist/worker.min.js", "public/vendor/tesseract/worker.min.js"],
   ["node_modules/tesseract.js-core/tesseract-core-lstm.wasm.js", "public/vendor/tesseract/tesseract-core-lstm.wasm.js"],
   ["node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm.js", "public/vendor/tesseract/tesseract-core-simd-lstm.wasm.js"],

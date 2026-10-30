@@ -202,3 +202,33 @@ export type MapImage = {
   opacity: number;
   crs: string | null;
 };
+
+export type TaskStatus = "new" | "in_progress" | "review" | "done";
+export type Task = {
+  id: number;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: "low" | "normal" | "high";
+  assignee: string | null;
+  due_date: string | null;
+  license_id: number | null;
+  project_id: number | null;
+  position: number;
+  auto_key: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+};
+export const TASK_COLUMNS: { id: TaskStatus; label: string }[] = [
+  { id: "new", label: "Новые" },
+  { id: "in_progress", label: "В работе" },
+  { id: "review", label: "На проверке" },
+  { id: "done", label: "Готово" },
+];
+export const PRIORITIES: { id: Task["priority"]; label: string }[] = [
+  { id: "high", label: "Высокий" },
+  { id: "normal", label: "Обычный" },
+  { id: "low", label: "Низкий" },
+];
