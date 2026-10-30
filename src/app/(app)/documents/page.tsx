@@ -1,5 +1,6 @@
 import { pageTitle } from "@/i18n/meta";
 import { tr } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 import { Column } from "@once-ui-system/core";
 import DocumentsPanel from "@/components/DocumentsPanel";
 import { PageHeader } from "@/components/ui";
@@ -10,8 +11,8 @@ export const generateMetadata = pageTitle("Документы");
 export default async function DocumentsPage() {
   const [docs, licenses, projects] = await Promise.all([getDocuments(), getLicenses(), getProjects()]);
   const owners = {
-    licenses: Object.fromEntries(licenses.map((l) => [l.id, l.deposit_name || l.license_number])),
-    projects: Object.fromEntries(projects.map((p) => [p.id, p.name])),
+    licenses: Object.fromEntries(licenses.map((l) => [l.id, dn(l.deposit_name) || l.license_number])),
+    projects: Object.fromEntries(projects.map((p) => [p.id, dn(p.name)])),
   };
   return (
     <Column>

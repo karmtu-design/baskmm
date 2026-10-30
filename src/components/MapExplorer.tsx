@@ -1,6 +1,7 @@
 "use client";
 
 import { tr } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 
 import { useMemo, useState } from "react";
 import { Checkbox, Column, Row, Text } from "@once-ui-system/core";
@@ -35,7 +36,7 @@ export default function MapExplorer({ licenses, companies }: { licenses: License
           <option value="">{tr("Все компании")}</option>
           {companies.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
+              {dn(c.name)}
             </option>
           ))}
         </select>
@@ -63,7 +64,7 @@ export default function MapExplorer({ licenses, companies }: { licenses: License
       <Legend licenses={licenses} />
 
       {missing.length > 0 && (
-        <Text variant="body-default-s" onBackground="warning-strong">{tr("Без контура:")}{" "}{missing.map((l) => l.deposit_name).join(", ")}{tr(". Добавьте координаты в карточке лицензии.")}</Text>
+        <Text variant="body-default-s" onBackground="warning-strong">{tr("Без контура:")}{" "}{missing.map((l) => dn(l.deposit_name)).join(", ")}{tr(". Добавьте координаты в карточке лицензии.")}</Text>
       )}
     </Column>
   );

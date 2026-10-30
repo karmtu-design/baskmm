@@ -167,6 +167,8 @@ export async function getAuditNames(entries: { table_name: string; record_id: nu
     tasks: "id, title",
     map_overlays: "id, title",
     drillholes: "id, hole_id",
+    notes: "id, title",
+    boards: "id, title",
   };
   const names = new Map<string, string>();
   await Promise.all(
@@ -210,4 +212,16 @@ export async function getNews(lang: string): Promise<import("./feeds").NewsItem[
   } catch {
     return null;
   }
+}
+
+/** Notes and drawing boards of a licence or a project, newest first (boards without their drawing). */
+export async function getNotesAndBoards(f: { licenseId?: number; projectId?: number }) {
+  const supabase = await createClient();
+  const col = f.licenseId ? "license_id" : "project_id";
+  const id = f.licenseId ?? f.projectId!;
+  const [n, b] = await Promise.all([
+    supabase.from("notes").select("*").eq(col, id).order("updated_at", { ascending: false }),
+    supabase.from("boards").select("id, license_id, project_id, title, preview, created_by, updated_by, created_at, updated_at").eq(col, id).order("updated_at", { ascending: false }),
+  ]);
+  return { notes: (n.data ?? []) as import("./types").Note[], boards: (b.data ?? []) as import("./types").Board[] };
 }

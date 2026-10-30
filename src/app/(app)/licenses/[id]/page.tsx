@@ -1,4 +1,5 @@
 import { tr } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 import Link from "next/link";
 import { ViewTransition } from "react";
 import { Column, Grid, Heading, Row, Text } from "@once-ui-system/core";
@@ -7,8 +8,9 @@ import LicenseMapTab from "@/components/LicenseMapTab";
 import DrillholesTab from "@/components/DrillholesTab";
 import LicenseForm from "@/components/LicenseForm";
 import { ExpiryText, MineralSwatch, PageHeader, Panel, StatusBadge, TestMark } from "@/components/ui";
-import { getCompanies, getDocuments, getDrillholes, getLicense, getAudit, getLicenses, getOverlays, getProjects, getTasks } from "@/lib/data";
+import { getCompanies, getDocuments, getDrillholes, getLicense, getAudit, getLicenses, getOverlays, getProjects, getTasks, getNotesAndBoards } from "@/lib/data";
 import AuditList from "@/components/AuditList";
+import NotesAndBoards from "@/components/NotesAndBoards";
 import TaskBoard from "@/components/TaskBoard";
 import { LicenseDocxButton } from "@/components/ExportButtons";
 import DocumentsPanel from "@/components/DocumentsPanel";
@@ -23,6 +25,7 @@ const TABS = [
   { id: "history", label: "Исторические данные" },
   { id: "checklist", label: "Чек-лист" },
   { id: "tasks", label: "Задачи" },
+  { id: "notes", label: "Заметки и схемы" },
 ] as const;
 
 const CHECKLIST_DRAFT = {
@@ -76,11 +79,12 @@ export default async function LicensePage({
   const changes = tab === "info" ? await getAudit({ table: "licenses", recordId: license.id, limit: 10 }) : [];
   const [tasks, allLic, allProj] = tab === "tasks" ? await Promise.all([getTasks({ licenseId: license.id }), getLicenses(), getProjects()]) : [[], [], []];
   const holes = tab === "drill" ? await getDrillholes(license.id) : [];
+  const nb = tab === "notes" ? await getNotesAndBoards({ licenseId: license.id }) : null;
   const docs = tab === "docs" || tab === "history" ? await getDocuments({ licenseId: license.id, kind: tab === "history" ? "history" : "document" }) : [];
   const update = updateLicense.bind(null, license.id);
 
   const facts: [string, React.ReactNode][] = [
-    ["Компания", license.company_id ? <Link href={`/companies/${license.company_id}`} style={{ color: "var(--brand-on-background-strong)" }}>{license.company_name}</Link> : license.company_name],
+    ["Компания", license.company_id ? <Link href={`/companies/${license.company_id}`} style={{ color: "var(--brand-on-background-strong)" }}>{dn(license.company_name)}</Link> : dn(license.company_name)],
     ["Вид лицензии", `${license.license_type ? tr(license.license_type) : "—"}${license.category ? `, ${tr(license.category)}` : ""}`],
     ["Полезное ископаемое", <MineralSwatch key="m" mineral={license.mineral} />],
     ["Дата выдачи", formatDate(license.issue_date)],
@@ -93,10 +97,10 @@ export default async function LicensePage({
   return (
     <Column>
       <PageHeader
-        back={{ href: license.company_id ? `/companies/${license.company_id}` : "/", label: license.company_name }}
+        back={{ href: license.company_id ? `/companies/${license.company_id}` : "/", label: dn(license.company_name) }}
         title={
           <ViewTransition name={`lic-title-${license.id}`} share="morph" default="none">
-            <span style={{ display: "inline-block" }}>{license.deposit_name || tr("Участок без названия")}</span>
+            <span style={{ display: "inline-block" }}>{dn(license.deposit_name) || tr("Участок без названия")}</span>
           </ViewTransition>
         }
         subtitle={
@@ -192,6 +196,8 @@ export default async function LicensePage({
           </ol>
         </Upcoming>
       )}
+
+      {nb && <NotesAndBoards notes={nb.notes} boards={nb.boards} licenseId={license.id} />}
 
       {tab === "tasks" && (
         <TaskBoard

@@ -1,5 +1,6 @@
 import { pageTitle } from "@/i18n/meta";
 import { tr, loc } from "@/i18n";
+import { dn, dp } from "@/lib/translit";
 import { Column, Grid, Text } from "@once-ui-system/core";
 import { BarCard, ColumnCard, PriceCard } from "@/components/StatsCharts";
 import { PageHeader } from "@/components/ui";
@@ -42,7 +43,7 @@ export default async function StatsPage() {
   const activeProjects = projects.filter((p) => p.stage !== "Отложен" && p.stage !== "Отклонён").length;
 
   const area = new Map<string, number>();
-  for (const l of licenses) area.set(l.company_name, (area.get(l.company_name) ?? 0) + (l.area_sq_km ?? 0));
+  for (const l of licenses) area.set(dn(l.company_name), (area.get(dn(l.company_name)) ?? 0) + (l.area_sq_km ?? 0));
   const areaByCompany = [...area].map(([label, value]) => ({ label, value })).filter((d) => d.value > 0).sort((a, b) => b.value - a.value);
 
   const years = Array.from({ length: 10 }, (_, i) => String(nowYear + i));
@@ -68,7 +69,7 @@ export default async function StatsPage() {
         <BarCard title={tr("Лицензии по полезным ископаемым")} data={count(licenses, (l) => tr(mineralGroup(l.mineral)))} head={[tr("Группа"), tr("Лицензий")]} />
         <BarCard title={tr("Площадь по компаниям")} note={tr("По площади, указанной в лицензии.")} data={areaByCompany} unit={tr("км²")} digits={1} head={[tr("Компания"), tr("Площадь")]} />
         <ColumnCard title={tr("Окончание сроков лицензий по годам")} note={tr("Оранжевым — лицензии, срок которых уже истёк.")} data={byYear} highlight={tr("Истекли")} head={[tr("Год"), tr("Лицензий")]} />
-        <BarCard title={tr("Лицензии по областям")} data={count(licenses, (l) => l.region || tr("Не указана"))} head={[tr("Область"), tr("Лицензий")]} />
+        <BarCard title={tr("Лицензии по областям")} data={count(licenses, (l) => dp(l.region) || tr("Не указана"))} head={[tr("Область"), tr("Лицензий")]} />
         <BarCard title={tr("Потенциальные проекты по этапам")} note={tr("В порядке этапов: от нового до сделки.")} data={stages} head={[tr("Этап"), tr("Проектов")]} />
         <PriceCard
           history={history.map((h) => ({ metal: h.metal, date: h.price_date, price: h.price }))}
