@@ -1,17 +1,16 @@
+import { tr, loc } from "@/i18n";
 import Link from "next/link";
 import { Text } from "@once-ui-system/core";
 import { TABLES, fieldLabel, recordName, valueText, verb } from "@/lib/auditText";
 import type { AuditEntry } from "@/lib/types";
 
-const when = (iso: string) => new Date(iso).toLocaleString("ru-RU", { timeZone: "Asia/Almaty", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const when = (iso: string) => new Date(iso).toLocaleString(loc(), { timeZone: "Asia/Almaty", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
 /** The change log as a readable list: who, when, what, and old → new for each changed field. */
 export default function AuditList({ entries, names, showObject = true }: { entries: AuditEntry[]; names: Map<string, string>; showObject?: boolean }) {
   if (!entries.length)
     return (
-      <Text variant="body-default-s" onBackground="neutral-weak">
-        Изменений пока нет. Журнал ведётся с момента его включения.
-      </Text>
+      <Text variant="body-default-s" onBackground="neutral-weak">{tr("Изменений пока нет. Журнал ведётся с момента его включения.")}</Text>
     );
   return (
     <ol className="audit-list">
@@ -27,7 +26,7 @@ export default function AuditList({ entries, names, showObject = true }: { entri
               {showObject && (
                 <>
                   {" "}
-                  {t?.one ?? e.table_name} {href ? <Link href={href}>{name}</Link> : <b>{name}</b>}
+                  {t ? tr(t.one) : e.table_name} {href ? <Link href={href}>{name}</Link> : <b>{name}</b>}
                 </>
               )}
               <time dateTime={e.ts}>{when(e.ts)}</time>

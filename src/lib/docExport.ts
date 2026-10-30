@@ -1,7 +1,7 @@
-// One-click documents made in the browser: a licence summary in Word (docx) and a one-page project
-// teaser in PDF (pdf-lib, PT Sans for Cyrillic). Nothing is sent anywhere; the file is downloaded.
 "use client";
 
+// One-click documents made in the browser: a licence summary in Word (docx) and a one-page project
+// teaser in PDF (pdf-lib, PT Sans for Cyrillic). Nothing is sent anywhere; the file is downloaded.
 import { contourCorners, toDMS } from "./coords";
 import { daysUntil, formatDate, type License, type PotentialProject } from "./types";
 

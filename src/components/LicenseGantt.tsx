@@ -1,5 +1,7 @@
 "use client";
 
+import { tr, currentLocale } from "@/i18n";
+
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Row } from "@once-ui-system/core";
@@ -22,6 +24,7 @@ const fmt = (iso: string) => iso.split("-").reverse().join(".");
 /** All licences on one timeline: from issue to expiry, with today marked and the elapsed part filled. */
 export default function LicenseGantt({ licenses }: { licenses: GanttLicense[] }) {
   const router = useRouter();
+  const lang = currentLocale();
   const box = useRef<HTMLDivElement>(null);
   const chart = useRef<Gantt | null>(null);
   const [mode, setMode] = useState<"Year" | "Month">("Year");
@@ -42,7 +45,7 @@ export default function LicenseGantt({ licenses }: { licenses: GanttLicense[] })
       });
       chart.current = new G(box.current, tasks, {
         view_mode: mode,
-        language: "ru",
+        language: lang,
         readonly: true,
         today_button: false,
         holidays: {},
@@ -56,7 +59,7 @@ export default function LicenseGantt({ licenses }: { licenses: GanttLicense[] })
           const l = licenses.find((x) => String(x.id) === p.task.id);
           p.set_title(l ? `${l.name}` : p.task.name);
           p.set_subtitle(l ? `${l.company} · ${l.number}` : "");
-          p.set_details(l ? `${fmt(l.start)} — ${fmt(l.end)}<br/>Прошло ${Math.round(p.task.progress ?? 0)}% срока${l.status ? `<br/>Статус: ${l.status}` : ""}` : "");
+          p.set_details(l ? tr("{0} — {1}<br/>Прошло {2}% срока{3}", { 0: fmt(l.start), 1: fmt(l.end), 2: Math.round(p.task.progress ?? 0), 3: l.status ? `<br/>${tr("Статус")}: ${tr(l.status)}` : "" }) : "");
         },
         popup_on: "hover",
         on_click: (t: GanttTask) => router.push(`/licenses/${t.id}`),
@@ -65,39 +68,28 @@ export default function LicenseGantt({ licenses }: { licenses: GanttLicense[] })
     return () => {
       alive = false;
     };
-  }, [licenses, mode, router]);
+  }, [licenses, mode, router, lang]);
 
-  if (licenses.length === 0) return <p className="muted">У лицензий не указаны даты выдачи и окончания.</p>;
+  if (licenses.length === 0) return <p className="muted">{tr("У лицензий не указаны даты выдачи и окончания.")}</p>;
   return (
     <div className="gantt-shell">
       <link rel="stylesheet" href="/vendor/frappe-gantt.css" precedence="default" />
       <Row wrap gap="12" vertical="center" marginBottom="12">
         <span className="cal-legend">
-          <span className="cal-dot g-explore" aria-hidden /> Разведка
-        </span>
+          <span className="cal-dot g-explore" aria-hidden />{" "}{tr("Разведка")}</span>
         <span className="cal-legend">
-          <span className="cal-dot g-mining" aria-hidden /> Добыча
-        </span>
+          <span className="cal-dot g-mining" aria-hidden />{" "}{tr("Добыча")}</span>
         <span className="cal-legend">
-          <span className="cal-dot g-soon" aria-hidden /> Истекает в течение года
-        </span>
+          <span className="cal-dot g-soon" aria-hidden />{" "}{tr("Истекает в течение года")}</span>
         <span className="cal-legend">
-          <span className="cal-dot g-expired" aria-hidden /> Истекла
-        </span>
+          <span className="cal-dot g-expired" aria-hidden />{" "}{tr("Истекла")}</span>
         <span style={{ marginLeft: "auto", display: "inline-flex", gap: 6 }}>
-          <button type="button" className={`chip${mode === "Year" ? " is-on" : ""}`} onClick={() => setMode("Year")}>
-            По годам
-          </button>
-          <button type="button" className={`chip${mode === "Month" ? " is-on" : ""}`} onClick={() => setMode("Month")}>
-            По месяцам
-          </button>
+          <button type="button" className={`chip${mode === "Year" ? " is-on" : ""}`} onClick={() => setMode("Year")}>{tr("По годам")}</button>
+          <button type="button" className={`chip${mode === "Month" ? " is-on" : ""}`} onClick={() => setMode("Month")}>{tr("По месяцам")}</button>
         </span>
       </Row>
       <div ref={box} className="gantt-box" />
-      <p className="muted" style={{ marginTop: 8 }}>
-        Полоса: от даты выдачи до окончания срока. Закрашенная часть показывает, сколько срока уже прошло. Нажмите на
-        полосу, чтобы открыть лицензию.
-      </p>
+      <p className="muted" style={{ marginTop: 8 }}>{tr("Полоса: от даты выдачи до окончания срока. Закрашенная часть показывает, сколько срока уже прошло. Нажмите на полосу, чтобы открыть лицензию.")}</p>
     </div>
   );
 }

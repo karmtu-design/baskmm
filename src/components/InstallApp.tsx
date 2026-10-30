@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useEffect, useState } from "react";
 import { Button, Icon } from "@once-ui-system/core";
 
@@ -45,14 +47,9 @@ export default function InstallApp() {
             setPrompt(null);
           } else setHint((v) => !v);
         }}
-      >
-        Установить приложение BASK
-      </Button>
+      >{tr("Установить приложение BASK")}</Button>
       {hint && (
-        <p>
-          На iPhone: нажмите <Icon name="arrowUpRight" size="xs" /> «Поделиться» внизу экрана Safari, затем «На экран
-          “Домой”». Появится иконка BASK, сайт будет открываться как приложение.
-        </p>
+        <p>{tr("На iPhone: нажмите")}{" "}<Icon name="arrowUpRight" size="xs" />{" "}{tr("«Поделиться» внизу экрана Safari, затем «На экран “Домой”». Появится иконка BASK, сайт будет открываться как приложение.")}</p>
       )}
     </div>
   );

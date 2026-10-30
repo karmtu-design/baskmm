@@ -1801,3 +1801,32 @@ a.chip {
 .audit-field {
   color: var(--neutral-on-background-weak);
 }
+
+/* ---------- Language switch ---------- */
+.lang-switch {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 999px;
+  background: var(--page-background);
+}
+.lang-switch button {
+  min-width: 34px;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--neutral-on-background-weak);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lang-switch button[aria-pressed="true"] {
+  background: var(--brand-alpha-medium);
+  color: var(--neutral-on-background-strong);
+}
+.lang-switch button:disabled {
+  opacity: 0.6;
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import { tr, loc } from "@/i18n";
+
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button, Column, Heading, Row, Text } from "@once-ui-system/core";
@@ -9,7 +11,7 @@ import type { Contour } from "@/lib/types";
 
 type Lic = { id: number; deposit_name: string | null; license_number: string; company_name: string; contour: Contour | null };
 
-const fmt = (n: number, d = 1) => n.toLocaleString("ru-RU", { maximumFractionDigits: d, minimumFractionDigits: d });
+const fmt = (n: number, d = 1) => n.toLocaleString(loc(), { maximumFractionDigits: d, minimumFractionDigits: d });
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -43,9 +45,7 @@ export default function GeoAnalysisPanel({
 
   if (!contour)
     return (
-      <Text variant="body-default-s" onBackground="neutral-weak">
-        Геоанализ появится после того, как у участка будет контур.
-      </Text>
+      <Text variant="body-default-s" onBackground="neutral-weak">{tr("Геоанализ появится после того, как у участка будет контур.")}</Text>
     );
 
   const showOverlaps = () => onOverlay({ ...overlay, highlight: overlay.highlight?.length ? [] : overlaps.map((o) => o.shape) });
@@ -65,11 +65,11 @@ export default function GeoAnalysisPanel({
         points: n.places.map((p) => ({ name: p.name, lon: p.lon, lat: p.lat, kind: p.kind })),
         lines: [
           ...n.roads.map((r) => ({ name: r.name, coordinates: r.coordinates, kind: r.kind })),
-          ...(n.rail ? [{ name: n.rail.name, coordinates: n.rail.coordinates, kind: "ж/д" }] : []),
+          ...(n.rail ? [{ name: n.rail.name, coordinates: n.rail.coordinates, kind: tr("ж/д") }] : []),
         ],
       });
     } catch (e) {
-      setError(`Не удалось получить данные OpenStreetMap: ${(e as Error).message}.`);
+      setError(tr("Не удалось получить данные OpenStreetMap: {0}.", { 0: (e as Error).message }));
     } finally {
       setLoading(false);
     }
@@ -80,67 +80,52 @@ export default function GeoAnalysisPanel({
 
   return (
     <Column background="surface" border radius="l" padding="24" gap="12">
-      <Heading as="h2" variant="heading-strong-m">
-        Геоанализ участка
-      </Heading>
+      <Heading as="h2" variant="heading-strong-m">{tr("Геоанализ участка")}</Heading>
 
-      <Section title="Пересечения с другими участками группы">
+      <Section title={tr("Пересечения с другими участками группы")}>
         {overlaps.length === 0 ? (
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            Контур не пересекается с другими лицензиями группы.
-          </Text>
+          <Text variant="body-default-s" onBackground="neutral-weak">{tr("Контур не пересекается с другими лицензиями группы.")}</Text>
         ) : (
           <>
             {overlaps.map((o) => {
               const { other, share } = otherOf(o);
               return (
                 <Text key={other.id} variant="body-default-s" onBackground="danger-strong">
-                  <Link href={`/licenses/${other.id}`}>{other.deposit_name || other.license_number}</Link>: общая площадь{" "}
-                  {fmt(o.areaKm2, 2)} км² ({fmt(share * 100)}% этого участка)
-                </Text>
+                  <Link href={`/licenses/${other.id}`}>{other.deposit_name || other.license_number}</Link>{tr(": общая площадь")}{" "}
+                  {fmt(o.areaKm2, 2)}{" "}{tr("км² (")}{fmt(share * 100)}{tr("% этого участка)")}</Text>
               );
             })}
             <Row>
               <Button size="s" variant="secondary" onClick={showOverlaps}>
-                {overlay.highlight?.length ? "Скрыть на карте" : "Показать на карте"}
+                {overlay.highlight?.length ? tr("Скрыть на карте") : tr("Показать на карте")}
               </Button>
             </Row>
           </>
         )}
       </Section>
 
-      <Section title="Буферная зона">
+      <Section title={tr("Буферная зона")}>
         <Row gap="8" vertical="center" wrap>
-          <label className="field-label" style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            Ширина, км
-            <input className="field" inputMode="decimal" value={bufKm} onChange={(e) => setBufKm(e.target.value)} style={{ width: 80, minHeight: 36 }} />
+          <label className="field-label" style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>{tr("Ширина, км")}<input className="field" inputMode="decimal" value={bufKm} onChange={(e) => setBufKm(e.target.value)} style={{ width: 80, minHeight: 36 }} />
           </label>
-          <Button size="s" variant="secondary" onClick={makeBuffer}>
-            Построить
-          </Button>
+          <Button size="s" variant="secondary" onClick={makeBuffer}>{tr("Построить")}</Button>
           {overlay.buffer && (
-            <Button size="s" variant="tertiary" onClick={() => onOverlay({ ...overlay, buffer: null })}>
-              Убрать
-            </Button>
+            <Button size="s" variant="tertiary" onClick={() => onOverlay({ ...overlay, buffer: null })}>{tr("Убрать")}</Button>
           )}
         </Row>
         {bufferArea != null && (
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            Площадь участка вместе с зоной: {fmt(bufferArea, 2)} км², сама зона: {fmt(bufferArea - km2(contour), 2)} км².
-          </Text>
+          <Text variant="body-default-s" onBackground="neutral-weak">{tr("Площадь участка вместе с зоной:")}{" "}{fmt(bufferArea, 2)}{" "}{tr("км², сама зона:")}{" "}{fmt(bufferArea - km2(contour), 2)}{" "}{tr("км².")}</Text>
         )}
       </Section>
 
-      <Section title="Населённые пункты и инфраструктура рядом">
+      <Section title={tr("Населённые пункты и инфраструктура рядом")}>
         <Row gap="8" vertical="center" wrap>
-          <select className="field" aria-label="Радиус поиска" value={radius} onChange={(e) => setRadius(e.target.value)} style={{ width: "auto", minHeight: 36 }}>
-            <option value="20">в радиусе 20 км</option>
-            <option value="40">в радиусе 40 км</option>
-            <option value="80">в радиусе 80 км</option>
+          <select className="field" aria-label={tr("Радиус поиска")} value={radius} onChange={(e) => setRadius(e.target.value)} style={{ width: "auto", minHeight: 36 }}>
+            <option value="20">{tr("в радиусе 20 км")}</option>
+            <option value="40">{tr("в радиусе 40 км")}</option>
+            <option value="80">{tr("в радиусе 80 км")}</option>
           </select>
-          <Button size="s" variant="secondary" onClick={searchNearby} loading={loading} prefixIcon="search">
-            Найти
-          </Button>
+          <Button size="s" variant="secondary" onClick={searchNearby} loading={loading} prefixIcon="search">{tr("Найти")}</Button>
         </Row>
         {error && (
           <Text variant="body-default-s" onBackground="danger-strong">
@@ -150,24 +135,22 @@ export default function GeoAnalysisPanel({
         {nearby && (
           <Column gap="8" textVariant="body-default-s">
             <div>
-              <b>Населённые пункты:</b>{" "}
+              <b>{tr("Населённые пункты:")}</b>{" "}
               {nearby.places.length
-                ? nearby.places.map((p) => `${p.name} (${p.kind}, ${fmt(p.km)} км)`).join("; ")
-                : "в радиусе не найдено"}
+                ? nearby.places.map((p) => tr("{0} ({1}, {2} км)", { 0: p.name, 1: tr(p.kind), 2: fmt(p.km) })).join("; ")
+                : tr("в радиусе не найдено")}
             </div>
             <div>
-              <b>Дороги:</b>{" "}
-              {nearby.roads.length ? nearby.roads.map((r) => `${r.name} — ${fmt(r.km)} км`).join("; ") : "в радиусе не найдено"}
+              <b>{tr("Дороги:")}</b>{" "}
+              {nearby.roads.length ? nearby.roads.map((r) => tr("{0} — {1} км", { 0: r.name, 1: fmt(r.km) })).join("; ") : tr("в радиусе не найдено")}
             </div>
             <div>
-              <b>Железная дорога:</b> {nearby.rail ? `${nearby.rail.name} — ${fmt(nearby.rail.km)} км` : "в радиусе не найдено"}
+              <b>{tr("Железная дорога:")}</b> {nearby.rail ? tr("{0} — {1} км", { 0: nearby.rail.name, 1: fmt(nearby.rail.km) }) : tr("в радиусе не найдено")}
             </div>
             <div>
-              <b>ЛЭП:</b> {nearby.power ? `${nearby.power.name} — ${fmt(nearby.power.km)} км` : "в радиусе не найдено"}
+              <b>{tr("ЛЭП:")}</b> {nearby.power ? tr("{0} — {1} км", { 0: nearby.power.name, 1: fmt(nearby.power.km) }) : tr("в радиусе не найдено")}
             </div>
-            <Text variant="body-default-xs" onBackground="neutral-weak">
-              Расстояние считается от границы участка. Источник: OpenStreetMap, данные по Казахстану бывают неполными.
-            </Text>
+            <Text variant="body-default-xs" onBackground="neutral-weak">{tr("Расстояние считается от границы участка. Источник: OpenStreetMap, данные по Казахстану бывают неполными.")}</Text>
           </Column>
         )}
       </Section>

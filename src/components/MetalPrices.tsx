@@ -1,9 +1,10 @@
+import { tr, loc } from "@/i18n";
 import { Column, Row, Text } from "@once-ui-system/core";
 import { getMetalBoard, SOURCE_URL } from "@/lib/metals";
 
 const fmtPrice = (v: number, unit: string) =>
-  v.toLocaleString("ru-RU", { maximumFractionDigits: unit === "$/унц" || v < 100 ? 2 : 0, minimumFractionDigits: 0 });
-const fmtDate = (iso: string) => new Date(iso + "T00:00:00").toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+  v.toLocaleString(loc(), { maximumFractionDigits: unit === "$/унц" || v < 100 ? 2 : 0, minimumFractionDigits: 0 });
+const fmtDate = (iso: string) => new Date(iso + "T00:00:00").toLocaleDateString(loc(), { day: "numeric", month: "short" });
 const daysOld = (iso: string) => Math.floor((Date.now() - new Date(iso + "T00:00:00").getTime()) / 86400000);
 
 /** A row of metal price cards for the home page. Prices change once a day. */
@@ -11,9 +12,7 @@ export default async function MetalPrices() {
   const board = await getMetalBoard();
   if (board.quotes.length === 0) {
     return (
-      <Text variant="body-default-s" onBackground="neutral-weak">
-        Цены на металлы сейчас недоступны{board.error ? `: ${board.error}` : ""}. Попробуйте обновить страницу позже.
-      </Text>
+      <Text variant="body-default-s" onBackground="neutral-weak">{tr("Цены на металлы сейчас недоступны")}{board.error ? `: ${board.error}` : ""}{tr(". Попробуйте обновить страницу позже.")}</Text>
     );
   }
   const latest = board.quotes.map((q) => q.date).sort().at(-1)!;
@@ -26,13 +25,13 @@ export default async function MetalPrices() {
           const up = q.change != null && q.change > 0.00005;
           const down = q.change != null && q.change < -0.00005;
           return (
-            <div key={q.key} className="metal-card" title={`${q.name}: цена на ${fmtDate(q.date)}${q.prevDate ? `, изменение к ${fmtDate(q.prevDate)}` : ""}`}>
+            <div key={q.key} className="metal-card" title={q.prevDate ? tr("{0}: цена на {1}, изменение к {2}", { 0: tr(q.name), 1: fmtDate(q.date), 2: fmtDate(q.prevDate) }) : tr("{0}: цена на {1}", { 0: tr(q.name), 1: fmtDate(q.date) })}>
               <div className="metal-head">
                 <span className="metal-sym">{q.symbol}</span>
-                <span className="metal-name">{q.name}</span>
+                <span className="metal-name">{tr(q.name)}</span>
               </div>
               <div className="metal-price">
-                {fmtPrice(q.price, q.unit)} <span className="metal-unit">{q.unit}</span>
+                {fmtPrice(q.price, q.unit)} <span className="metal-unit">{tr(q.unit)}</span>
               </div>
               {q.history.length >= 3 && <Spark values={q.history} />}
               <div className={`metal-change${up ? " is-up" : down ? " is-down" : ""}`}>
@@ -40,7 +39,7 @@ export default async function MetalPrices() {
                   <span className="metal-muted">{fmtDate(q.date)}</span>
                 ) : (
                   <>
-                    {up ? "▲" : down ? "▼" : "•"} {Math.abs(q.change * 100).toLocaleString("ru-RU", { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%
+                    {up ? "▲" : down ? "▼" : "•"} {Math.abs(q.change * 100).toLocaleString(loc(), { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%
                     <span className="metal-muted"> · {fmtDate(q.date)}</span>
                   </>
                 )}
@@ -50,17 +49,12 @@ export default async function MetalPrices() {
         })}
       </div>
       <Row wrap gap="8">
-        <Text variant="body-default-xs" onBackground="neutral-weak">
-          Официальные цены Лондонской биржи металлов (LME, наличные) и London Fixing по золоту, источник:{" "}
+        <Text variant="body-default-xs" onBackground="neutral-weak">{tr("Официальные цены Лондонской биржи металлов (LME, наличные) и London Fixing по золоту, источник:")}{" "}
           <a href={SOURCE_URL} target="_blank" rel="noopener noreferrer">
             Westmetall
-          </a>
-          . Обновляются раз в рабочий день; изменение указано к предыдущей записанной дате.
-        </Text>
+          </a>{tr(". Обновляются раз в рабочий день; изменение указано к предыдущей записанной дате.")}</Text>
         {stale && (
-          <Text variant="body-default-xs" onBackground="warning-strong">
-            Внимание: последние цены от {fmtDate(latest)}, источник давно не обновлялся.
-          </Text>
+          <Text variant="body-default-xs" onBackground="warning-strong">{tr("Внимание: последние цены от")}{" "}{fmtDate(latest)}{tr(", источник давно не обновлялся.")}</Text>
         )}
       </Row>
     </Column>

@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import Link from "next/link";
 import { Button, Column, Heading, Row, SmartLink, Tag, Text } from "@once-ui-system/core";
 import { daysUntil, formatDate, mineralColor, mineralGroup, type License } from "@/lib/types";
@@ -5,11 +6,11 @@ import { daysUntil, formatDate, mineralColor, mineralGroup, type License } from 
 export function StatusBadge({ status }: { status: string | null }) {
   const s = status || "—";
   const scheme = s === "действует" ? "success" : s === "истекла" || s === "приостановлена" ? "danger" : "warning";
-  return <Tag as="span" size="s" scheme={scheme} label={s} />;
+  return <Tag as="span" size="s" scheme={scheme} label={tr(s)} />;
 }
 
 export function TestMark() {
-  return <Tag as="span" size="s" scheme="warning" label="тестовые данные" />;
+  return <Tag as="span" size="s" scheme="warning" label={tr("тестовые данные")} />;
 }
 
 export function MineralSwatch({ mineral }: { mineral: string | null }) {
@@ -29,7 +30,7 @@ export function Legend({ licenses }: { licenses: Pick<License, "mineral">[] }) {
       {groups.map((g) => (
         <li key={g} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
           <span aria-hidden style={{ width: 20, height: 12, borderRadius: 3, background: colorOf(g) }} />
-          {g}
+          {tr(g)}
         </li>
       ))}
     </Row>
@@ -40,7 +41,7 @@ export function ExpiryText({ date }: { date: string | null }) {
   const d = daysUntil(date);
   if (d == null) return <span>—</span>;
   const color = d < 0 ? "var(--danger-on-background-strong)" : d <= 180 ? "var(--warning-on-background-strong)" : undefined;
-  const hint = d < 0 ? `истекла ${-d} дн. назад` : d <= 365 ? `через ${d} дн.` : null;
+  const hint = d < 0 ? tr("истекла {0} дн. назад", { 0: -d }) : d <= 365 ? tr("через {0} дн.", { 0: d }) : null;
   return (
     <span style={{ color }}>
       {formatDate(date)}
@@ -116,7 +117,7 @@ export function LicenseTable({ licenses, showCompany = true }: { licenses: Licen
   if (licenses.length === 0)
     return (
       <Column border radius="l" padding="24" style={{ borderStyle: "dashed" }}>
-        <Text onBackground="neutral-weak">Лицензий пока нет. Добавьте первую кнопкой «Добавить лицензию».</Text>
+        <Text onBackground="neutral-weak">{tr("Лицензий пока нет. Добавьте первую кнопкой «Добавить лицензию».")}</Text>
       </Column>
     );
   return (
@@ -124,27 +125,27 @@ export function LicenseTable({ licenses, showCompany = true }: { licenses: Licen
       <table className="data-table">
         <thead>
           <tr>
-            <th>Участок</th>
-            <th>Полезное ископаемое</th>
-            <th>Вид</th>
-            {showCompany && <th>Компания</th>}
-            <th>Действует до</th>
-            <th>Статус</th>
+            <th>{tr("Участок")}</th>
+            <th>{tr("Полезное ископаемое")}</th>
+            <th>{tr("Вид")}</th>
+            {showCompany && <th>{tr("Компания")}</th>}
+            <th>{tr("Действует до")}</th>
+            <th>{tr("Статус")}</th>
           </tr>
         </thead>
         <tbody>
           {licenses.map((l) => (
             <tr key={l.id}>
               <td>
-                <Link href={`/licenses/${l.id}`}>{l.deposit_name || "Без названия"}</Link>
+                <Link href={`/licenses/${l.id}`}>{l.deposit_name || tr("Без названия")}</Link>
                 <div style={{ fontSize: 12, color: "var(--neutral-on-background-weak)" }}>{l.license_number}</div>
               </td>
               <td>
                 <MineralSwatch mineral={l.mineral} />
               </td>
               <td>
-                {l.license_type || "—"}
-                {l.category && <span style={{ color: "var(--neutral-on-background-weak)" }}>, {l.category}</span>}
+                {l.license_type ? tr(l.license_type) : "—"}
+                {l.category && <span style={{ color: "var(--neutral-on-background-weak)" }}>, {tr(l.category)}</span>}
               </td>
               {showCompany && <td>{l.company_name}</td>}
               <td>

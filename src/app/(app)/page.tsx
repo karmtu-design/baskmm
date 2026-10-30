@@ -1,3 +1,4 @@
+import { tr, plural } from "@/i18n";
 import Link from "next/link";
 import { Suspense } from "react";
 import MetalPrices, { MetalPricesSkeleton } from "@/components/MetalPrices";
@@ -7,14 +8,6 @@ import { ButtonLink, ExpiryText, Panel, StatusBadge } from "@/components/ui";
 import { getCompanies, getLicenses } from "@/lib/data";
 import { BRAND } from "@/lib/brand";
 import { daysUntil, isTest } from "@/lib/types";
-
-function plural(n: number, one: string, few: string, many: string) {
-  const m10 = n % 10,
-    m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return `${n} ${one}`;
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return `${n} ${few}`;
-  return `${n} ${many}`;
-}
 
 const rowLink: React.CSSProperties = {
   display: "flex",
@@ -42,22 +35,18 @@ export default async function Overview() {
         <Row>
           <Badge title={BRAND.slogan} icon="sparkle" arrow={false} />
         </Row>
-        <Heading as="h1" variant="display-strong-l" wrap="balance">
-          Портфель группы
-        </Heading>
+        <Heading as="h1" variant="display-strong-l" wrap="balance">{tr("Портфель группы")}</Heading>
         <Text variant="heading-default-l" onBackground="neutral-weak" wrap="balance">
-          {plural(companies.length, "компания", "компании", "компаний")} и{" "}
-          {plural(licenses.length, "лицензия", "лицензии", "лицензий")}: {exploration} на разведку и {mining} на
-          добычу.
-        </Text>
+          {plural(companies.length, "компания", "компании", "компаний")}{" "}{tr("и")}{" "}
+          {plural(licenses.length, "лицензия", "лицензии", "лицензий")}: {exploration}{" "}{tr("на разведку и")}{" "}{mining}{" "}{tr("на добычу.")}</Text>
         <Row gap="8" paddingTop="8">
           <NavigatorButton />
-          <ButtonLink href="/map">Открыть карту</ButtonLink>
+          <ButtonLink href="/map">{tr("Открыть карту")}</ButtonLink>
         </Row>
       </Column>
 
       <Column gap="12">
-        <Text variant="label-strong-m">Цены на металлы</Text>
+        <Text variant="label-strong-m">{tr("Цены на металлы")}</Text>
         <Suspense fallback={<MetalPricesSkeleton />}>
           <MetalPrices />
         </Suspense>
@@ -65,19 +54,14 @@ export default async function Overview() {
 
       {licenses.some(isTest) && (
         <Row background="warning-alpha-weak" border="warning-alpha-medium" radius="l" padding="16">
-          <Text variant="body-default-s">
-            Сейчас в системе тестовые лицензии и условные контуры. Замените их реальными данными после настройки
-            входа для сотрудников.
-          </Text>
+          <Text variant="body-default-s">{tr("Сейчас в системе тестовые лицензии и условные контуры. Замените их реальными данными после настройки входа для сотрудников.")}</Text>
         </Row>
       )}
 
       <Grid columns={attention.length > 0 ? "3" : "2"} gap="24" m={{ columns: "1" }}>
-        <Panel title="Сроки в ближайший год" padding="16">
+        <Panel title={tr("Сроки в ближайший год")} padding="16">
           {deadlines.length === 0 ? (
-            <Text variant="body-default-s" onBackground="neutral-weak">
-              Ни одна лицензия не истекает в ближайшие 12 месяцев.
-            </Text>
+            <Text variant="body-default-s" onBackground="neutral-weak">{tr("Ни одна лицензия не истекает в ближайшие 12 месяцев.")}</Text>
           ) : (
             <Column>
               {deadlines.map(({ l }) => (
@@ -97,7 +81,7 @@ export default async function Overview() {
           )}
         </Panel>
 
-        <Panel title="Компании" padding="16">
+        <Panel title={tr("Компании")} padding="16">
           <Column>
             {companies.map((c) => (
               <Link key={c.id} href={`/companies/${c.id}`} style={rowLink}>
@@ -111,7 +95,7 @@ export default async function Overview() {
         </Panel>
 
         {attention.length > 0 && (
-          <Panel title="Требуют внимания" padding="16">
+          <Panel title={tr("Требуют внимания")} padding="16">
             <Column>
               {attention.map((l) => (
                 <Link key={l.id} href={`/licenses/${l.id}`} style={{ ...rowLink, alignItems: "center" }}>

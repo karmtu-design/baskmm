@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import Link from "next/link";
 
 /**
@@ -14,7 +15,7 @@ export default function BrandLogo({ href, height = 40 }: { href?: string; height
     </span>
   );
   return href ? (
-    <Link href={href} aria-label="BASK Metals and Mining, на главную" style={{ display: "inline-flex" }}>
+    <Link href={href} aria-label={tr("BASK Metals and Mining, на главную")} style={{ display: "inline-flex" }}>
       {img}
     </Link>
   ) : (

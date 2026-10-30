@@ -1,5 +1,7 @@
 "use client";
 
+import { tr, currentLocale } from "@/i18n";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
@@ -68,11 +70,11 @@ export default function AssistantPanel() {
       const res = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, locale: currentLocale() }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
-        const msg = (await res.text()) || "Ассистент сейчас недоступен.";
+        const msg = (await res.text()) || tr("Ассистент сейчас недоступен.");
         setTurns([...history, { role: "assistant", content: `_${msg}_` }]);
         return;
       }
@@ -87,7 +89,7 @@ export default function AssistantPanel() {
       }
     } catch (e) {
       if ((e as Error).name !== "AbortError")
-        setTurns([...history, { role: "assistant", content: "_Нет связи с сервером. Проверьте интернет и попробуйте ещё раз._" }]);
+        setTurns([...history, { role: "assistant", content: tr("_Нет связи с сервером. Проверьте интернет и попробуйте ещё раз._") }]);
     } finally {
       setBusy(false);
       abort.current = null;
@@ -97,9 +99,8 @@ export default function AssistantPanel() {
   return (
     <>
       {!open && (
-        <button type="button" className="assistant-fab" onClick={() => setOpen(true)} aria-label="Открыть ИИ-ассистента">
-          <span aria-hidden>✦</span> Ассистент
-        </button>
+        <button type="button" className="assistant-fab" onClick={() => setOpen(true)} aria-label={tr("Открыть ИИ-ассистента")}>
+          <span aria-hidden>✦</span>{" "}{tr("Ассистент")}</button>
       )}
 
       {open && (
@@ -110,34 +111,28 @@ export default function AssistantPanel() {
           border
           radius="xl"
           shadow="xl"
-          aria-label="ИИ-ассистент"
+          aria-label={tr("ИИ-ассистент")}
         >
           <Row padding="16" paddingBottom="12" vertical="center" horizontal="between" borderBottom>
             <Column gap="2">
-              <Heading as="h2" variant="heading-strong-s">
-                Ассистент BASK
-              </Heading>
-              <Text variant="body-default-xs" onBackground="neutral-weak">
-                Отвечает по реестру лицензий и компаний
-              </Text>
+              <Heading as="h2" variant="heading-strong-s">{tr("Ассистент BASK")}</Heading>
+              <Text variant="body-default-xs" onBackground="neutral-weak">{tr("Отвечает по реестру лицензий и компаний")}</Text>
             </Column>
             <Row gap="4">
               {turns.length > 0 && (
-                <IconButton icon="refresh" variant="ghost" size="s" tooltip="Новый разговор" onClick={() => setTurns([])} />
+                <IconButton icon="refresh" variant="ghost" size="s" tooltip={tr("Новый разговор")} onClick={() => setTurns([])} />
               )}
-              <IconButton icon="close" variant="ghost" size="s" tooltip="Закрыть" onClick={() => setOpen(false)} />
+              <IconButton icon="close" variant="ghost" size="s" tooltip={tr("Закрыть")} onClick={() => setOpen(false)} />
             </Row>
           </Row>
 
           <div ref={list} className="assistant-list">
             {turns.length === 0 ? (
               <Column gap="12" padding="16">
-                <Text variant="body-default-s" onBackground="neutral-weak">
-                  Спросите о лицензиях, сроках, компаниях и участках. Например:
-                </Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">{tr("Спросите о лицензиях, сроках, компаниях и участках. Например:")}</Text>
                 {SUGGESTIONS.map((s) => (
-                  <button key={s} type="button" className="assistant-suggestion" onClick={() => ask(s)}>
-                    {s}
+                  <button key={s} type="button" className="assistant-suggestion" onClick={() => ask(tr(s))}>
+                    {tr(s)}
                   </button>
                 ))}
               </Column>
@@ -150,7 +145,7 @@ export default function AssistantPanel() {
                     </div>
                   ) : (
                     <div key={i} className="assistant-a">
-                      {t.content ? <Answer text={t.content} /> : <span className="assistant-typing">Думаю…</span>}
+                      {t.content ? <Answer text={t.content} /> : <span className="assistant-typing">{tr("Думаю…")}</span>}
                     </div>
                   )
                 )}
@@ -168,8 +163,8 @@ export default function AssistantPanel() {
             <textarea
               className="field"
               rows={2}
-              placeholder="Ваш вопрос…"
-              aria-label="Вопрос ассистенту"
+              placeholder={tr("Ваш вопрос…")}
+              aria-label={tr("Вопрос ассистенту")}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -181,17 +176,11 @@ export default function AssistantPanel() {
               maxLength={4000}
             />
             <Row horizontal="between" vertical="center" gap="8">
-              <Text variant="body-default-xs" onBackground="neutral-weak">
-                ИИ может ошибаться: сверяйте с карточкой лицензии.
-              </Text>
+              <Text variant="body-default-xs" onBackground="neutral-weak">{tr("ИИ может ошибаться: сверяйте с карточкой лицензии.")}</Text>
               {busy ? (
-                <Button type="button" size="s" variant="secondary" onClick={() => abort.current?.abort()}>
-                  Стоп
-                </Button>
+                <Button type="button" size="s" variant="secondary" onClick={() => abort.current?.abort()}>{tr("Стоп")}</Button>
               ) : (
-                <Button type="submit" size="s" suffixIcon="send" disabled={!input.trim()}>
-                  Спросить
-                </Button>
+                <Button type="submit" size="s" suffixIcon="send" disabled={!input.trim()}>{tr("Спросить")}</Button>
               )}
             </Row>
           </form>

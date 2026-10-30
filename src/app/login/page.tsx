@@ -1,3 +1,5 @@
+import LanguageSwitch from "@/components/LanguageSwitch";
+import { tr } from "@/i18n";
 import { Badge, Button, Column, Heading, Input, Line, PasswordInput, Row, Text } from "@once-ui-system/core";
 import BrandLogo from "@/components/BrandLogo";
 import PageBackground from "@/components/PageBackground";
@@ -26,9 +28,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
       <Row as="header" fillWidth maxWidth="xl" paddingX="24" paddingY="20" vertical="center" horizontal="between" zIndex={1}>
         <BrandLogo height={44} />
-        <Text variant="body-default-s" onBackground="neutral-weak" s={{ hide: true }}>
-          Внутренняя система группы
-        </Text>
+        <Row gap="16" vertical="center">
+          <Text variant="body-default-s" onBackground="neutral-weak" s={{ hide: true }}>
+            {tr("Внутренняя система группы")}
+          </Text>
+          <LanguageSwitch />
+        </Row>
       </Row>
 
       <Row
@@ -45,7 +50,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       >
         <Column flex={1} gap="24">
           <Row>
-            <Badge title="Портфель недропользования" icon="globe" arrow={false} />
+            <Badge title={tr("Портфель недропользования")} icon="globe" arrow={false} />
           </Row>
           <Heading as="h1" variant="display-strong-xl" wrap="balance" style={{ letterSpacing: "0.02em", lineHeight: 1 }}>
             BASK
@@ -61,32 +66,22 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           >
             {BRAND.slogan}
           </Text>
-          <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: 460 }}>
-            Лицензии на разведку и добычу, контуры участков, документы и задачи сотрудников группы в одном месте.
-          </Text>
+          <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: 460 }}>{tr("Лицензии на разведку и добычу, контуры участков, документы и задачи сотрудников группы в одном месте.")}</Text>
         </Column>
 
         <Column background="page" border radius="xl" padding="32" gap="20" shadow="l" width={26} m={{ width: "fit", fillWidth: true }}>
           <Column gap="4">
-            <Heading as="h2" variant="heading-strong-l">
-              Вход для сотрудников
-            </Heading>
-            <Text variant="body-default-s" onBackground="neutral-weak">
-              Доступ выдаёт администратор системы.
-            </Text>
+            <Heading as="h2" variant="heading-strong-l">{tr("Вход для сотрудников")}</Heading>
+            <Text variant="body-default-s" onBackground="neutral-weak">{tr("Доступ выдаёт администратор системы.")}</Text>
           </Column>
           <form action={signIn}>
             <Column gap="12">
-              <Input id="email" name="email" type="email" label="Электронная почта" required autoComplete="email" />
-              <PasswordInput id="password" name="password" label="Пароль" required autoComplete="current-password" />
+              <Input id="email" name="email" type="email" label={tr("Электронная почта")} required autoComplete="email" />
+              <PasswordInput id="password" name="password" label={tr("Пароль")} required autoComplete="current-password" />
               {error && (
-                <Text variant="body-default-s" onBackground="danger-strong" role="alert">
-                  Неверная почта или пароль. Проверьте раскладку клавиатуры и попробуйте снова.
-                </Text>
+                <Text variant="body-default-s" onBackground="danger-strong" role="alert">{tr("Неверная почта или пароль. Проверьте раскладку клавиатуры и попробуйте снова.")}</Text>
               )}
-              <Button type="submit" fillWidth size="l" suffixIcon="arrowRight">
-                Войти
-              </Button>
+              <Button type="submit" fillWidth size="l" suffixIcon="arrowRight">{tr("Войти")}</Button>
             </Column>
           </form>
         </Column>

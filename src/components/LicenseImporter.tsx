@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useMemo, useState, useTransition } from "react";
 import { Button, Checkbox, Column, Heading, Row, Tag, Text } from "@once-ui-system/core";
 import { downloadLicenseWorkbook, readLicenseWorkbook, type ImportRow } from "@/lib/excel";
@@ -36,7 +38,7 @@ export default function LicenseImporter({
       setProblems(r.problems);
     } catch (e) {
       setRows(null);
-      setProblems([`Файл не открылся как таблица Excel (.xlsx): ${(e as Error).message}`]);
+      setProblems([tr("Файл не открылся как таблица Excel (.xlsx): {0}", { 0: (e as Error).message })]);
     } finally {
       setReading(false);
     }
@@ -60,34 +62,23 @@ export default function LicenseImporter({
     <Column gap="24" maxWidth="xl">
       <Row gap="24" s={{ direction: "column" }}>
         <Column flex={1} background="surface" border radius="l" padding="24" gap="12">
-          <Heading as="h2" variant="heading-strong-m">
-            1. Возьмите шаблон
-          </Heading>
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            В шаблоне два листа: «Лицензии» (одна строка на лицензию) и «Координаты» (одна строка на угловую точку).
-            Подойдёт и выгрузка из реестра: её можно поправить и загрузить обратно.
-          </Text>
+          <Heading as="h2" variant="heading-strong-m">{tr("1. Возьмите шаблон")}</Heading>
+          <Text variant="body-default-s" onBackground="neutral-weak">{tr("В шаблоне два листа: «Лицензии» (одна строка на лицензию) и «Координаты» (одна строка на угловую точку). Подойдёт и выгрузка из реестра: её можно поправить и загрузить обратно.")}</Text>
           <Row>
-            <Button variant="secondary" prefixIcon="download" onClick={() => downloadLicenseWorkbook(null, "Шаблон лицензий BASK.xlsx")}>
-              Скачать шаблон
-            </Button>
+            <Button variant="secondary" prefixIcon="download" onClick={() => downloadLicenseWorkbook(null, "Шаблон лицензий BASK.xlsx")}>{tr("Скачать шаблон")}</Button>
           </Row>
         </Column>
         <Column flex={1} background="surface" border radius="l" padding="24" gap="12">
-          <Heading as="h2" variant="heading-strong-m">
-            2. Выберите заполненный файл
-          </Heading>
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            Формат .xlsx. Названия столбцов должны быть как в шаблоне, порядок может быть любым.
-          </Text>
+          <Heading as="h2" variant="heading-strong-m">{tr("2. Выберите заполненный файл")}</Heading>
+          <Text variant="body-default-s" onBackground="neutral-weak">{tr("Формат .xlsx. Названия столбцов должны быть как в шаблоне, порядок может быть любым.")}</Text>
           <input
             type="file"
             accept=".xlsx"
             className="field"
-            aria-label="Файл Excel"
+            aria-label={tr("Файл Excel")}
             onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])}
           />
-          {reading && <Text variant="body-default-s">Читаю файл…</Text>}
+          {reading && <Text variant="body-default-s">{tr("Читаю файл…")}</Text>}
         </Column>
       </Row>
 
@@ -103,35 +94,30 @@ export default function LicenseImporter({
 
       {rows && (
         <Column gap="16">
-          <Heading as="h2" variant="heading-strong-l">
-            3. Проверьте, что будет загружено
-          </Heading>
+          <Heading as="h2" variant="heading-strong-l">{tr("3. Проверьте, что будет загружено")}</Heading>
           <Row wrap gap="8">
-            <Tag scheme="success" label={`новых: ${willCreate.length}`} />
-            <Tag scheme="info" label={`обновится: ${willUpdate.length}`} />
-            <Tag scheme="danger" label={`с ошибками: ${rows.length - valid.length}`} />
-            <Tag scheme="neutral" label={`с контуром: ${valid.filter((r) => r.contour).length}`} />
+            <Tag scheme="success" label={tr("новых: {0}", { 0: willCreate.length })} />
+            <Tag scheme="info" label={tr("обновится: {0}", { 0: willUpdate.length })} />
+            <Tag scheme="danger" label={tr("с ошибками: {0}", { 0: rows.length - valid.length })} />
+            <Tag scheme="neutral" label={tr("с контуром: {0}", { 0: valid.filter((r) => r.contour).length })} />
           </Row>
           {newCompanies.length > 0 && (
-            <Text variant="body-default-s">
-              Будут созданы новые компании: <b>{newCompanies.join(", ")}</b>. Если это опечатка в названии, исправьте файл и
-              выберите его снова.
-            </Text>
+            <Text variant="body-default-s">{tr("Будут созданы новые компании:")}{" "}<b>{newCompanies.join(", ")}</b>{tr(". Если это опечатка в названии, исправьте файл и выберите его снова.")}</Text>
           )}
 
           <div className="data-table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Строка</th>
-                  <th>Что будет</th>
-                  <th>Номер</th>
-                  <th>Участок</th>
-                  <th>Компания</th>
-                  <th>Вид</th>
-                  <th>Действует до</th>
-                  <th>Контур</th>
-                  <th>Замечания</th>
+                  <th>{tr("Строка")}</th>
+                  <th>{tr("Что будет")}</th>
+                  <th>{tr("Номер")}</th>
+                  <th>{tr("Участок")}</th>
+                  <th>{tr("Компания")}</th>
+                  <th>{tr("Вид")}</th>
+                  <th>{tr("Действует до")}</th>
+                  <th>{tr("Контур")}</th>
+                  <th>{tr("Замечания")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -142,19 +128,19 @@ export default function LicenseImporter({
                       <td>{r.line}</td>
                       <td>
                         {r.errors.length ? (
-                          <Tag as="span" size="s" scheme="danger" label="ошибка" />
+                          <Tag as="span" size="s" scheme="danger" label={tr("ошибка")} />
                         ) : upd ? (
-                          <Tag as="span" size="s" scheme={updateExisting ? "info" : "neutral"} label={updateExisting ? "обновится" : "пропустится"} />
+                          <Tag as="span" size="s" scheme={updateExisting ? "info" : "neutral"} label={updateExisting ? tr("обновится") : tr("пропустится")} />
                         ) : (
-                          <Tag as="span" size="s" scheme="success" label="новая" />
+                          <Tag as="span" size="s" scheme="success" label={tr("новая")} />
                         )}
                       </td>
                       <td>{r.values.license_number ?? "—"}</td>
                       <td>{r.values.deposit_name ?? "—"}</td>
                       <td>{r.values.company_name ?? "—"}</td>
-                      <td>{r.values.license_type ?? "—"}</td>
+                      <td>{r.values.license_type ? tr(String(r.values.license_type)) : "—"}</td>
                       <td>{formatDate((r.values.expiry_date as string) ?? null)}</td>
-                      <td>{r.contour ? `${r.contour.type === "Polygon" ? r.contour.coordinates[0].length - 1 : "несколько"} точ.` : "—"}</td>
+                      <td>{r.contour ? tr("{0} точ.", { 0: r.contour.type === "Polygon" ? r.contour.coordinates[0].length - 1 : "несколько" }) : "—"}</td>
                       <td style={{ maxWidth: 320 }}>
                         {r.errors.map((e) => (
                           <div key={e} style={{ color: "var(--danger-on-background-strong)" }}>
@@ -176,19 +162,17 @@ export default function LicenseImporter({
 
           <Row wrap gap="16" vertical="center">
             <Checkbox
-              label="Обновлять лицензии, номера которых уже есть в системе"
+              label={tr("Обновлять лицензии, номера которых уже есть в системе")}
               checked={updateExisting}
               onToggle={setUpdateExisting}
             />
           </Row>
           <Row wrap gap="12" vertical="center">
             <Button prefixIcon="upload" onClick={upload} loading={pending} disabled={toSend.length === 0 || !!result?.ok}>
-              {`Загрузить ${toSend.length} ${toSend.length === 1 ? "лицензию" : "лицензий"}`}
+              {tr("Загрузить {0} {1}", { 0: toSend.length, 1: toSend.length === 1 ? "лицензию" : "лицензий" })}
             </Button>
             {rows.length - valid.length > 0 && (
-              <Text variant="body-default-s" onBackground="neutral-weak">
-                Строки с ошибками будут пропущены. Исправьте их в файле {fileName} и загрузите его ещё раз.
-              </Text>
+              <Text variant="body-default-s" onBackground="neutral-weak">{tr("Строки с ошибками будут пропущены. Исправьте их в файле")}{" "}{fileName}{" "}{tr("и загрузите его ещё раз.")}</Text>
             )}
           </Row>
         </Column>
@@ -203,12 +187,11 @@ export default function LicenseImporter({
           gap="8"
           role="status"
         >
-          <Text variant="label-strong-m">
-            Готово: добавлено {result.created}, обновлено {result.updated}
-            {result.skipped ? `, пропущено ${result.skipped}` : ""}.
+          <Text variant="label-strong-m">{tr("Готово: добавлено")}{" "}{result.created}{tr(", обновлено")}{" "}{result.updated}
+            {result.skipped ? tr(", пропущено {0}", { 0: result.skipped }) : ""}.
           </Text>
           {result.companiesCreated.length > 0 && (
-            <Text variant="body-default-s">Созданы компании: {result.companiesCreated.join(", ")}.</Text>
+            <Text variant="body-default-s">{tr("Созданы компании:")}{" "}{result.companiesCreated.join(", ")}.</Text>
           )}
           {result.errors.map((e) => (
             <Text key={e} variant="body-default-s" onBackground="danger-strong">
@@ -216,9 +199,7 @@ export default function LicenseImporter({
             </Text>
           ))}
           <Row>
-            <Button href="/licenses" variant="secondary" size="s" suffixIcon="arrowRight">
-              Открыть реестр
-            </Button>
+            <Button href="/licenses" variant="secondary" size="s" suffixIcon="arrowRight">{tr("Открыть реестр")}</Button>
           </Row>
         </Column>
       )}

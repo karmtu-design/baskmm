@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as maplibregl from "maplibre-gl";
@@ -50,14 +52,14 @@ function baseStyle(): StyleSpecification {
         tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
         tileSize: 256,
         maxzoom: 19,
-        attribution: "© участники OpenStreetMap",
+        attribution: tr("© участники OpenStreetMap"),
       },
       satellite: {
         type: "raster",
         tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
         tileSize: 256,
         maxzoom: 19,
-        attribution: "Снимки © Esri, Maxar, Earthstar Geographics",
+        attribution: tr("Снимки © Esri, Maxar, Earthstar Geographics"),
       },
       topo: {
         type: "raster",
@@ -72,7 +74,7 @@ function baseStyle(): StyleSpecification {
         tileSize: 256,
         maxzoom: 14,
         encoding: "terrarium",
-        attribution: "Рельеф: Terrain Tiles (AWS Open Data)",
+        attribution: tr("Рельеф: Terrain Tiles (AWS Open Data)"),
       },
     },
     layers: [
@@ -195,12 +197,12 @@ export default function LicensesMapInner({
           el.appendChild(n);
           return n;
         };
-        add("strong", l.deposit_name || "Участок");
+        add("strong", l.deposit_name || tr("Участок"));
         add("div", l.license_number, "muted");
         add("div", [l.mineral, l.license_type].filter(Boolean).join(", "));
         add("div", l.company_name);
         if (linkToLicense) {
-          const a = add("a", "Открыть лицензию") as HTMLAnchorElement;
+          const a = add("a", tr("Открыть лицензию")) as HTMLAnchorElement;
           a.href = `/licenses/${l.id}`;
           a.onclick = (ev) => {
             ev.preventDefault();
@@ -325,26 +327,18 @@ export default function LicensesMapInner({
   return (
     <div className="map-shell" style={{ height }}>
       <div ref={box} style={{ position: "absolute", inset: 0 }} />
-      <div className="map-switch" role="group" aria-label="Подложка карты">
-        <button type="button" className={btn(basemap === "scheme")} onClick={() => setBasemap("scheme")}>
-          Схема
-        </button>
-        <button type="button" className={btn(basemap === "satellite")} onClick={() => setBasemap("satellite")}>
-          Спутник
-        </button>
-        <button type="button" className={btn(basemap === "topo")} onClick={() => setBasemap("topo")}>
-          Топо
-        </button>
+      <div className="map-switch" role="group" aria-label={tr("Подложка карты")}>
+        <button type="button" className={btn(basemap === "scheme")} onClick={() => setBasemap("scheme")}>{tr("Схема")}</button>
+        <button type="button" className={btn(basemap === "satellite")} onClick={() => setBasemap("satellite")}>{tr("Спутник")}</button>
+        <button type="button" className={btn(basemap === "topo")} onClick={() => setBasemap("topo")}>{tr("Топо")}</button>
         <span className="map-switch-sep" />
         <button
           type="button"
           className={btn(is3d)}
           onClick={() => setIs3d((v) => !v)}
           aria-pressed={is3d}
-          title="Объёмный рельеф: наклоните карту правой кнопкой мыши или двумя пальцами"
-        >
-          3D-рельеф
-        </button>
+          title={tr("Объёмный рельеф: наклоните карту правой кнопкой мыши или двумя пальцами")}
+        >{tr("3D-рельеф")}</button>
       </div>
     </div>
   );

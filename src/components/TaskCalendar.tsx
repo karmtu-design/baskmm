@@ -1,5 +1,7 @@
 "use client";
 
+import { tr, currentLocale } from "@/i18n";
+
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import FullCalendar from "@fullcalendar/react";
@@ -7,6 +9,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import ruLocale from "@fullcalendar/core/locales/ru";
+import zhLocale from "@fullcalendar/core/locales/zh-cn";
 import type { EventClickArg, EventDropArg, EventInput } from "@fullcalendar/core";
 import { Row } from "@once-ui-system/core";
 import { TaskDialog, type Named } from "./TaskBoard";
@@ -32,6 +35,7 @@ export default function TaskCalendar({
   people: string[];
 }) {
   const router = useRouter();
+  const lang = currentLocale();
   const [open, setOpen] = useState<Task | null>(null);
   const [show, setShow] = useState({ tasks: true, expiries: true, steps: true });
 
@@ -51,10 +55,10 @@ export default function TaskCalendar({
           });
     if (show.expiries)
       for (const e of expiries)
-        out.push({ id: `e${e.id}`, title: `Истекает лицензия: ${e.name}`, start: e.date, allDay: true, classNames: ["ev-expiry"], editable: false, extendedProps: { kind: "license", id: e.id } });
+        out.push({ id: `e${e.id}`, title: tr("Истекает лицензия: {0}", { 0: e.name }), start: e.date, allDay: true, classNames: ["ev-expiry"], editable: false, extendedProps: { kind: "license", id: e.id } });
     if (show.steps)
       for (const s of steps)
-        out.push({ id: `p${s.id}`, title: `${s.name}: ${s.note ?? "следующий шаг"}`, start: s.date, allDay: true, classNames: ["ev-step"], editable: false, extendedProps: { kind: "project", id: s.id } });
+        out.push({ id: `p${s.id}`, title: tr("{0}: {1}", { 0: s.name, 1: s.note ?? tr("следующий шаг") }), start: s.date, allDay: true, classNames: ["ev-step"], editable: false, extendedProps: { kind: "project", id: s.id } });
     return out;
   }, [tasks, expiries, steps, show]);
 
@@ -85,23 +89,23 @@ export default function TaskCalendar({
   return (
     <div className="cal-shell">
       <Row wrap gap="16" vertical="center" marginBottom="12">
-        {toggle("tasks", "Задачи", "ev-task")}
-        {toggle("expiries", "Окончание лицензий", "ev-expiry")}
-        {toggle("steps", "Шаги по проектам", "ev-step")}
+        {toggle("tasks", tr("Задачи"), "ev-task")}
+        {toggle("expiries", tr("Окончание лицензий"), "ev-expiry")}
+        {toggle("steps", tr("Шаги по проектам"), "ev-step")}
       </Row>
       <FullCalendar
         plugins={[dayGridPlugin, listPlugin, interactionPlugin]}
         initialView="dayGridMonth"
-        locale={ruLocale}
+        locale={lang === "ru" ? ruLocale : lang === "zh" ? zhLocale : "en-gb"}
         firstDay={1}
         height="auto"
         headerToolbar={{ left: "prev,next today", center: "title", right: "dayGridMonth,listMonth" }}
-        buttonText={{ today: "Сегодня", month: "Месяц", list: "Список" }}
+        buttonText={{ today: tr("Сегодня"), month: tr("Месяц"), list: tr("Список") }}
         events={events}
         eventClick={onClick}
         eventDrop={onDrop}
         dayMaxEvents={4}
-        noEventsText="В этом месяце нет сроков"
+        noEventsText={tr("В этом месяце нет сроков")}
       />
       {open && (
         <TaskDialog

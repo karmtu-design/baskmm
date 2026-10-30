@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useMemo, useState } from "react";
 import DeckGL from "@deck.gl/react";
 import { OrbitView, type OrbitViewState } from "@deck.gl/core";
@@ -60,7 +62,7 @@ export default function DrillholeViewerInner({
           path: [at(i.from_m), at(i.to_m)],
           color: gradeColor(i.grade, breaks),
           width: ore ? 9 : 4,
-          info: `${h.hole_id}: ${i.from_m}–${i.to_m} м · ${i.grade ?? "нет пробы"}${i.unit ? ` ${i.unit}` : ""} ${element}${i.lithology ? ` · ${i.lithology}` : ""}`,
+          info: tr("{0}: {1}–{2} м · {3}{4} {5}{6}", { 0: h.hole_id, 1: i.from_m, 2: i.to_m, 3: i.grade ?? "нет пробы", 4: i.unit ? ` ${i.unit}` : "", 5: element, 6: i.lithology ? ` · ${i.lithology}` : "" }),
         });
       }
       minX = Math.min(minX, x, end[0]);
@@ -146,12 +148,9 @@ export default function DrillholeViewerInner({
         layers={layers}
         getTooltip={({ object }) => (object && "info" in object ? { text: (object as Segment).info } : null)}
       />
-      <button type="button" className="drill-reset" onClick={() => setViewState({ ...initial })}>
-        Сбросить вид
-      </button>
-      <div className="drill-hint">
-        Вращение: левая кнопка мыши, сдвиг: правая, масштаб: колесо.{" "}
-        {exaggeration === 1 ? "Масштаб по глубине 1:1." : `Глубина растянута в ${exaggeration} раза.`}
+      <button type="button" className="drill-reset" onClick={() => setViewState({ ...initial })}>{tr("Сбросить вид")}</button>
+      <div className="drill-hint">{tr("Вращение: левая кнопка мыши, сдвиг: правая, масштаб: колесо.")}{" "}
+        {exaggeration === 1 ? tr("Масштаб по глубине 1:1.") : tr("Глубина растянута в {0} раза.", { 0: exaggeration })}
       </div>
     </div>
   );

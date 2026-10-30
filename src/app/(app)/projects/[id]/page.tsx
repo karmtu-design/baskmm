@@ -1,3 +1,4 @@
+import { tr, loc } from "@/i18n";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Column, Grid, Heading, Row, SmartLink, Text } from "@once-ui-system/core";
@@ -23,7 +24,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <PageHeader
-        back={{ href: "/projects", label: "Потенциальные проекты" }}
+        back={{ href: "/projects", label: tr("Потенциальные проекты") }}
         title={project.name}
         subtitle={
           <Row as="span" gap="8" vertical="center" wrap>
@@ -40,14 +41,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       />
       <Grid columns="3" gap="32" m={{ columns: "1" }}>
         <Column className="span-2">
-          <ProjectForm action={updateProject.bind(null, project.id)} project={project} submitLabel="Сохранить изменения" />
+          <ProjectForm action={updateProject.bind(null, project.id)} project={project} submitLabel={tr("Сохранить изменения")} />
         </Column>
         <Column gap="24">
-          <Panel title="Презентации" padding="16">
+          <Panel title={tr("Презентации")} padding="16">
             {presentations.length === 0 ? (
-              <Text variant="body-default-s" onBackground="neutral-weak">
-                Пока нет. На странице «Презентации» при загрузке укажите проект «{project.name}», и файл появится здесь.
-              </Text>
+              <Text variant="body-default-s" onBackground="neutral-weak">{tr("Пока нет. На странице «Презентации» при загрузке укажите проект «")}{project.name}{tr("», и файл появится здесь.")}</Text>
             ) : (
               <Column gap="8">
                 {presentations.map((p) => (
@@ -58,34 +57,25 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 ))}
               </Column>
             )}
-            <Link href="/presentations" style={{ fontSize: 14 }}>
-              Перейти к презентациям →
-            </Link>
+            <Link href="/presentations" style={{ fontSize: 14 }}>{tr("Перейти к презентациям →")}</Link>
           </Panel>
           {(hasPoint || project.link) && (
-            <Panel title="Ссылки" padding="16">
+            <Panel title={tr("Ссылки")} padding="16">
               {hasPoint && (
-                <SmartLink href={`https://www.google.com/maps?q=${project.lat},${project.lon}`} suffixIcon="arrowUpRight">
-                  Точка на Google Картах
-                </SmartLink>
+                <SmartLink href={`https://www.google.com/maps?q=${project.lat},${project.lon}`} suffixIcon="arrowUpRight">{tr("Точка на Google Картах")}</SmartLink>
               )}
               {project.link && (
-                <SmartLink href={project.link} suffixIcon="arrowUpRight">
-                  Материалы проекта
-                </SmartLink>
+                <SmartLink href={project.link} suffixIcon="arrowUpRight">{tr("Материалы проекта")}</SmartLink>
               )}
             </Panel>
           )}
-          <Text variant="body-default-xs" onBackground="neutral-weak">
-            Добавлен {new Date(project.created_at).toLocaleDateString("ru-RU")}, изменён{" "}
-            {new Date(project.updated_at).toLocaleDateString("ru-RU")}.
+          <Text variant="body-default-xs" onBackground="neutral-weak">{tr("Добавлен")}{" "}{new Date(project.created_at).toLocaleDateString(loc())}{tr(", изменён")}{" "}
+            {new Date(project.updated_at).toLocaleDateString(loc())}.
           </Text>
         </Column>
       </Grid>
       <Column gap="16" marginTop="48">
-        <Heading as="h2" variant="heading-strong-l">
-          Документы проекта
-        </Heading>
+        <Heading as="h2" variant="heading-strong-l">{tr("Документы проекта")}</Heading>
         <DocumentsPanel kind="document" projectId={project.id} items={docs} />
       </Column>
     </>

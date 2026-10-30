@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Reading licence contours from GIS and CAD files: Shapefile (ArcGIS, QGIS, MapInfo export) and DXF (AutoCAD).
 // Files often carry no coordinate system, so the system is guessed from the numbers and can be changed by hand.
 import proj4 from "proj4";
@@ -14,9 +15,9 @@ export const UTM_ZONES = [38, 39, 40, 41, 42, 43, 44, 45, 46];
 const SK42_TOWGS = "+towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22";
 
 export function crsLabel(c: Crs) {
-  if (c.kind === "wgs84") return "WGS-84, градусы";
-  if (c.kind === "utm") return `WGS-84 / UTM, зона ${c.zone}N`;
-  return `СК-42, Гаусс–Крюгер, зона ${c.zone}${c.prefix ? " (номер зоны в начале X)" : ""}`;
+  if (c.kind === "wgs84") return tr("WGS-84, градусы");
+  if (c.kind === "utm") return tr("WGS-84 / UTM, зона {0}N", { 0: c.zone });
+  return tr("СК-42, Гаусс–Крюгер, зона {0}{1}", { 0: c.zone, 1: c.prefix ? " (номер зоны в начале X)" : "" });
 }
 export const crsKey = (c: Crs) => (c.kind === "wgs84" ? "wgs84" : c.kind === "utm" ? `utm:${c.zone}` : `gk:${c.zone}:${c.prefix ? 1 : 0}`);
 export function crsFromKey(k: string): Crs {
@@ -47,12 +48,12 @@ export async function readShapefile(files: File[]): Promise<{ polys: RawPolygons
     const JSZip = (await import("jszip")).default;
     const z = await JSZip.loadAsync(await zip.arrayBuffer());
     hasPrj = Object.keys(z.files).some((n) => n.toLowerCase().endsWith(".prj"));
-    if (!Object.keys(z.files).some((n) => n.toLowerCase().endsWith(".shp"))) throw new Error("в архиве нет файла .shp");
+    if (!Object.keys(z.files).some((n) => n.toLowerCase().endsWith(".shp"))) throw new Error(tr("в архиве нет файла .shp"));
     out = await shp(await zip.arrayBuffer());
   } else {
     const part = (e: string) => files.find((f) => extOf(f.name) === e);
     const s = part("shp");
-    if (!s) throw new Error("выберите файл .shp (вместе с .prj и .dbf) или ZIP-архив со всеми частями");
+    if (!s) throw new Error(tr("выберите файл .shp (вместе с .prj и .dbf) или ZIP-архив со всеми частями"));
     const prj = part("prj");
     hasPrj = !!prj;
     out = await shp({ shp: await s.arrayBuffer(), dbf: await part("dbf")?.arrayBuffer(), prj: prj ? await prj.text() : undefined });
@@ -134,5 +135,5 @@ export function toContour(polys: RawPolygons, crs: Crs, swapped: boolean): { con
   const contour: Contour = out.length === 1 ? { type: "Polygon", coordinates: out[0] } : { type: "MultiPolygon", coordinates: out };
   const all = out.flat(2);
   const inside = all.every(([lon, lat]) => lon > 40 && lon < 92 && lat > 36 && lat < 58);
-  return { contour, warning: inside ? undefined : "Контур оказался далеко за пределами Казахстана: скорее всего, выбрана не та система координат или зона." };
+  return { contour, warning: inside ? undefined : tr("Контур оказался далеко за пределами Казахстана: скорее всего, выбрана не та система координат или зона.") };
 }

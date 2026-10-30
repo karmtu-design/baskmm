@@ -1,5 +1,7 @@
 "use client";
 
+import { tr, loc } from "@/i18n";
+
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -15,8 +17,8 @@ const MAX_BYTES = 50 * 1024 * 1024;
 const ACCEPT = ".pdf,.ppt,.pptx,.key,.odp,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.mp4";
 
 const sizeText = (b: number | null) =>
-  b == null ? "" : b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} КБ` : `${(b / 1024 / 1024).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} МБ`;
-const dateText = (iso: string) => new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+  b == null ? "" : b < 1024 * 1024 ? tr("{0} КБ", { 0: Math.max(1, Math.round(b / 1024)) }) : tr("{0} МБ", { 0: (b / 1024 / 1024).toLocaleString(loc(), { maximumFractionDigits: 1 }) });
+const dateText = (iso: string) => new Date(iso).toLocaleDateString(loc(), { day: "2-digit", month: "2-digit", year: "numeric" });
 const extOf = (name: string) => (name.split(".").pop() ?? "").toLowerCase();
 const KIND: Record<string, string> = { pdf: "PDF", ppt: "PPT", pptx: "PPT", key: "KEY", odp: "ODP", doc: "DOC", docx: "DOC", xls: "XLS", xlsx: "XLS", png: "IMG", jpg: "IMG", jpeg: "IMG", zip: "ZIP", mp4: "VIDEO" };
 
@@ -60,29 +62,28 @@ export default function PresentationsLibrary({ items, projects }: { items: Prese
           <input
             type="search"
             className="field"
-            placeholder="Поиск: название, проект, язык…"
-            aria-label="Поиск по презентациям"
+            placeholder={tr("Поиск: название, проект, язык…")}
+            aria-label={tr("Поиск по презентациям")}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             style={{ width: 300, minHeight: 40 }}
           />
-          <select aria-label="Проект" className="field" style={{ width: "auto", minHeight: 40 }} value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)}>
-            <option value="">Все проекты</option>
+          <select aria-label={tr("Проект")} className="field" style={{ width: "auto", minHeight: 40 }} value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)}>
+            <option value="">{tr("Все проекты")}</option>
             {allProjects.map((p) => (
               <option key={p}>{p}</option>
             ))}
           </select>
-          <Text variant="body-default-s" onBackground="neutral-weak" style={{ marginLeft: "auto" }}>
-            Файлов: {shown.length} из {items.length}
+          <Text variant="body-default-s" onBackground="neutral-weak" style={{ marginLeft: "auto" }}>{tr("Файлов:")}{" "}{shown.length}{" "}{tr("из")}{" "}{items.length}
           </Text>
         </Row>
 
         {items.length === 0 ? (
           <Column border radius="l" padding="24" style={{ borderStyle: "dashed" }}>
-            <Text onBackground="neutral-weak">Презентаций пока нет. Загрузите первую в блоке выше.</Text>
+            <Text onBackground="neutral-weak">{tr("Презентаций пока нет. Загрузите первую в блоке выше.")}</Text>
           </Column>
         ) : shown.length === 0 ? (
-          <Text onBackground="neutral-weak">Ничего не найдено. Измените условия поиска.</Text>
+          <Text onBackground="neutral-weak">{tr("Ничего не найдено. Измените условия поиска.")}</Text>
         ) : (
           <div className="pres-grid">
             {shown.map((p) => (
@@ -121,7 +122,7 @@ function Uploader({ projects, onDone }: { projects: string[]; onDone: () => void
 
   async function upload() {
     const big = files.find((f) => f.size > MAX_BYTES);
-    if (big) return setMsg({ ok: false, text: `Файл «${big.name}» больше 50 МБ. Сожмите его (например, сохраните PDF в меньшем качестве) и загрузите снова.` });
+    if (big) return setMsg({ ok: false, text: tr("Файл «{0}» больше 50 МБ. Сожмите его (например, сохраните PDF в меньшем качестве) и загрузите снова.", { 0: big.name }) });
     setBusy(true);
     setMsg(null);
     const supabase = createClient();
@@ -150,7 +151,7 @@ function Uploader({ projects, onDone }: { projects: string[]; onDone: () => void
     }
     setBusy(false);
     const okCount = files.length - failed.length;
-    setMsg(failed.length ? { ok: false, text: `Загружено ${okCount} из ${files.length}. Ошибки: ${failed.join("; ")}` } : { ok: true, text: `Загружено файлов: ${okCount}.` });
+    setMsg(failed.length ? { ok: false, text: tr("Загружено {0} из {1}. Ошибки: {2}", { 0: okCount, 1: files.length, 2: failed.join("; ") }) } : { ok: true, text: tr("Загружено файлов: {0}.", { 0: okCount }) });
     if (okCount) {
       setFiles([]);
       setTitle("");
@@ -162,9 +163,7 @@ function Uploader({ projects, onDone }: { projects: string[]; onDone: () => void
 
   return (
     <Column background="surface" border radius="l" padding="24" gap="16">
-      <Heading as="h2" variant="heading-strong-m">
-        Загрузить презентацию
-      </Heading>
+      <Heading as="h2" variant="heading-strong-m">{tr("Загрузить презентацию")}</Heading>
       <label
         className={`drop-zone${drag ? " is-drag" : ""}`}
         onDragOver={(e) => {
@@ -183,51 +182,40 @@ function Uploader({ projects, onDone }: { projects: string[]; onDone: () => void
         <span>
           {files.length === 0 ? (
             <>
-              <b>Выберите файлы</b> или перетащите их сюда
-            </>
+              <b>{tr("Выберите файлы")}</b>{" "}{tr("или перетащите их сюда")}</>
           ) : (
             files.map((f) => `${f.name} (${sizeText(f.size)})`).join(", ")
           )}
         </span>
-        <small>PDF, PowerPoint, Word, Excel, картинки, до 50 МБ на файл</small>
+        <small>{tr("PDF, PowerPoint, Word, Excel, картинки, до 50 МБ на файл")}</small>
       </label>
 
       {files.length > 0 && (
         <div className="pres-form">
           {files.length === 1 && (
-            <label className="field-label">
-              Название
-              <input className="field" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <label className="field-label">{tr("Название")}<input className="field" value={title} onChange={(e) => setTitle(e.target.value)} />
             </label>
           )}
-          <label className="field-label">
-            Проект или участок
-            <input className="field" list="pres-projects" value={project} onChange={(e) => setProject(e.target.value)} placeholder="например, Юкон" />
+          <label className="field-label">{tr("Проект или участок")}<input className="field" list="pres-projects" value={project} onChange={(e) => setProject(e.target.value)} placeholder={tr("например, Юкон")} />
             <datalist id="pres-projects">
               {projects.map((p) => (
                 <option key={p} value={p} />
               ))}
             </datalist>
           </label>
-          <label className="field-label">
-            Язык
-            <select className="field" value={language} onChange={(e) => setLanguage(e.target.value)}>
+          <label className="field-label">{tr("Язык")}<select className="field" value={language} onChange={(e) => setLanguage(e.target.value)}>
               {PRESENTATION_LANGUAGES.map((l) => (
                 <option key={l}>{l}</option>
               ))}
             </select>
           </label>
-          <label className="field-label" style={{ gridColumn: "1 / -1" }}>
-            Короткое описание (необязательно)
-            <input className="field" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="для кого, какая версия" />
+          <label className="field-label" style={{ gridColumn: "1 / -1" }}>{tr("Короткое описание (необязательно)")}<input className="field" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={tr("для кого, какая версия")} />
           </label>
           <Row gap="12" vertical="center" style={{ gridColumn: "1 / -1" }}>
             <Button prefixIcon="upload" onClick={upload} loading={busy}>
-              {files.length === 1 ? "Загрузить" : `Загрузить файлов: ${files.length}`}
+              {files.length === 1 ? tr("Загрузить") : tr("Загрузить файлов: {0}", { 0: files.length })}
             </Button>
-            <Button variant="tertiary" onClick={() => setFiles([])} disabled={busy}>
-              Отмена
-            </Button>
+            <Button variant="tertiary" onClick={() => setFiles([])} disabled={busy}>{tr("Отмена")}</Button>
           </Row>
         </div>
       )}
@@ -248,8 +236,8 @@ async function signedUrl(p: Presentation, seconds: number, download: boolean) {
   if (error || !data)
     throw new Error(
       /not.?found/i.test(error?.message ?? "")
-        ? "Файл не найден в хранилище. Удалите карточку и загрузите файл заново."
-        : "Не удалось получить ссылку на файл. Проверьте интернет и попробуйте ещё раз."
+        ? tr("Файл не найден в хранилище. Удалите карточку и загрузите файл заново.")
+        : tr("Не удалось получить ссылку на файл. Проверьте интернет и попробуйте ещё раз.")
     );
   return data.signedUrl;
 }
@@ -293,19 +281,13 @@ function PresentationCard({ p, onShare, onEdit }: { p: Presentation; onShare: ()
       {p.description && <p className="pres-desc">{p.description}</p>}
       <div className="pres-file" title={p.file_name}>
         {p.file_name}
-        {p.uploaded_by && <span> · загрузил {p.uploaded_by}</span>}
+        {p.uploaded_by && <span>{" "}{tr("· загрузил")}{" "}{p.uploaded_by}</span>}
       </div>
       <Row gap="8" wrap>
-        <Button size="s" prefixIcon="send" onClick={onShare}>
-          Поделиться
-        </Button>
-        <Button size="s" variant="secondary" prefixIcon="download" onClick={() => open(true)}>
-          Скачать
-        </Button>
+        <Button size="s" prefixIcon="send" onClick={onShare}>{tr("Поделиться")}</Button>
+        <Button size="s" variant="secondary" prefixIcon="download" onClick={() => open(true)}>{tr("Скачать")}</Button>
         {(ext === "pdf" || KIND[ext] === "IMG" || ext === "mp4") && (
-          <Button size="s" variant="tertiary" prefixIcon="eye" onClick={() => open(false)}>
-            Открыть
-          </Button>
+          <Button size="s" variant="tertiary" prefixIcon="eye" onClick={() => open(false)}>{tr("Открыть")}</Button>
         )}
         <span style={{ marginLeft: "auto", display: "inline-flex", gap: 4 }}>
           {confirm ? (
@@ -317,22 +299,18 @@ function PresentationCard({ p, onShare, onEdit }: { p: Presentation; onShare: ()
                 onClick={() =>
                   start(async () => {
                     const r = await deletePresentation(p.id);
-                    if (!r.ok) setErr(r.message ?? "Ошибка");
+                    if (!r.ok) setErr(r.message ?? tr("Ошибка"));
                     else router.refresh();
                     setConfirm(false);
                   })
                 }
-              >
-                Удалить файл
-              </Button>
-              <Button size="s" variant="tertiary" onClick={() => setConfirm(false)}>
-                Нет
-              </Button>
+              >{tr("Удалить файл")}</Button>
+              <Button size="s" variant="tertiary" onClick={() => setConfirm(false)}>{tr("Нет")}</Button>
             </>
           ) : (
             <>
-              <Button size="s" variant="tertiary" prefixIcon="edit" aria-label="Изменить описание" onClick={onEdit} />
-              <Button size="s" variant="tertiary" prefixIcon="trash" aria-label="Удалить" onClick={() => setConfirm(true)} />
+              <Button size="s" variant="tertiary" prefixIcon="edit" aria-label={tr("Изменить описание")} onClick={onEdit} />
+              <Button size="s" variant="tertiary" prefixIcon="trash" aria-label={tr("Удалить")} onClick={() => setConfirm(true)} />
             </>
           )}
         </span>
@@ -399,8 +377,8 @@ function ShareDialog({ p, onClose }: { p: Presentation; onClose: () => void }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const until = new Date(Date.now() + days * 86400000).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
-  const message = `${p.title}${p.project ? ` (${p.project})` : ""} — BASK Metals and Mining.\nСсылка на файл действует до ${until}: ${url}`;
+  const until = new Date(Date.now() + days * 86400000).toLocaleDateString(loc(), { day: "numeric", month: "long" });
+  const message = tr("{0} — BASK Metals and Mining.\nСсылка на файл действует до {1}: {2}", { 0: `${p.title}${p.project ? ` (${p.project})` : ""}`, 1: until, 2: url });
   const enc = encodeURIComponent;
 
   async function shareFile() {
@@ -417,38 +395,36 @@ function ShareDialog({ p, onClose }: { p: Presentation; onClose: () => void }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      setErr("Не удалось скопировать. Выделите ссылку ниже и скопируйте вручную.");
+      setErr(tr("Не удалось скопировать. Выделите ссылку ниже и скопируйте вручную."));
     }
   }
 
   const disabled = !url;
   return (
     <div className="nav-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="nav-dialog share-dialog" role="dialog" aria-modal="true" aria-label="Поделиться презентацией">
+      <div className="nav-dialog share-dialog" role="dialog" aria-modal="true" aria-label={tr("Поделиться презентацией")}>
         <div className="nav-head">
-          <span>Поделиться: {p.title}</span>
-          <button type="button" className="nav-close" onClick={onClose} aria-label="Закрыть">
+          <span>{tr("Поделиться:")}{" "}{p.title}</span>
+          <button type="button" className="nav-close" onClick={onClose} aria-label={tr("Закрыть")}>
             <Icon name="close" size="s" />
           </button>
         </div>
         <div className="share-body">
           {(canShareFile || preparing) && (
             <section>
-              <h4>Отправить сам файл</h4>
-              <p>Откроется окно телефона или компьютера, где можно выбрать WhatsApp, Telegram, почту и другие приложения.</p>
-              <Button prefixIcon="send" onClick={shareFile} loading={preparing} disabled={!file}>
-                Отправить файлом
-              </Button>
+              <h4>{tr("Отправить сам файл")}</h4>
+              <p>{tr("Откроется окно телефона или компьютера, где можно выбрать WhatsApp, Telegram, почту и другие приложения.")}</p>
+              <Button prefixIcon="send" onClick={shareFile} loading={preparing} disabled={!file}>{tr("Отправить файлом")}</Button>
             </section>
           )}
           <section>
-            <h4>Отправить ссылку на скачивание</h4>
-            <p>Получатель откроет файл по ссылке без входа в систему. После срока ссылка перестанет работать.</p>
+            <h4>{tr("Отправить ссылку на скачивание")}</h4>
+            <p>{tr("Получатель откроет файл по ссылке без входа в систему. После срока ссылка перестанет работать.")}</p>
             <Row gap="8" vertical="center" wrap>
-              <span className="share-label">Ссылка действует:</span>
+              <span className="share-label">{tr("Ссылка действует:")}</span>
               {LINK_DAYS.map((d) => (
                 <button key={d.days} type="button" className={`chip${days === d.days ? " is-on" : ""}`} onClick={() => setDays(d.days)}>
-                  {d.label}
+                  {tr(d.label)}
                 </button>
               ))}
             </Row>
@@ -458,7 +434,7 @@ function ShareDialog({ p, onClose }: { p: Presentation; onClose: () => void }) {
               </a>
               <a
                 className={`share-app tg${disabled ? " is-off" : ""}`}
-                href={disabled ? undefined : `https://t.me/share/url?url=${enc(url)}&text=${enc(`${p.title} — BASK Metals and Mining. Ссылка действует до ${until}.`)}`}
+                href={disabled ? undefined : `https://t.me/share/url?url=${enc(url)}&text=${enc(tr("{0} — BASK Metals and Mining. Ссылка действует до {1}.", { 0: p.title, 1: until }))}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -467,17 +443,15 @@ function ShareDialog({ p, onClose }: { p: Presentation; onClose: () => void }) {
               <a className={`share-app mail${disabled ? " is-off" : ""}`} href={disabled ? undefined : `mailto:?subject=${enc(p.title)}&body=${enc(message)}`}>
                 <span className="share-dot" aria-hidden>
                   <Icon name="mail" size="xs" />
-                </span>
-                Почта
-              </a>
+                </span>{tr("Почта")}</a>
               <button type="button" className="share-app copy" onClick={copy} disabled={disabled}>
                 <span className="share-dot" aria-hidden>
                   <Icon name={copied ? "check" : "copy"} size="xs" />
                 </span>
-                {copied ? "Скопировано" : "Копировать ссылку"}
+                {copied ? tr("Скопировано") : tr("Копировать ссылку")}
               </button>
             </div>
-            <input className="field share-url" readOnly value={url || "Готовлю ссылку…"} onFocus={(e) => e.target.select()} aria-label="Ссылка на файл" />
+            <input className="field share-url" readOnly value={url || tr("Готовлю ссылку…")} onFocus={(e) => e.target.select()} aria-label={tr("Ссылка на файл")} />
           </section>
           {err && (
             <Text variant="body-default-s" onBackground="danger-strong">
@@ -504,7 +478,7 @@ function EditDialog({ p, projects, onClose }: { p: Presentation; projects: strin
   function save() {
     start(async () => {
       const r = await updatePresentation(p.id, { title, project: project || null, language: language || null, description: description || null });
-      if (!r.ok) return setErr(r.message ?? "Ошибка");
+      if (!r.ok) return setErr(r.message ?? tr("Ошибка"));
       router.refresh();
       onClose();
     });
@@ -512,55 +486,42 @@ function EditDialog({ p, projects, onClose }: { p: Presentation; projects: strin
 
   return (
     <div className="nav-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="nav-dialog share-dialog" role="dialog" aria-modal="true" aria-label="Изменить описание">
+      <div className="nav-dialog share-dialog" role="dialog" aria-modal="true" aria-label={tr("Изменить описание")}>
         <div className="nav-head">
-          <span>Изменить описание</span>
-          <button type="button" className="nav-close" onClick={onClose} aria-label="Закрыть">
+          <span>{tr("Изменить описание")}</span>
+          <button type="button" className="nav-close" onClick={onClose} aria-label={tr("Закрыть")}>
             <Icon name="close" size="s" />
           </button>
         </div>
         <div className="share-body pres-form">
-          <label className="field-label" style={{ gridColumn: "1 / -1" }}>
-            Название
-            <input className="field" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <label className="field-label" style={{ gridColumn: "1 / -1" }}>{tr("Название")}<input className="field" value={title} onChange={(e) => setTitle(e.target.value)} />
           </label>
-          <label className="field-label">
-            Проект или участок
-            <input className="field" list="pres-projects-edit" value={project} onChange={(e) => setProject(e.target.value)} />
+          <label className="field-label">{tr("Проект или участок")}<input className="field" list="pres-projects-edit" value={project} onChange={(e) => setProject(e.target.value)} />
             <datalist id="pres-projects-edit">
               {projects.map((x) => (
                 <option key={x} value={x} />
               ))}
             </datalist>
           </label>
-          <label className="field-label">
-            Язык
-            <select className="field" value={language} onChange={(e) => setLanguage(e.target.value)}>
+          <label className="field-label">{tr("Язык")}<select className="field" value={language} onChange={(e) => setLanguage(e.target.value)}>
               <option value="">—</option>
               {PRESENTATION_LANGUAGES.map((l) => (
                 <option key={l}>{l}</option>
               ))}
             </select>
           </label>
-          <label className="field-label" style={{ gridColumn: "1 / -1" }}>
-            Описание
-            <input className="field" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <label className="field-label" style={{ gridColumn: "1 / -1" }}>{tr("Описание")}<input className="field" value={description} onChange={(e) => setDescription(e.target.value)} />
           </label>
           <Row gap="8" style={{ gridColumn: "1 / -1" }}>
-            <Button onClick={save} loading={pending}>
-              Сохранить
-            </Button>
-            <Button variant="tertiary" onClick={onClose}>
-              Отмена
-            </Button>
+            <Button onClick={save} loading={pending}>{tr("Сохранить")}</Button>
+            <Button variant="tertiary" onClick={onClose}>{tr("Отмена")}</Button>
           </Row>
           {err && (
             <Text variant="body-default-s" onBackground="danger-strong">
               {err}
             </Text>
           )}
-          <Text variant="body-default-xs" onBackground="neutral-weak" style={{ gridColumn: "1 / -1" }}>
-            Файл: {p.file_name}
+          <Text variant="body-default-xs" onBackground="neutral-weak" style={{ gridColumn: "1 / -1" }}>{tr("Файл:")}{" "}{p.file_name}
           </Text>
         </div>
       </div>

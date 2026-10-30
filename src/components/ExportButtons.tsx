@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useState } from "react";
 import { Button, Icon, Row, Text } from "@once-ui-system/core";
 import { createClient } from "@/lib/supabase/client";
@@ -21,15 +23,13 @@ export function LicenseDocxButton({ license }: { license: License }) {
       const { downloadLicenseDocx } = await import("@/lib/docExport");
       await downloadLicenseDocx(license, { docs: docs.data ?? [], tasks: tasks.data ?? [] });
     } catch (e) {
-      setErr(`Не получилось: ${(e as Error).message}`);
+      setErr(tr("Не получилось: {0}", { 0: (e as Error).message }));
     }
     setBusy(false);
   }
   return (
     <Row gap="8" vertical="center">
-      <Button variant="secondary" prefixIcon="download" loading={busy} onClick={run}>
-        Справка в Word
-      </Button>
+      <Button variant="secondary" prefixIcon="download" loading={busy} onClick={run}>{tr("Справка в Word")}</Button>
       {err && (
         <Text variant="body-default-xs" onBackground="danger-strong" role="alert">
           {err}
@@ -54,52 +54,39 @@ export function TeaserButton({ project }: { project: PotentialProject }) {
       await downloadProjectTeaser(project, lang, about);
       setOpen(false);
     } catch (e) {
-      setErr(`Не получилось: ${(e as Error).message}`);
+      setErr(tr("Не получилось: {0}", { 0: (e as Error).message }));
     }
     setBusy(false);
   }
   return (
     <>
-      <Button variant="secondary" prefixIcon="document" onClick={() => setOpen(true)}>
-        Тизер PDF
-      </Button>
+      <Button variant="secondary" prefixIcon="document" onClick={() => setOpen(true)}>{tr("Тизер PDF")}</Button>
       {open && (
         <div className="nav-overlay" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
-          <div className="nav-dialog share-dialog" role="dialog" aria-modal="true" aria-label="Тизер проекта">
+          <div className="nav-dialog share-dialog" role="dialog" aria-modal="true" aria-label={tr("Тизер проекта")}>
             <div className="nav-head">
-              <span>Тизер проекта для инвестора</span>
-              <button type="button" className="nav-close" onClick={() => setOpen(false)} aria-label="Закрыть">
+              <span>{tr("Тизер проекта для инвестора")}</span>
+              <button type="button" className="nav-close" onClick={() => setOpen(false)} aria-label={tr("Закрыть")}>
                 <Icon name="close" size="s" />
               </button>
             </div>
             <div className="share-body">
-              <p>
-                Одна страница PDF с логотипом BASK: металл, расположение, координаты, формат сделки, запасы и условия.
-                Владелец, контакты, источник и внутренние заметки в тизер не попадают.
-              </p>
+              <p>{tr("Одна страница PDF с логотипом BASK: металл, расположение, координаты, формат сделки, запасы и условия. Владелец, контакты, источник и внутренние заметки в тизер не попадают.")}</p>
               <Row gap="8" vertical="center">
-                <span className="share-label">Язык подписей:</span>
-                <button type="button" className={`chip${lang === "ru" ? " is-on" : ""}`} onClick={() => setLang("ru")}>
-                  Русский
-                </button>
+                <span className="share-label">{tr("Язык подписей:")}</span>
+                <button type="button" className={`chip${lang === "ru" ? " is-on" : ""}`} onClick={() => setLang("ru")}>{tr("Русский")}</button>
                 <button type="button" className={`chip${lang === "en" ? " is-on" : ""}`} onClick={() => setLang("en")}>
                   English
                 </button>
               </Row>
               {lang === "en" && (
-                <p>Подписи будут на английском, а значения полей выводятся так, как они заполнены в карточке проекта.</p>
+                <p>{tr("Подписи будут на английском, а значения полей выводятся так, как они заполнены в карточке проекта.")}</p>
               )}
-              <label className="field-label">
-                Короткое описание для инвестора (необязательно)
-                <textarea className="field" rows={5} value={about} onChange={(e) => setAbout(e.target.value)} placeholder="2–4 предложения: что за объект, чем интересен, что уже сделано" />
+              <label className="field-label">{tr("Короткое описание для инвестора (необязательно)")}<textarea className="field" rows={5} value={about} onChange={(e) => setAbout(e.target.value)} placeholder={tr("2–4 предложения: что за объект, чем интересен, что уже сделано")} />
               </label>
               <Row gap="8">
-                <Button prefixIcon="download" loading={busy} onClick={run}>
-                  Скачать PDF
-                </Button>
-                <Button variant="tertiary" onClick={() => setOpen(false)}>
-                  Отмена
-                </Button>
+                <Button prefixIcon="download" loading={busy} onClick={run}>{tr("Скачать PDF")}</Button>
+                <Button variant="tertiary" onClick={() => setOpen(false)}>{tr("Отмена")}</Button>
               </Row>
               {err && (
                 <Text variant="body-default-s" onBackground="danger-strong" role="alert">

@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Checkbox, Column, Grid, Heading, Row, SegmentedControl, Text } from "@once-ui-system/core";
@@ -63,11 +65,11 @@ export default function ContourEditor({
     const poly = pointsToPolygon(r.points);
     if (!poly) {
       setPreview(null);
-      if (r.errors.length === 0) setErrors(["Нужно не меньше трёх угловых точек."]);
+      if (r.errors.length === 0) setErrors([tr("Нужно не меньше трёх угловых точек.")]);
       return;
     }
     setPreview(poly);
-    setSource(`Угловые точки, ${system === "sk42" ? "СК-42 → WGS-84" : "WGS-84"}`);
+    setSource(tr("Угловые точки, {0}", { 0: system === "sk42" ? "СК-42 → WGS-84" : "WGS-84" }));
   }
 
   function showRaw(polys: RawPolygons, name: string, key: string, swap: boolean) {
@@ -78,12 +80,12 @@ export default function ContourEditor({
     const r = toContour(polys, crsFromKey(key), swap);
     if (!r.contour) {
       setPreview(null);
-      setErrors(["В файле не найдено замкнутых контуров."]);
+      setErrors([tr("В файле не найдено замкнутых контуров.")]);
       return;
     }
     setErrors(r.warning ? [r.warning] : []);
     setPreview(r.contour);
-    setSource(`Файл ${name}, ${crsLabel(crsFromKey(key))}`);
+    setSource(tr("Файл {0}, {1}", { 0: name, 1: crsLabel(crsFromKey(key)) }));
   }
 
   async function readFiles(list: FileList) {
@@ -101,7 +103,7 @@ export default function ContourEditor({
         let projected = false;
         if (dxf) polys = await readDxf(dxf);
         else ({ polys, projected } = await readShapefile(files));
-        if (!polys.length) throw new Error(dxf ? "в чертеже нет замкнутых полилиний" : "в файле нет полигонов");
+        if (!polys.length) throw new Error(dxf ? tr("в чертеже нет замкнутых полилиний") : tr("в файле нет полигонов"));
         const name = (dxf ?? files[0]).name;
         const g = projected ? { crs: { kind: "wgs84" as const }, swapped: false } : guessCrs(polys);
         const key = g.crs ? crsKey(g.crs) : "";
@@ -110,15 +112,15 @@ export default function ContourEditor({
         setSwapped(g.swapped);
         setCrsNote(
           projected
-            ? "Система координат взята из файла .prj, контур пересчитан в WGS-84."
+            ? tr("Система координат взята из файла .prj, контур пересчитан в WGS-84.")
             : g.crs
-              ? `Система координат определена по числам: ${crsLabel(g.crs)}. Если контур встал не туда, выберите другую.`
-              : "В файле нет сведений о системе координат. Выберите её ниже: обычно она указана на чертеже или в паспорте участка."
+              ? tr("Система координат определена по числам: {0}. Если контур встал не туда, выберите другую.", { 0: crsLabel(g.crs) })
+              : tr("В файле нет сведений о системе координат. Выберите её ниже: обычно она указана на чертеже или в паспорте участка.")
         );
         showRaw(polys, name, key, g.swapped);
       } catch (e) {
         setPreview(null);
-        setErrors([`Не удалось прочитать файл: ${(e as Error).message}`]);
+        setErrors([tr("Не удалось прочитать файл: {0}", { 0: (e as Error).message })]);
       }
       return;
     }
@@ -139,7 +141,7 @@ export default function ContourEditor({
           const JSZip = (await import("jszip")).default;
           const zip = await JSZip.loadAsync(file);
           const kml = Object.values(zip.files).find((f) => f.name.toLowerCase().endsWith(".kml"));
-          if (!kml) throw new Error("В архиве KMZ нет файла KML");
+          if (!kml) throw new Error(tr("В архиве KMZ нет файла KML"));
           xml = await kml.async("string");
         } else {
           xml = await file.text();
@@ -148,24 +150,24 @@ export default function ContourEditor({
         geo = kml(new DOMParser().parseFromString(xml, "text/xml"));
       }
       const c = extractContour(geo);
-      if (!c) throw new Error("В файле не найден ни один полигон");
+      if (!c) throw new Error(tr("В файле не найден ни один полигон"));
       setPreview(c);
-      setSource(`Файл ${file.name}`);
+      setSource(tr("Файл {0}", { 0: file.name }));
     } catch (e) {
       setPreview(null);
-      setErrors([`Не удалось прочитать файл: ${(e as Error).message}`]);
+      setErrors([tr("Не удалось прочитать файл: {0}", { 0: (e as Error).message })]);
     }
   }
 
   function save(c: Contour | null) {
     start(async () => {
-      const r = await saveContour(license.id, c, source || "Ручной ввод");
+      const r = await saveContour(license.id, c, source || tr("Ручной ввод"));
       if (r.ok) {
         setPreview(null);
         setText("");
-        setMessage({ ok: true, text: c ? "Контур сохранён." : "Контур удалён." });
+        setMessage({ ok: true, text: c ? tr("Контур сохранён.") : tr("Контур удалён.") });
         router.refresh();
-      } else setMessage({ ok: false, text: `Не сохранилось: ${r.message}` });
+      } else setMessage({ ok: false, text: tr("Не сохранилось: {0}", { 0: r.message }) });
     });
   }
 
@@ -193,30 +195,24 @@ export default function ContourEditor({
       <Column gap="12" className="span-2">
         <LicensesMap licenses={preview ? [] : [license]} preview={preview} height={560} linkToLicense={false} overlay={overlay} />
         <Row wrap gap="24" vertical="center" textVariant="body-default-s">
-          <span>
-            Площадь по контуру: <b>{area ? `${area.toFixed(2)} км²` : "—"}</b>
+          <span>{tr("Площадь по контуру:")}{" "}<b>{area ? tr("{0} км²", { 0: area.toFixed(2) }) : "—"}</b>
             {areaDiff != null && Math.abs(areaDiff) > 2 && (
               <span style={{ ...warn, marginLeft: 4 }}>
                 ({areaDiff > 0 ? "+" : ""}
-                {areaDiff.toFixed(1)}% к площади по лицензии)
-              </span>
+                {areaDiff.toFixed(1)}{tr("% к площади по лицензии)")}</span>
             )}
           </span>
-          {preview && <span style={warn}>Пунктиром показан новый контур, он ещё не сохранён.</span>}
+          {preview && <span style={warn}>{tr("Пунктиром показан новый контур, он ещё не сохранён.")}</span>}
           {!preview && current && (
             <>
-              <Button variant="tertiary" size="s" prefixIcon="download" onClick={downloadKML}>
-                Скачать KML для Google Earth
-              </Button>
+              <Button variant="tertiary" size="s" prefixIcon="download" onClick={downloadKML}>{tr("Скачать KML для Google Earth")}</Button>
               {center && (
                 <Button
                   variant="tertiary"
                   size="s"
                   suffixIcon="arrowUpRight"
                   href={`https://www.google.com/maps/search/?api=1&query=${center[0].toFixed(5)},${center[1].toFixed(5)}`}
-                >
-                  Открыть в Google Картах
-                </Button>
+                >{tr("Открыть в Google Картах")}</Button>
               )}
             </>
           )}
@@ -225,23 +221,23 @@ export default function ContourEditor({
         {current && !preview && (
           <Column background="surface" border radius="l" padding="16">
             <details>
-              <summary>Угловые точки контура ({contourCorners(current).length})</summary>
+              <summary>{tr("Угловые точки контура (")}{contourCorners(current).length})</summary>
               <div style={{ overflowX: "auto", marginTop: 12 }}>
                 <table className="data-table" style={{ minWidth: 560 }}>
                   <thead>
                     <tr>
-                      <th>Точка</th>
-                      <th>Северная широта</th>
-                      <th>Восточная долгота</th>
-                      <th>Десятичные градусы</th>
+                      <th>{tr("Точка")}</th>
+                      <th>{tr("Северная широта")}</th>
+                      <th>{tr("Восточная долгота")}</th>
+                      <th>{tr("Десятичные градусы")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {contourCorners(current).map(([x, y], i) => (
                       <tr key={i}>
                         <td>{i + 1}</td>
-                        <td>{toDMS(y, "с.ш.", "ю.ш.")}</td>
-                        <td>{toDMS(x, "в.д.", "з.д.")}</td>
+                        <td>{toDMS(y, tr("с.ш."), tr("ю.ш."))}</td>
+                        <td>{toDMS(x, tr("в.д."), tr("з.д."))}</td>
                         <td style={weak}>
                           {y.toFixed(6)}, {x.toFixed(6)}
                         </td>
@@ -251,8 +247,7 @@ export default function ContourEditor({
                 </table>
               </div>
               {contourSource && (
-                <Text as="p" variant="body-default-xs" onBackground="neutral-weak" marginTop="8">
-                  Источник контура: {contourSource}
+                <Text as="p" variant="body-default-xs" onBackground="neutral-weak" marginTop="8">{tr("Источник контура:")}{" "}{contourSource}
                 </Text>
               )}
             </details>
@@ -263,66 +258,53 @@ export default function ContourEditor({
       <Column gap="24">
       <Column background="surface" border radius="l" padding="24" gap="16" fitHeight>
         <Heading as="h2" variant="heading-strong-m">
-          {current ? "Заменить контур" : "Добавить контур участка"}
+          {current ? tr("Заменить контур") : tr("Добавить контур участка")}
         </Heading>
         <SegmentedControl
           value={mode}
           onChange={(v) => setMode(v as typeof mode)}
           buttons={[
-            { value: "points", label: "Угловые точки" },
-            { value: "file", label: "Файл: KML, Shapefile, DXF" },
+            { value: "points", label: tr("Угловые точки") },
+            { value: "file", label: tr("Файл: KML, Shapefile, DXF") },
           ]}
         />
 
         {mode === "points" ? (
           <Column gap="12">
-            <Text variant="body-default-s" onBackground="neutral-weak">
-              Вставьте точки из приложения к лицензии, по одной на строку: сначала широта, затем долгота. Подходят
-              градусы-минуты-секунды и десятичные градусы, можно копировать прямо из Word или Excel.
-            </Text>
+            <Text variant="body-default-s" onBackground="neutral-weak">{tr("Вставьте точки из приложения к лицензии, по одной на строку: сначала широта, затем долгота. Подходят градусы-минуты-секунды и десятичные градусы, можно копировать прямо из Word или Excel.")}</Text>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={8}
               placeholder={EXAMPLE}
-              aria-label="Угловые точки"
+              aria-label={tr("Угловые точки")}
               className="field"
             />
-            <label className="field-label">
-              Система координат в документе
-              <select value={system} onChange={(e) => setSystem(e.target.value as CoordSystem)} className="field">
-                <option value="wgs84">WGS-84 (современные лицензии, GPS)</option>
-                <option value="sk42">СК-42, Пулково-1942 (старые документы)</option>
+            <label className="field-label">{tr("Система координат в документе")}<select value={system} onChange={(e) => setSystem(e.target.value as CoordSystem)} className="field">
+                <option value="wgs84">{tr("WGS-84 (современные лицензии, GPS)")}</option>
+                <option value="sk42">{tr("СК-42, Пулково-1942 (старые документы)")}</option>
               </select>
             </label>
-            <Checkbox label="В строке сначала долгота, затем широта" checked={lonFirst} onToggle={setLonFirst} />
+            <Checkbox label={tr("В строке сначала долгота, затем широта")} checked={lonFirst} onToggle={setLonFirst} />
             <Row>
-              <Button variant="secondary" prefixIcon="eye" onClick={showPoints} disabled={!text.trim()}>
-                Показать на карте
-              </Button>
+              <Button variant="secondary" prefixIcon="eye" onClick={showPoints} disabled={!text.trim()}>{tr("Показать на карте")}</Button>
             </Row>
           </Column>
         ) : (
           <Column gap="12">
-            <Text variant="body-default-s" onBackground="neutral-weak">
-              Подойдут: KML или KMZ из Google Earth; GeoJSON; Shapefile из ArcGIS, QGIS или MapInfo (ZIP-архив со всеми
-              частями, либо файлы .shp, .prj и .dbf, выбранные вместе); чертёж AutoCAD в формате DXF (берутся замкнутые
-              полилинии).
-            </Text>
+            <Text variant="body-default-s" onBackground="neutral-weak">{tr("Подойдут: KML или KMZ из Google Earth; GeoJSON; Shapefile из ArcGIS, QGIS или MapInfo (ZIP-архив со всеми частями, либо файлы .shp, .prj и .dbf, выбранные вместе); чертёж AutoCAD в формате DXF (берутся замкнутые полилинии).")}</Text>
             <input
               type="file"
               multiple
               accept=".kml,.kmz,.geojson,.json,.zip,.shp,.shx,.dbf,.prj,.cpg,.dxf"
               onChange={(e) => e.target.files?.length && readFiles(e.target.files)}
               className="field"
-              aria-label="Файл с контуром"
+              aria-label={tr("Файл с контуром")}
             />
             {raw && (
               <Column gap="8">
                 <Text variant="body-default-s">{crsNote}</Text>
-                <label className="field-label">
-                  Система координат файла
-                  <select
+                <label className="field-label">{tr("Система координат файла")}<select
                     className="field"
                     value={crs}
                     onChange={(e) => {
@@ -330,35 +312,31 @@ export default function ContourEditor({
                       showRaw(raw.polys, raw.name, e.target.value, swapped);
                     }}
                   >
-                    <option value="" disabled>
-                      Выберите систему координат
-                    </option>
-                    <option value="wgs84">WGS-84, градусы (GPS, Google Earth)</option>
-                    <optgroup label="СК-42, Гаусс–Крюгер (номер зоны в начале X, например 13 512 345)">
+                    <option value="" disabled>{tr("Выберите систему координат")}</option>
+                    <option value="wgs84">{tr("WGS-84, градусы (GPS, Google Earth)")}</option>
+                    <optgroup label={tr("СК-42, Гаусс–Крюгер (номер зоны в начале X, например 13 512 345)")}>
                       {GK_ZONES.map((z) => (
-                        <option key={`p${z}`} value={`gk:${z}:1`}>
-                          Зона {z} (меридиан {z * 6 - 3}°)
+                        <option key={`p${z}`} value={`gk:${z}:1`}>{tr("Зона")}{" "}{z}{" "}{tr("(меридиан")}{" "}{z * 6 - 3}°)
                         </option>
                       ))}
                     </optgroup>
-                    <optgroup label="СК-42, Гаусс–Крюгер (X без номера зоны, например 512 345)">
+                    <optgroup label={tr("СК-42, Гаусс–Крюгер (X без номера зоны, например 512 345)")}>
                       {GK_ZONES.map((z) => (
-                        <option key={`n${z}`} value={`gk:${z}:0`}>
-                          Зона {z} (меридиан {z * 6 - 3}°)
+                        <option key={`n${z}`} value={`gk:${z}:0`}>{tr("Зона")}{" "}{z}{" "}{tr("(меридиан")}{" "}{z * 6 - 3}°)
                         </option>
                       ))}
                     </optgroup>
                     <optgroup label="WGS-84 / UTM">
                       {UTM_ZONES.map((z) => (
                         <option key={`u${z}`} value={`utm:${z}`}>
-                          UTM {z}N (меридиан {z * 6 - 183}°)
+                          UTM {z}{tr("N (меридиан")}{" "}{z * 6 - 183}°)
                         </option>
                       ))}
                     </optgroup>
                   </select>
                 </label>
                 <Checkbox
-                  label="X и Y поменяны местами (сначала север, потом восток)"
+                  label={tr("X и Y поменяны местами (сначала север, потом восток)")}
                   checked={swapped}
                   onToggle={(v) => {
                     setSwapped(v);
@@ -382,12 +360,8 @@ export default function ContourEditor({
 
         {preview && (
           <Row wrap gap="8" borderTop paddingTop="16">
-            <Button onClick={() => save(preview)} loading={pending} prefixIcon="check">
-              Сохранить контур
-            </Button>
-            <Button variant="secondary" onClick={() => setPreview(null)}>
-              Отменить
-            </Button>
+            <Button onClick={() => save(preview)} loading={pending} prefixIcon="check">{tr("Сохранить контур")}</Button>
+            <Button variant="secondary" onClick={() => setPreview(null)}>{tr("Отменить")}</Button>
           </Row>
         )}
 
@@ -397,10 +371,8 @@ export default function ContourEditor({
               variant="danger"
               size="s"
               prefixIcon="trash"
-              onClick={() => confirm("Удалить контур этого участка?") && save(null)}
-            >
-              Удалить контур
-            </Button>
+              onClick={() => confirm(tr("Удалить контур этого участка?")) && save(null)}
+            >{tr("Удалить контур")}</Button>
           </Row>
         )}
 

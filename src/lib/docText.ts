@@ -1,8 +1,9 @@
+"use client";
+
+import { tr } from "@/i18n";
 // Getting searchable text out of documents, in the browser of the person who uploads them.
 // PDF with a text layer → PDF.js; scanned PDF pages and photos → Tesseract.js (Russian + English);
 // Word (.docx) and Excel (.xlsx) → read straight from the file. Nothing leaves the browser except the text.
-"use client";
-
 import type { PDFDocumentProxy } from "pdfjs-dist";
 
 export const MAX_TEXT_CHARS = 800_000; // about 300 pages of dense text
@@ -35,14 +36,14 @@ export async function extractText(file: Blob, fileName: string, opts: { ocr: boo
   try {
     if (ext === "pdf") return await fromPdf(await file.arrayBuffer(), opts);
     if (["png", "jpg", "jpeg", "tif", "tiff", "bmp", "webp"].includes(ext)) {
-      if (!opts.ocr) return { text: "", pages: 1, status: "unsupported", note: "распознавание выключено" };
+      if (!opts.ocr) return { text: "", pages: 1, status: "unsupported", note: tr("распознавание выключено") };
       const text = await ocr([file], opts.onProgress);
       return { text: tidy(text), pages: 1, status: "ocr" };
     }
     if (ext === "docx") return { text: tidy(await fromDocx(file)), pages: null, status: "done" };
     if (ext === "xlsx") return { text: tidy(await fromXlsx(file)), pages: null, status: "done" };
     if (ext === "txt" || ext === "csv") return { text: tidy(await file.text()), pages: null, status: "done" };
-    return { text: "", pages: null, status: "unsupported", note: "текст из файлов этого типа не извлекается" };
+    return { text: "", pages: null, status: "unsupported", note: tr("текст из файлов этого типа не извлекается") };
   } catch (e) {
     return { text: "", pages: null, status: "failed", note: (e as Error).message };
   }
@@ -72,11 +73,11 @@ async function fromPdf(data: ArrayBuffer, opts: { ocr: boolean; onProgress?: Pro
     const images: Blob[] = [];
     for (const i of pages) images.push(await renderPage(pdf, i, 2));
     const text = await ocr(images, opts.onProgress);
-    const note = emptyPages.length > MAX_OCR_PAGES ? `распознаны первые ${MAX_OCR_PAGES} страниц скана из ${emptyPages.length}` : undefined;
+    const note = emptyPages.length > MAX_OCR_PAGES ? tr("распознаны первые {0} страниц скана из {1}", { 0: MAX_OCR_PAGES, 1: emptyPages.length }) : undefined;
     return { text: tidy(parts.join("\n") + "\n" + text), pages: n, status: "ocr", note };
   }
   const text = tidy(parts.join("\n"));
-  if (!text && !opts.ocr) return { text: "", pages: n, status: "unsupported", note: "это скан без текстового слоя" };
+  if (!text && !opts.ocr) return { text: "", pages: n, status: "unsupported", note: tr("это скан без текстового слоя") };
   return { text, pages: n, status: "done" };
 }
 
@@ -87,7 +88,7 @@ async function renderPage(pdf: PDFDocumentProxy, n: number, scale: number): Prom
   canvas.width = Math.floor(vp.width);
   canvas.height = Math.floor(vp.height);
   await page.render({ canvas, viewport: vp }).promise;
-  return new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error("страница не отрисовалась"))), "image/png"));
+  return new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error(tr("страница не отрисовалась")))), "image/png"));
 }
 
 async function ocr(images: Blob[], onProgress?: Progress): Promise<string> {

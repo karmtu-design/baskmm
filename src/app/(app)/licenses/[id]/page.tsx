@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import Link from "next/link";
 import { ViewTransition } from "react";
 import { Column, Grid, Heading, Row, Text } from "@once-ui-system/core";
@@ -80,12 +81,12 @@ export default async function LicensePage({
 
   const facts: [string, React.ReactNode][] = [
     ["Компания", license.company_id ? <Link href={`/companies/${license.company_id}`} style={{ color: "var(--brand-on-background-strong)" }}>{license.company_name}</Link> : license.company_name],
-    ["Вид лицензии", `${license.license_type ?? "—"}${license.category ? `, ${license.category}` : ""}`],
+    ["Вид лицензии", `${license.license_type ? tr(license.license_type) : "—"}${license.category ? `, ${tr(license.category)}` : ""}`],
     ["Полезное ископаемое", <MineralSwatch key="m" mineral={license.mineral} />],
     ["Дата выдачи", formatDate(license.issue_date)],
     ["Действует до", <ExpiryText key="e" date={license.expiry_date} />],
     ["Расположение", [license.region, license.district].filter(Boolean).join(", ") || "—"],
-    ["Площадь", license.area_sq_km != null ? `${license.area_sq_km} км²` : "—"],
+    ["Площадь", license.area_sq_km != null ? tr("{0} км²", { 0: license.area_sq_km }) : "—"],
     ["Ответственный", license.responsible || "—"],
   ];
 
@@ -95,12 +96,11 @@ export default async function LicensePage({
         back={{ href: license.company_id ? `/companies/${license.company_id}` : "/", label: license.company_name }}
         title={
           <ViewTransition name={`lic-title-${license.id}`} share="morph" default="none">
-            <span style={{ display: "inline-block" }}>{license.deposit_name || "Участок без названия"}</span>
+            <span style={{ display: "inline-block" }}>{license.deposit_name || tr("Участок без названия")}</span>
           </ViewTransition>
         }
         subtitle={
-          <span style={{ display: "inline-flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
-            Лицензия {license.license_number}
+          <span style={{ display: "inline-flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>{tr("Лицензия")}{" "}{license.license_number}
             <StatusBadge status={license.status} />
             {isTest(license) && <TestMark />}
           </span>
@@ -108,7 +108,7 @@ export default async function LicensePage({
         actions={<LicenseDocxButton license={license} />}
       />
 
-      <Row as="nav" gap="4" marginBottom="24" borderBottom overflowX="auto" aria-label="Разделы лицензии" className="tab-row">
+      <Row as="nav" gap="4" marginBottom="24" borderBottom overflowX="auto" aria-label={tr("Разделы лицензии")} className="tab-row">
         {TABS.map((t) => (
           <Link
             key={t.id}
@@ -116,7 +116,7 @@ export default async function LicensePage({
             aria-current={tab === t.id ? "page" : undefined}
             className="tab-link"
           >
-            {t.label}
+            {tr(t.label)}
           </Link>
         ))}
       </Row>
@@ -128,7 +128,7 @@ export default async function LicensePage({
               {facts.map(([k, v]) => (
                 <Column key={k} gap="4">
                   <Text as="dt" variant="label-default-s" onBackground="neutral-weak">
-                    {k}
+                    {tr(k)}
                   </Text>
                   <Text as="dd" variant="body-default-m" style={{ margin: 0 }}>
                     {v}
@@ -137,9 +137,7 @@ export default async function LicensePage({
               ))}
               {license.notes && (
                 <Column gap="4" style={{ gridColumn: "1 / -1" }}>
-                  <Text as="dt" variant="label-default-s" onBackground="neutral-weak">
-                    Примечания
-                  </Text>
+                  <Text as="dt" variant="label-default-s" onBackground="neutral-weak">{tr("Примечания")}</Text>
                   <Text as="dd" variant="body-default-m" style={{ margin: 0, whiteSpace: "pre-line" }}>
                     {license.notes}
                   </Text>
@@ -147,17 +145,15 @@ export default async function LicensePage({
               )}
             </Grid>
           </Panel>
-          <Panel title="Последние изменения">
+          <Panel title={tr("Последние изменения")}>
             <AuditList entries={changes} names={new Map()} showObject={false} />
-            <Text variant="body-default-xs" onBackground="neutral-weak">
-              Полный журнал: «Все разделы» → «Журнал изменений».
-            </Text>
+            <Text variant="body-default-xs" onBackground="neutral-weak">{tr("Полный журнал: «Все разделы» → «Журнал изменений».")}</Text>
           </Panel>
           <Panel>
             <details>
-              <summary>Изменить сведения о лицензии</summary>
+              <summary>{tr("Изменить сведения о лицензии")}</summary>
               <div style={{ marginTop: 16 }}>
-                <LicenseForm action={update} companies={companies} license={license} submitLabel="Сохранить изменения" />
+                <LicenseForm action={update} companies={companies} license={license} submitLabel={tr("Сохранить изменения")} />
               </div>
             </details>
           </Panel>
@@ -183,15 +179,15 @@ export default async function LicensePage({
       {tab === "history" && <DocumentsPanel key="history" kind="history" licenseId={license.id} items={docs} />}
 
       {tab === "checklist" && (
-        <Upcoming title="Чек-лист полноты документов появится на следующем этапе">
+        <Upcoming title={tr("Чек-лист полноты документов появится на следующем этапе")}>
           <Text as="p">
-            Каждый пункт можно будет отметить как «есть», «нет», «в работе» или «не требуется» и прикрепить файл.
-            Черновой перечень для лицензии на {license.license_type === "Добыча" ? "добычу" : "разведку"}, который
-            стоит согласовать с юристом:
+            {license.license_type === "Добыча"
+              ? tr("Каждый пункт можно будет отметить как «есть», «нет», «в работе» или «не требуется» и прикрепить файл. Черновой перечень для лицензии на добычу, который стоит согласовать с юристом:")
+              : tr("Каждый пункт можно будет отметить как «есть», «нет», «в работе» или «не требуется» и прикрепить файл. Черновой перечень для лицензии на разведку, который стоит согласовать с юристом:")}
           </Text>
           <ol style={{ margin: 0, paddingLeft: 20, color: "var(--neutral-on-background-strong)", display: "grid", gap: 4 }}>
             {CHECKLIST_DRAFT[license.license_type === "Добыча" ? "Добыча" : "Разведка"].map((i) => (
-              <li key={i}>{i}</li>
+              <li key={i}>{tr(i)}</li>
             ))}
           </ol>
         </Upcoming>

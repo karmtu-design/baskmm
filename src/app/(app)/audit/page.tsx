@@ -1,3 +1,5 @@
+import { pageTitle } from "@/i18n/meta";
+import { tr } from "@/i18n";
 import Link from "next/link";
 import { Column, Row } from "@once-ui-system/core";
 import AuditList from "@/components/AuditList";
@@ -6,7 +8,7 @@ import { getAudit } from "@/lib/data";
 import { TABLES } from "@/lib/auditText";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = { title: "Журнал изменений" };
+export const generateMetadata = pageTitle("Журнал изменений");
 
 /** Current names of the objects mentioned in the log, so links show today's names. */
 async function namesFor(entries: { table_name: string; record_id: number | null }[]) {
@@ -43,11 +45,9 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   const q = (o: Record<string, string | undefined>) => "?" + new URLSearchParams(Object.entries(o).filter(([, v]) => v) as [string, string][]).toString();
   return (
     <Column>
-      <PageHeader title="Журнал изменений" subtitle="Кто, когда и что изменил в лицензиях, компаниях, проектах, документах и задачах. Записи нельзя изменить или удалить." />
-      <Row as="nav" gap="4" wrap marginBottom="16" aria-label="Что показать">
-        <Link className={`chip${!t ? " is-on" : ""}`} href="/audit">
-          Всё
-        </Link>
+      <PageHeader title={tr("Журнал изменений")} subtitle={tr("Кто, когда и что изменил в лицензиях, компаниях, проектах, документах и задачах. Записи нельзя изменить или удалить.")} />
+      <Row as="nav" gap="4" wrap marginBottom="16" aria-label={tr("Что показать")}>
+        <Link className={`chip${!t ? " is-on" : ""}`} href="/audit">{tr("Всё")}</Link>
         {Object.entries(TABLES).map(([k, v]) => (
           <Link key={k} className={`chip${t === k ? " is-on" : ""}`} href={`/audit${q({ table: k })}`}>
             {v.one[0].toUpperCase() + v.one.slice(1)}
@@ -57,9 +57,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
       <AuditList entries={entries} names={names} />
       {entries.length === 100 && (
         <Row marginTop="16">
-          <Link className="chip" href={`/audit${q({ table: t, before: String(entries[entries.length - 1].id) })}`}>
-            Показать более ранние →
-          </Link>
+          <Link className="chip" href={`/audit${q({ table: t, before: String(entries[entries.length - 1].id) })}`}>{tr("Показать более ранние →")}</Link>
         </Row>
       )}
     </Column>

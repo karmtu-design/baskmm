@@ -1,9 +1,12 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, Icon, type IconName } from "@once-ui-system/core";
 import InstallApp from "./InstallApp";
+import LanguageSwitch from "./LanguageSwitch";
 
 const OPEN_EVENT = "bask:open-navigator";
 
@@ -14,9 +17,7 @@ export function openNavigator() {
 /** The «Все разделы» button for page content (the home page hero). */
 export function NavigatorButton() {
   return (
-    <Button prefixIcon="grid" onClick={openNavigator} suffixIcon="chevronDown">
-      Все разделы
-    </Button>
+    <Button prefixIcon="grid" onClick={openNavigator} suffixIcon="chevronDown">{tr("Все разделы")}</Button>
   );
 }
 
@@ -77,10 +78,13 @@ export default function SiteNavigator() {
 
   return (
     <div className="nav-overlay" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
-      <div className="nav-dialog" role="dialog" aria-modal="true" aria-label="Все разделы">
+      <div className="nav-dialog" role="dialog" aria-modal="true" aria-label={tr("Все разделы")}>
         <div className="nav-head">
-          <span>Все разделы</span>
-          <button type="button" className="nav-close" onClick={() => setOpen(false)} aria-label="Закрыть">
+          <span>{tr("Все разделы")}</span>
+          <span style={{ marginLeft: "auto", marginRight: 8 }}>
+            <LanguageSwitch compact />
+          </span>
+          <button type="button" className="nav-close" onClick={() => setOpen(false)} aria-label={tr("Закрыть")}>
             <Icon name="close" size="s" />
           </button>
         </div>
@@ -110,7 +114,7 @@ export default function SiteNavigator() {
                 <span className="nav-icon">
                   <Icon name={p.icon} size="s" />
                 </span>
-                <span className="nav-title">{p.title}</span>
+                <span className="nav-title">{tr(p.title)}</span>
               </button>
             ))}
           </div>

@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { notFound } from "next/navigation";
 import { Button, Column, Grid, Text } from "@once-ui-system/core";
 import LicensesMap from "@/components/LicensesMap";
@@ -26,13 +27,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   return (
     <Column>
       <PageHeader
-        back={{ href: "/companies", label: "Все компании" }}
+        back={{ href: "/companies", label: tr("Все компании") }}
         title={company.name}
-        subtitle={company.bin ? `БИН ${company.bin}` : "БИН не указан"}
+        subtitle={company.bin ? tr("БИН {0}", { 0: company.bin }) : tr("БИН не указан")}
         actions={
-          <ButtonLink href={`/licenses/new?company=${company.id}`} primary>
-            Добавить лицензию
-          </ButtonLink>
+          <ButtonLink href={`/licenses/new?company=${company.id}`} primary>{tr("Добавить лицензию")}</ButtonLink>
         }
       />
 
@@ -42,12 +41,12 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           {licenses.some((l) => l.contour) && <LicensesMap licenses={licenses} height={380} />}
         </Column>
 
-        <Panel title="Реквизиты">
+        <Panel title={tr("Реквизиты")}>
           <Column as="dl" gap="12" style={{ margin: 0 }}>
             {FIELDS.slice(1).map((f) => (
               <Column key={f.key} gap="2">
                 <Text as="dt" variant="label-default-s" onBackground="neutral-weak">
-                  {f.label}
+                  {tr(f.label)}
                 </Text>
                 <Text as="dd" variant="body-default-s" style={{ margin: 0, whiteSpace: "pre-line" }}>
                   {value(f.key) || "—"}
@@ -56,12 +55,12 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
             ))}
           </Column>
           <details style={{ borderTop: "1px solid var(--neutral-alpha-weak)", paddingTop: 16 }}>
-            <summary>Изменить реквизиты</summary>
+            <summary>{tr("Изменить реквизиты")}</summary>
             <form action={update} style={{ marginTop: 12 }}>
               <Column gap="12">
                 {FIELDS.map((f) => (
                   <label key={f.key} className="field-label">
-                    {f.label}
+                    {tr(f.label)}
                     {f.multiline ? (
                       <textarea name={f.key} defaultValue={value(f.key) ?? ""} rows={3} className="field" />
                     ) : (
@@ -69,7 +68,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                     )}
                   </label>
                 ))}
-                <Button type="submit">Сохранить реквизиты</Button>
+                <Button type="submit">{tr("Сохранить реквизиты")}</Button>
               </Column>
             </form>
           </details>

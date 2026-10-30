@@ -1,5 +1,7 @@
 "use client";
 
+import { tr } from "@/i18n";
+
 import { useState } from "react";
 import {
   columnFilteringFeature,
@@ -43,7 +45,7 @@ export default function DataTable<T extends RowData>({
   initialHidden = {},
   toolbar,
   rowsRef,
-  emptyText = "Ничего не найдено. Измените условия поиска.",
+  emptyText,
 }: {
   data: T[];
   columns: DataColumn<T>[];
@@ -79,8 +81,7 @@ export default function DataTable<T extends RowData>({
         {toolbar}
         <details className="col-menu">
           <summary>
-            <Icon name="adjustments" size="s" /> Столбцы
-          </summary>
+            <Icon name="adjustments" size="s" />{" "}{tr("Столбцы")}</summary>
           <div className="col-menu-list">
             {hideable.map((c) => (
               <label key={c.id}>
@@ -123,7 +124,7 @@ export default function DataTable<T extends RowData>({
               <tr>
                 <td colSpan={table.getVisibleLeafColumns().length}>
                   <Text variant="body-default-s" onBackground="neutral-weak">
-                    {emptyText}
+                    {emptyText ?? tr("Ничего не найдено. Измените условия поиска.")}
                   </Text>
                 </td>
               </tr>
@@ -141,9 +142,7 @@ export default function DataTable<T extends RowData>({
           </tbody>
         </table>
       </div>
-      <Text variant="body-default-xs" onBackground="neutral-weak">
-        Строк: {rows.length} из {data.length}. Нажмите на заголовок столбца, чтобы отсортировать.
-      </Text>
+      <Text variant="body-default-xs" onBackground="neutral-weak">{tr("Строк:")}{" "}{rows.length}{" "}{tr("из")}{" "}{data.length}{tr(". Нажмите на заголовок столбца, чтобы отсортировать.")}</Text>
     </div>
   );
 }

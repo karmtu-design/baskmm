@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { Column } from "@once-ui-system/core";
 import AppHeader from "@/components/AppHeader";
 import AssistantPanel from "@/components/AssistantPanel";
@@ -14,9 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <Column fillWidth minHeight="100vh" horizontal="center" background="page">
       <PageBackground />
-      <a href="#main" className="skip-link">
-        Перейти к содержимому
-      </a>
+      <a href="#main" className="skip-link">{tr("Перейти к содержимому")}</a>
       <AppHeader email={user?.email} />
       <Column
         as="main"
