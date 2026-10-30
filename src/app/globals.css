@@ -1346,3 +1346,34 @@ th[aria-sort] .sort-mark {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
   font-size: 14px;
 }
+
+/* ---------- Map layers (GeoTIFF overlays) ---------- */
+.layer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.layer-list li {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--neutral-alpha-weak);
+}
+.layer-name {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  cursor: pointer;
+}
+.layer-name small {
+  display: block;
+  font-size: 12px;
+  color: var(--neutral-on-background-weak);
+}
+.layer-range {
+  flex: 1;
+  accent-color: var(--bask-gold);
+}

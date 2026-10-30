@@ -15,6 +15,7 @@ import {
   type CoordSystem,
 } from "@/lib/coords";
 import type { Contour } from "@/lib/types";
+import { GK_ZONES, UTM_ZONES, crsFromKey, crsKey, crsLabel, guessCrs, toContour, type RawPolygons } from "@/lib/geoImport";
 import { saveContour } from "@/app/(app)/actions";
 
 const EXAMPLE = `1. 49°37'12" 80°31'05"
@@ -45,6 +46,11 @@ export default function ContourEditor({
   const [errors, setErrors] = useState<string[]>([]);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, start] = useTransition();
+  // a Shapefile/DXF read in its own coordinates, shown once its coordinate system is known
+  const [raw, setRaw] = useState<{ polys: RawPolygons; name: string } | null>(null);
+  const [crs, setCrs] = useState("");
+  const [swapped, setSwapped] = useState(false);
+  const [crsNote, setCrsNote] = useState("");
 
   const current = license.contour;
   const shown = preview ?? current;
@@ -62,6 +68,61 @@ export default function ContourEditor({
     }
     setPreview(poly);
     setSource(`Угловые точки, ${system === "sk42" ? "СК-42 → WGS-84" : "WGS-84"}`);
+  }
+
+  function showRaw(polys: RawPolygons, name: string, key: string, swap: boolean) {
+    if (!key) {
+      setPreview(null);
+      return;
+    }
+    const r = toContour(polys, crsFromKey(key), swap);
+    if (!r.contour) {
+      setPreview(null);
+      setErrors(["В файле не найдено замкнутых контуров."]);
+      return;
+    }
+    setErrors(r.warning ? [r.warning] : []);
+    setPreview(r.contour);
+    setSource(`Файл ${name}, ${crsLabel(crsFromKey(key))}`);
+  }
+
+  async function readFiles(list: FileList) {
+    const files = [...list];
+    const exts = files.map((f) => (f.name.split(".").pop() ?? "").toLowerCase());
+    setRaw(null);
+    setCrsNote("");
+    if (exts.some((e) => ["zip", "shp", "dxf"].includes(e))) {
+      setMessage(null);
+      setErrors([]);
+      try {
+        const { readDxf, readShapefile } = await import("@/lib/geoImport");
+        const dxf = files.find((f) => f.name.toLowerCase().endsWith(".dxf"));
+        let polys: RawPolygons;
+        let projected = false;
+        if (dxf) polys = await readDxf(dxf);
+        else ({ polys, projected } = await readShapefile(files));
+        if (!polys.length) throw new Error(dxf ? "в чертеже нет замкнутых полилиний" : "в файле нет полигонов");
+        const name = (dxf ?? files[0]).name;
+        const g = projected ? { crs: { kind: "wgs84" as const }, swapped: false } : guessCrs(polys);
+        const key = g.crs ? crsKey(g.crs) : "";
+        setRaw({ polys, name });
+        setCrs(key);
+        setSwapped(g.swapped);
+        setCrsNote(
+          projected
+            ? "Система координат взята из файла .prj, контур пересчитан в WGS-84."
+            : g.crs
+              ? `Система координат определена по числам: ${crsLabel(g.crs)}. Если контур встал не туда, выберите другую.`
+              : "В файле нет сведений о системе координат. Выберите её ниже: обычно она указана на чертеже или в паспорте участка."
+        );
+        showRaw(polys, name, key, g.swapped);
+      } catch (e) {
+        setPreview(null);
+        setErrors([`Не удалось прочитать файл: ${(e as Error).message}`]);
+      }
+      return;
+    }
+    return readFile(files[0]);
   }
 
   async function readFile(file: File) {
@@ -209,7 +270,7 @@ export default function ContourEditor({
           onChange={(v) => setMode(v as typeof mode)}
           buttons={[
             { value: "points", label: "Угловые точки" },
-            { value: "file", label: "Файл KML, KMZ, GeoJSON" },
+            { value: "file", label: "Файл: KML, Shapefile, DXF" },
           ]}
         />
 
@@ -244,14 +305,68 @@ export default function ContourEditor({
         ) : (
           <Column gap="12">
             <Text variant="body-default-s" onBackground="neutral-weak">
-              Выберите файл с контуром: KML или KMZ из Google Earth, либо GeoJSON из ГИС-программы.
+              Подойдут: KML или KMZ из Google Earth; GeoJSON; Shapefile из ArcGIS, QGIS или MapInfo (ZIP-архив со всеми
+              частями, либо файлы .shp, .prj и .dbf, выбранные вместе); чертёж AutoCAD в формате DXF (берутся замкнутые
+              полилинии).
             </Text>
             <input
               type="file"
-              accept=".kml,.kmz,.geojson,.json"
-              onChange={(e) => e.target.files?.[0] && readFile(e.target.files[0])}
+              multiple
+              accept=".kml,.kmz,.geojson,.json,.zip,.shp,.shx,.dbf,.prj,.cpg,.dxf"
+              onChange={(e) => e.target.files?.length && readFiles(e.target.files)}
               className="field"
+              aria-label="Файл с контуром"
             />
+            {raw && (
+              <Column gap="8">
+                <Text variant="body-default-s">{crsNote}</Text>
+                <label className="field-label">
+                  Система координат файла
+                  <select
+                    className="field"
+                    value={crs}
+                    onChange={(e) => {
+                      setCrs(e.target.value);
+                      showRaw(raw.polys, raw.name, e.target.value, swapped);
+                    }}
+                  >
+                    <option value="" disabled>
+                      Выберите систему координат
+                    </option>
+                    <option value="wgs84">WGS-84, градусы (GPS, Google Earth)</option>
+                    <optgroup label="СК-42, Гаусс–Крюгер (номер зоны в начале X, например 13 512 345)">
+                      {GK_ZONES.map((z) => (
+                        <option key={`p${z}`} value={`gk:${z}:1`}>
+                          Зона {z} (меридиан {z * 6 - 3}°)
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="СК-42, Гаусс–Крюгер (X без номера зоны, например 512 345)">
+                      {GK_ZONES.map((z) => (
+                        <option key={`n${z}`} value={`gk:${z}:0`}>
+                          Зона {z} (меридиан {z * 6 - 3}°)
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="WGS-84 / UTM">
+                      {UTM_ZONES.map((z) => (
+                        <option key={`u${z}`} value={`utm:${z}`}>
+                          UTM {z}N (меридиан {z * 6 - 183}°)
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </label>
+                <Checkbox
+                  label="X и Y поменяны местами (сначала север, потом восток)"
+                  checked={swapped}
+                  onToggle={(v) => {
+                    setSwapped(v);
+                    showRaw(raw.polys, raw.name, crs, v);
+                  }}
+                />
+              </Column>
+            )}
           </Column>
         )}
 

@@ -6,7 +6,7 @@ import * as maplibregl from "maplibre-gl";
 import type { GeoJSONSource, LngLatBoundsLike, MapLayerMouseEvent, StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { centroid } from "@turf/turf";
-import type { Contour } from "@/lib/types";
+import type { Contour, MapImage } from "@/lib/types";
 import { mineralColor } from "@/lib/types";
 
 export type MapLicense = {
@@ -27,6 +27,8 @@ export type MapOverlay = {
   highlight?: Contour[];
   points?: { name: string; lon: number; lat: number; kind: string }[];
   lines?: { name: string; coordinates: [number, number][]; kind: string }[];
+  /** geological maps and other pictures laid under the contours (only the visible ones) */
+  images?: MapImage[];
 };
 
 type Basemap = "scheme" | "satellite" | "topo";
@@ -270,6 +272,27 @@ export default function LicensesMapInner({
       return new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([p.lon, p.lat]).addTo(m);
     });
     return () => pts.forEach((p) => p.remove());
+  }, [ready, overlay]);
+
+  // pictures under the contours (GeoTIFF overlays)
+  const imageIds = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready) return;
+    const want = new Map((overlay?.images ?? []).map((i) => [i.id, i]));
+    for (const id of [...imageIds.current]) {
+      if (want.has(id)) continue;
+      if (m.getLayer(`img-${id}`)) m.removeLayer(`img-${id}`);
+      if (m.getSource(`img-${id}`)) m.removeSource(`img-${id}`);
+      imageIds.current.delete(id);
+    }
+    for (const img of want.values()) {
+      if (!imageIds.current.has(img.id)) {
+        m.addSource(`img-${img.id}`, { type: "image", url: img.url, coordinates: img.corners });
+        m.addLayer({ id: `img-${img.id}`, type: "raster", source: `img-${img.id}`, paint: { "raster-opacity": img.opacity, "raster-fade-duration": 0 } }, "lic-fill");
+        imageIds.current.add(img.id);
+      } else m.setPaintProperty(`img-${img.id}`, "raster-opacity", img.opacity);
+    }
   }, [ready, overlay]);
 
   // basemap

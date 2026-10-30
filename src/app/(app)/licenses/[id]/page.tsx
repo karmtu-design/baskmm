@@ -6,7 +6,7 @@ import LicenseMapTab from "@/components/LicenseMapTab";
 import DrillholesTab from "@/components/DrillholesTab";
 import LicenseForm from "@/components/LicenseForm";
 import { ExpiryText, MineralSwatch, PageHeader, Panel, StatusBadge, TestMark } from "@/components/ui";
-import { getCompanies, getDocuments, getDrillholes, getLicense, getLicenses } from "@/lib/data";
+import { getCompanies, getDocuments, getDrillholes, getLicense, getLicenses, getOverlays } from "@/lib/data";
 import DocumentsPanel from "@/components/DocumentsPanel";
 import { formatDate, isTest } from "@/lib/types";
 import { updateLicense } from "../../actions";
@@ -68,6 +68,7 @@ export default async function LicensePage({
   if (!license) notFound();
   const companies = tab === "info" ? await getCompanies() : [];
   const others = tab === "map" ? await getLicenses() : [];
+  const images = tab === "map" ? await getOverlays(license.id) : [];
   const holes = tab === "drill" ? await getDrillholes(license.id) : [];
   const docs = tab === "docs" || tab === "history" ? await getDocuments({ licenseId: license.id, kind: tab === "history" ? "history" : "document" }) : [];
   const update = updateLicense.bind(null, license.id);
@@ -157,6 +158,7 @@ export default async function LicensePage({
           licenseArea={license.area_sq_km}
           contourSource={license.contour_source}
           others={others.map((o) => ({ id: o.id, deposit_name: o.deposit_name, license_number: o.license_number, company_name: o.company_name, contour: o.contour }))}
+          images={images}
         />
       )}
 

@@ -86,3 +86,12 @@ export async function getDocuments(filter: { licenseId?: number; projectId?: num
   if (error) throw new Error(error.message);
   return (data ?? []).map((d: any) => ({ ...d, size_bytes: d.size_bytes == null ? null : Number(d.size_bytes) })) as import("./types").DocumentRow[];
 }
+
+/** Map pictures (GeoTIFF overlays) of a licence, with short-lived links to the images. */
+export async function getOverlays(licenseId: number): Promise<import("./types").MapImage[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("map_overlays").select("id, title, file_path, corners, opacity, crs").eq("license_id", licenseId).order("created_at");
+  if (error || !data?.length) return [];
+  const { data: urls } = await supabase.storage.from("documents").createSignedUrls(data.map((d) => d.file_path), 3600);
+  return data.map((d, i) => ({ id: d.id, title: d.title, url: urls?.[i]?.signedUrl ?? "", corners: d.corners, opacity: Number(d.opacity), crs: d.crs })).filter((d) => d.url);
+}

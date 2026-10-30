@@ -193,3 +193,12 @@ export const HISTORY_CATEGORIES = [
   "Геофизика",
   "Прочее",
 ];
+
+export type MapImage = {
+  id: number;
+  title: string;
+  url: string;
+  corners: [[number, number], [number, number], [number, number], [number, number]];
+  opacity: number;
+  crs: string | null;
+};
