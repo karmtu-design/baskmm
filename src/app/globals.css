@@ -2775,6 +2775,29 @@ a.chip {
   flex: 0 0 auto;
   width: auto;
 }
+.scan-pick {
+  position: relative;
+  display: block;
+  padding: 10px 12px;
+  border: 1px dashed var(--brand-alpha-strong);
+  border-radius: 10px;
+  color: var(--brand-on-background-strong);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.scan-pick:hover {
+  background: var(--brand-alpha-weak);
+}
+.scan-pick input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.scan-pick.is-busy {
+  cursor: progress;
+  font-weight: 500;
 
 /* ---------- Electronic signatures (ЭЦП) ---------- */
 .eds-sign {
