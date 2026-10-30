@@ -2763,3 +2763,15 @@ a.chip {
 .voice-hint.is-err {
   color: var(--danger-on-background-strong);
 }
+
+/* Header: the menu in the middle keeps its full width; the logo and the language/e-mail block share what is left.
+   Before, the three parts got equal thirds, the menu spilled into the right block, and that block covered
+   (and blocked clicks on) the theme and exit buttons at the end of the menu. */
+.app-header > .app-header-side {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.app-header > .app-header-pill {
+  flex: 0 0 auto;
+  width: auto;
+}

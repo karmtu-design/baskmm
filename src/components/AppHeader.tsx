@@ -90,13 +90,13 @@ export default function AppHeader({ email }: { email?: string | null }) {
         vertical="center"
         zIndex={9}
       >
-        <Row fillWidth paddingLeft="12" vertical="center">
+        <Row fillWidth paddingLeft="12" vertical="center" className="app-header-side">
           <BrandLogo href="/" height={36} />
         </Row>
         <Row fillWidth horizontal="center" className="app-header-pill">
           {pill}
         </Row>
-        <Row fillWidth horizontal="end" vertical="center" gap="12" paddingRight="12" m={{ hide: true }}>
+        <Row fillWidth horizontal="end" vertical="center" gap="12" paddingRight="12" m={{ hide: true }} className="app-header-side">
           <LanguageSwitch compact />
           <Text variant="body-default-s" onBackground="neutral-weak" truncate>
             {email}
