@@ -1,5 +1,4 @@
 import { tr } from "@/i18n";
-import { dn, dp } from "@/lib/translit";
 import Link from "next/link";
 import { Button, Column, Heading, Row, SmartLink, Tag, Text } from "@once-ui-system/core";
 import { daysUntil, formatDate, mineralColor, mineralGroup, type License } from "@/lib/types";
@@ -138,7 +137,7 @@ export function LicenseTable({ licenses, showCompany = true }: { licenses: Licen
           {licenses.map((l) => (
             <tr key={l.id}>
               <td>
-                <Link href={`/licenses/${l.id}`}>{dn(l.deposit_name) || tr("Без названия")}</Link>
+                <Link href={`/licenses/${l.id}`}>{l.deposit_name || tr("Без названия")}</Link>
                 <div style={{ fontSize: 12, color: "var(--neutral-on-background-weak)" }}>{l.license_number}</div>
               </td>
               <td>
@@ -148,7 +147,7 @@ export function LicenseTable({ licenses, showCompany = true }: { licenses: Licen
                 {l.license_type ? tr(l.license_type) : "—"}
                 {l.category && <span style={{ color: "var(--neutral-on-background-weak)" }}>, {tr(l.category)}</span>}
               </td>
-              {showCompany && <td>{dn(l.company_name)}</td>}
+              {showCompany && <td>{l.company_name}</td>}
               <td>
                 <ExpiryText date={l.expiry_date} />
               </td>

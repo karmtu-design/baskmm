@@ -1,7 +1,6 @@
 "use client";
 
 import { tr } from "@/i18n";
-import { dn, dp } from "@/lib/translit";
 
 import { ViewTransition, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -26,14 +25,14 @@ function makeColumns(): DataColumn<License>[] {
       <>
         <Link href={`/licenses/${row.original.id}`}>
           <ViewTransition name={`lic-title-${row.original.id}`} share="morph" default="none">
-            <span style={{ display: "inline-block" }}>{dn(row.original.deposit_name) || tr("Без названия")}</span>
+            <span style={{ display: "inline-block" }}>{row.original.deposit_name || tr("Без названия")}</span>
           </ViewTransition>
         </Link>
         <div style={muted}>{row.original.license_number}</div>
       </>
     ),
   },
-  { id: "company", accessorFn: (l) => dn(l.company_name), header: tr("Компания"), meta: { label: tr("Компания") }, sortFn: "text" },
+  { id: "company", accessorKey: "company_name", header: tr("Компания"), meta: { label: tr("Компания") }, sortFn: "text" },
   {
     id: "type",
     accessorFn: (l) => `${l.license_type ? tr(l.license_type) : ""}${l.category ? `, ${tr(l.category)}` : ""}`,
@@ -49,7 +48,7 @@ function makeColumns(): DataColumn<License>[] {
   },
   {
     id: "place",
-    accessorFn: (l) => [dp(l.region), dp(l.district)].filter(Boolean).join(", "),
+    accessorFn: (l) => [l.region, l.district].filter(Boolean).join(", "),
     header: tr("Расположение"),
     meta: { label: tr("Расположение") },
   },
@@ -150,7 +149,7 @@ export default function LicenseRegister({ licenses, companies }: { licenses: Lic
             <option value="">{tr("Все компании")}</option>
             {companies.map((c) => (
               <option key={c.id} value={c.id}>
-                {dn(c.name)}
+                {c.name}
               </option>
             ))}
           </select>

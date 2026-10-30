@@ -1,5 +1,4 @@
 import { tr } from "@/i18n";
-import { dn, dp } from "@/lib/translit";
 import { notFound } from "next/navigation";
 import { Button, Column, Grid, Text } from "@once-ui-system/core";
 import LicensesMap from "@/components/LicensesMap";
@@ -29,7 +28,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
     <Column>
       <PageHeader
         back={{ href: "/companies", label: tr("Все компании") }}
-        title={dn(company.name)}
+        title={company.name}
         subtitle={company.bin ? tr("БИН {0}", { 0: company.bin }) : tr("БИН не указан")}
         actions={
           <ButtonLink href={`/licenses/new?company=${company.id}`} primary>{tr("Добавить лицензию")}</ButtonLink>

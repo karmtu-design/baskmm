@@ -1,7 +1,6 @@
 "use client";
 
 import { tr, loc } from "@/i18n";
-import { dn, dp } from "@/lib/translit";
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -92,7 +91,7 @@ export default function GeoAnalysisPanel({
               const { other, share } = otherOf(o);
               return (
                 <Text key={other.id} variant="body-default-s" onBackground="danger-strong">
-                  <Link href={`/licenses/${other.id}`}>{dn(other.deposit_name) || other.license_number}</Link>{tr(": общая площадь")}{" "}
+                  <Link href={`/licenses/${other.id}`}>{other.deposit_name || other.license_number}</Link>{tr(": общая площадь")}{" "}
                   {fmt(o.areaKm2, 2)}{" "}{tr("км² (")}{fmt(share * 100)}{tr("% этого участка)")}</Text>
               );
             })}
@@ -138,7 +137,7 @@ export default function GeoAnalysisPanel({
             <div>
               <b>{tr("Населённые пункты:")}</b>{" "}
               {nearby.places.length
-                ? nearby.places.map((p) => tr("{0} ({1}, {2} км)", { 0: dn(p.name), 1: tr(p.kind), 2: fmt(p.km) })).join("; ")
+                ? nearby.places.map((p) => tr("{0} ({1}, {2} км)", { 0: p.name, 1: tr(p.kind), 2: fmt(p.km) })).join("; ")
                 : tr("в радиусе не найдено")}
             </div>
             <div>

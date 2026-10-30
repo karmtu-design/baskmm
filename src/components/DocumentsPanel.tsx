@@ -13,13 +13,11 @@ import { addDocument, deleteDocument, searchDocuments, updateDocument, type DocH
 
 const PdfViewer = dynamic(() => import("./PdfViewer"), { ssr: false });
 const OfficeViewer = dynamic(() => import("./OfficeViewer"), { ssr: false });
-const officeViewable = (n: string) => ["docx", "xlsx", "csv", "txt", "las", "laz"].includes(extOf(n));
-const isCloud = (n: string) => ["las", "laz"].includes(extOf(n));
-const PointCloudViewer = dynamic(() => import("./PointCloudViewer"), { ssr: false });
+const officeViewable = (n: string) => ["docx", "xlsx", "csv", "txt"].includes(extOf(n));
 
 const BUCKET = "documents";
 import { MAX_UPLOAD_BYTES as MAX_BYTES, MAX_UPLOAD_MB, uploadFile } from "@/lib/upload";
-const ACCEPT = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.tif,.tiff,.txt,.csv,.zip,.dwg,.dxf,.kml,.kmz,.las,.laz";
+const ACCEPT = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.tif,.tiff,.txt,.csv,.zip,.dwg,.dxf,.kml,.kmz";
 const extOf = (name: string) => (name.split(".").pop() ?? "").toLowerCase();
 const isImage = (n: string) => ["png", "jpg", "jpeg", "webp", "bmp", "tif", "tiff"].includes(extOf(n));
 const canRead = (n: string) => ["pdf", "docx", "xlsx", "txt", "csv"].includes(extOf(n)) || isImage(n);
@@ -211,8 +209,6 @@ export default function DocumentsPanel({
       {viewer &&
         (extOf(viewer.doc.file_name) === "pdf" ? (
           <PdfViewer url={viewer.url} title={viewer.doc.title} onClose={() => setViewer(null)} onDownload={() => download(viewer.doc)} />
-        ) : isCloud(viewer.doc.file_name) ? (
-          <PointCloudViewer url={viewer.url} title={viewer.doc.title} onClose={() => setViewer(null)} onDownload={() => download(viewer.doc)} />
         ) : (
           <OfficeViewer url={viewer.url} fileName={viewer.doc.file_name} title={viewer.doc.title} onClose={() => setViewer(null)} onDownload={() => download(viewer.doc)} />
         ))}

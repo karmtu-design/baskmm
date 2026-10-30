@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, Icon, type IconName } from "@once-ui-system/core";
 import InstallApp from "./InstallApp";
-import { startTour } from "./WelcomeTour";
 import LanguageSwitch from "./LanguageSwitch";
 
 const OPEN_EVENT = "bask:open-navigator";
@@ -119,16 +118,6 @@ export default function SiteNavigator() {
               </button>
             ))}
           </div>
-          <button
-            type="button"
-            className="nav-tour"
-            onClick={() => {
-              setOpen(false);
-              startTour();
-            }}
-          >
-            🧭 {tr("Экскурсия по системе")}
-          </button>
           <InstallApp />
         </div>
       </div>

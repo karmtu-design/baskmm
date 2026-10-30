@@ -2,9 +2,7 @@
 
 import { tr } from "@/i18n";
 
-import { useMemo, useState } from "react";
-import Fuse from "fuse.js";
-import { latin, searchable } from "@/lib/translit";
+import { useState } from "react";
 import {
   columnFilteringFeature,
   columnVisibilityFeature,
@@ -48,7 +46,6 @@ export default function DataTable<T extends RowData>({
   toolbar,
   rowsRef,
   emptyText,
-  searchText,
 }: {
   data: T[];
   columns: DataColumn<T>[];
@@ -59,45 +56,18 @@ export default function DataTable<T extends RowData>({
   /** filled with the rows as currently filtered and sorted, e.g. for export */
   rowsRef?: React.RefObject<T[]>;
   emptyText?: string;
-  /** the text a row is found by; by default all its text and number fields */
-  searchText?: (row: T) => string;
 }) {
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>(initialHidden);
 
-  // search: each word of the query must match, in Cyrillic or Latin, forgiving a typo or two (Fuse.js)
-  const texts = useMemo(() => data.map((row) => searchable((searchText ?? defaultText)(row))), [data, searchText]);
-  const index = useMemo(
-    () =>
-      new Fuse(
-        texts.map((text, i) => ({ i, text })),
-        { keys: ["text"], threshold: 0.3, ignoreLocation: true, minMatchCharLength: 2, includeScore: false }
-      ),
-    [texts]
-  );
-  const shown = useMemo(() => {
-    const words = search.trim().toLowerCase().split(/\s+/).filter((w) => w.length > 0);
-    if (!words.length) return data;
-    let keep: Set<number> | null = null;
-    for (const w of words) {
-      // short words (Au, Cu, 12…) must match exactly; longer ones may have a typo
-      // the word as typed and in Latin letters: «байжер» also finds «Baijer»
-      const hit = new Set<number>();
-      for (const v of new Set([w, latin(w)]))
-        for (const i of v.length < 4 ? texts.flatMap((t, i) => (t.includes(v) ? [i] : [])) : index.search(v).map((r) => r.item.i)) hit.add(i);
-      const prev: Set<number> | null = keep;
-      keep = prev ? new Set([...prev].filter((i: number) => hit.has(i))) : hit;
-    }
-    return data.filter((_, i) => keep!.has(i));
-  }, [data, texts, index, search]);
-
   const table = useTable({
     features: tableFeatureSet,
     columns,
-    data: shown,
-    state: { sorting, columnVisibility },
+    data,
+    state: { sorting, columnVisibility, globalFilter: search },
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
+    globalFilterFn: "includesString",
     enableSortingRemoval: true,
   });
 
@@ -175,10 +145,4 @@ export default function DataTable<T extends RowData>({
       <Text variant="body-default-xs" onBackground="neutral-weak">{tr("Строк:")}{" "}{rows.length}{" "}{tr("из")}{" "}{data.length}{tr(". Нажмите на заголовок столбца, чтобы отсортировать.")}</Text>
     </div>
   );
-}
-
-function defaultText(row: unknown): string {
-  return Object.values(row as Record<string, unknown>)
-    .filter((v) => typeof v === "string" || typeof v === "number")
-    .join(" ");
 }

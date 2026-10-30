@@ -9,7 +9,6 @@ import { getCompanies, getDocuments, getLicenses, getProjects, getTasks } from "
 import { IndustryNews, KeyFigures, PanelSkeleton } from "@/components/HomeWidgets";
 import { BRAND } from "@/lib/brand";
 import { isTest } from "@/lib/types";
-import { dn } from "@/lib/translit";
 
 export default async function Overview() {
   const [companies, licenses, projects, tasks, documents] = await Promise.all([getCompanies(), getLicenses(), getProjects(), getTasks(), getDocuments()]);
@@ -54,7 +53,7 @@ export default async function Overview() {
             <Column>
               {attention.map((l) => (
                 <Link key={l.id} href={`/licenses/${l.id}`} className="home-row">
-                  <Text variant="label-strong-s">{dn(l.deposit_name)}</Text>
+                  <Text variant="label-strong-s">{l.deposit_name}</Text>
                   <StatusBadge status={l.status} />
                 </Link>
               ))}

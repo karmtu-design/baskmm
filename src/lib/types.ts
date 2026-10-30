@@ -243,29 +243,3 @@ export type AuditEntry = {
   changed: Record<string, [unknown, unknown]> | null;
   record: Record<string, unknown> | null;
 };
-
-/** A formatted note (meeting minutes, call notes) on a licence or a project. */
-export type Note = {
-  id: number;
-  license_id: number | null;
-  project_id: number | null;
-  title: string;
-  html: string;
-  created_by: string | null;
-  updated_by: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-/** A drawing board (deal scheme, company structure, logistics) on a licence or a project. */
-export type Board = {
-  id: number;
-  license_id: number | null;
-  project_id: number | null;
-  title: string;
-  preview: string | null;
-  created_by: string | null;
-  updated_by: string | null;
-  created_at: string;
-  updated_at: string;
-};
