@@ -139,3 +139,16 @@ export async function getMetalHistory(): Promise<{ metal: string; price_date: st
   const { data } = await supabase.from("metal_prices").select("metal, price_date, price").order("price_date").limit(5000);
   return (data ?? []).map((r) => ({ ...r, price: Number(r.price) }));
 }
+
+/** Change log, newest first; optionally of one table/record, and older than a given id (paging). */
+export async function getAudit(f: { table?: string; recordId?: number; before?: number; limit?: number; actor?: string } = {}) {
+  const supabase = await createClient();
+  let q = supabase.from("audit_log").select("id, ts, table_name, record_id, op, actor_email, changed, record").order("id", { ascending: false }).limit(f.limit ?? 100);
+  if (f.table) q = q.eq("table_name", f.table);
+  if (f.recordId) q = q.eq("record_id", f.recordId);
+  if (f.before) q = q.lt("id", f.before);
+  if (f.actor) q = q.eq("actor_email", f.actor);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as import("./types").AuditEntry[];
+}

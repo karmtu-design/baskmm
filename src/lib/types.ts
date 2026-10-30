@@ -232,3 +232,14 @@ export const PRIORITIES: { id: Task["priority"]; label: string }[] = [
   { id: "normal", label: "Обычный" },
   { id: "low", label: "Низкий" },
 ];
+
+export type AuditEntry = {
+  id: number;
+  ts: string;
+  table_name: string;
+  record_id: number | null;
+  op: "INSERT" | "UPDATE" | "DELETE";
+  actor_email: string | null;
+  changed: Record<string, [unknown, unknown]> | null;
+  record: Record<string, unknown> | null;
+};

@@ -6,7 +6,8 @@ import LicenseMapTab from "@/components/LicenseMapTab";
 import DrillholesTab from "@/components/DrillholesTab";
 import LicenseForm from "@/components/LicenseForm";
 import { ExpiryText, MineralSwatch, PageHeader, Panel, StatusBadge, TestMark } from "@/components/ui";
-import { getCompanies, getDocuments, getDrillholes, getLicense, getLicenses, getOverlays, getProjects, getTasks } from "@/lib/data";
+import { getCompanies, getDocuments, getDrillholes, getLicense, getAudit, getLicenses, getOverlays, getProjects, getTasks } from "@/lib/data";
+import AuditList from "@/components/AuditList";
 import TaskBoard from "@/components/TaskBoard";
 import { LicenseDocxButton } from "@/components/ExportButtons";
 import DocumentsPanel from "@/components/DocumentsPanel";
@@ -71,6 +72,7 @@ export default async function LicensePage({
   const companies = tab === "info" ? await getCompanies() : [];
   const others = tab === "map" ? await getLicenses() : [];
   const images = tab === "map" ? await getOverlays(license.id) : [];
+  const changes = tab === "info" ? await getAudit({ table: "licenses", recordId: license.id, limit: 10 }) : [];
   const [tasks, allLic, allProj] = tab === "tasks" ? await Promise.all([getTasks({ licenseId: license.id }), getLicenses(), getProjects()]) : [[], [], []];
   const holes = tab === "drill" ? await getDrillholes(license.id) : [];
   const docs = tab === "docs" || tab === "history" ? await getDocuments({ licenseId: license.id, kind: tab === "history" ? "history" : "document" }) : [];
@@ -144,6 +146,12 @@ export default async function LicensePage({
                 </Column>
               )}
             </Grid>
+          </Panel>
+          <Panel title="Последние изменения">
+            <AuditList entries={changes} names={new Map()} showObject={false} />
+            <Text variant="body-default-xs" onBackground="neutral-weak">
+              Полный журнал: «Все разделы» → «Журнал изменений».
+            </Text>
           </Panel>
           <Panel>
             <details>
