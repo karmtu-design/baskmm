@@ -185,13 +185,17 @@ export async function getRates(): Promise<import("./feeds").Rates | null> {
   const { parseRates } = await import("./feeds");
   const now = new Date(Date.now() + 5 * 3600e3); // Kazakhstan time
   const d = `${String(now.getUTCDate()).padStart(2, "0")}.${String(now.getUTCMonth() + 1).padStart(2, "0")}.${now.getUTCFullYear()}`;
-  try {
-    const res = await fetch(`https://nationalbank.kz/rss/get_rates.cfm?fdate=${d}`, { next: { revalidate: 3 * 3600 }, signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return null;
-    return parseRates(await res.text(), d);
-  } catch {
-    return null;
+  // the dated page first; the "all rates" page as a fallback (same format)
+  for (const url of [`https://nationalbank.kz/rss/get_rates.cfm?fdate=${d}`, "https://nationalbank.kz/rss/rates_all.xml"]) {
+    try {
+      const res = await fetch(url, { next: { revalidate: 3 * 3600 }, signal: AbortSignal.timeout(8000) });
+      const r = res.ok ? parseRates(await res.text(), d) : null;
+      if (r) return r;
+    } catch {
+      /* try the next one */
+    }
   }
+  return null;
 }
 
 /** A few fresh industry headlines from Google News, in the interface language (no key needed). */
