@@ -1739,6 +1739,7 @@ th[aria-sort] .sort-mark {
   color: var(--danger-on-background-strong) !important;
 }
 .metal-spark {
+  display: block;
   width: 100%;
   height: 24px;
   stroke: var(--neutral-on-background-medium);
