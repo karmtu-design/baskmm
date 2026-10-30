@@ -11,9 +11,10 @@ import { PRESENTATION_LANGUAGES, type Presentation } from "@/lib/types";
 import { addPresentation, deletePresentation, updatePresentation } from "@/app/(app)/presentations/actions";
 
 const PdfViewer = dynamic(() => import("./PdfViewer"), { ssr: false });
+const OfficeViewer = dynamic(() => import("./OfficeViewer"), { ssr: false });
 
 const BUCKET = "presentations";
-const MAX_BYTES = 50 * 1024 * 1024;
+import { MAX_UPLOAD_BYTES as MAX_BYTES, MAX_UPLOAD_MB, uploadFile } from "@/lib/upload";
 const ACCEPT = ".pdf,.ppt,.pptx,.key,.odp,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.mp4";
 
 const sizeText = (b: number | null) =>
@@ -108,6 +109,7 @@ function Uploader({ projects, onDone }: { projects: string[]; onDone: () => void
   const [language, setLanguage] = useState(PRESENTATION_LANGUAGES[0]);
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [drag, setDrag] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -122,16 +124,16 @@ function Uploader({ projects, onDone }: { projects: string[]; onDone: () => void
 
   async function upload() {
     const big = files.find((f) => f.size > MAX_BYTES);
-    if (big) return setMsg({ ok: false, text: tr("Файл «{0}» больше 50 МБ. Сожмите его (например, сохраните PDF в меньшем качестве) и загрузите снова.", { 0: big.name }) });
+    if (big) return setMsg({ ok: false, text: tr("Файл «{0}» больше {1} МБ. Сожмите его (например, сохраните PDF в меньшем качестве) и загрузите снова.", { 0: big.name, 1: MAX_UPLOAD_MB }) });
     setBusy(true);
     setMsg(null);
     const supabase = createClient();
     const failed: string[] = [];
     for (const f of files) {
       const path = storageKey(f.name);
-      const { error } = await supabase.storage.from(BUCKET).upload(path, f, { contentType: f.type || undefined, upsert: false });
+      const { error } = await uploadFile(BUCKET, path, f, (share) => setProgress(files.length > 1 ? `${f.name}: ${Math.round(share * 100)}%` : `${Math.round(share * 100)}%`));
       if (error) {
-        failed.push(`${f.name}: ${error.message}`);
+        failed.push(`${f.name}: ${error}`);
         continue;
       }
       const r = await addPresentation({
@@ -150,6 +152,7 @@ function Uploader({ projects, onDone }: { projects: string[]; onDone: () => void
       }
     }
     setBusy(false);
+    setProgress("");
     const okCount = files.length - failed.length;
     setMsg(failed.length ? { ok: false, text: tr("Загружено {0} из {1}. Ошибки: {2}", { 0: okCount, 1: files.length, 2: failed.join("; ") }) } : { ok: true, text: tr("Загружено файлов: {0}.", { 0: okCount }) });
     if (okCount) {
@@ -187,7 +190,7 @@ function Uploader({ projects, onDone }: { projects: string[]; onDone: () => void
             files.map((f) => `${f.name} (${sizeText(f.size)})`).join(", ")
           )}
         </span>
-        <small>{tr("PDF, PowerPoint, Word, Excel, картинки, до 50 МБ на файл")}</small>
+        <small>{tr("PDF, PowerPoint, Word, Excel, картинки, до {0} МБ на файл. Большие файлы загружаются частями и продолжают загрузку после обрыва связи.", { 0: MAX_UPLOAD_MB })}</small>
       </label>
 
       {files.length > 0 && (
@@ -216,6 +219,7 @@ function Uploader({ projects, onDone }: { projects: string[]; onDone: () => void
               {files.length === 1 ? tr("Загрузить") : tr("Загрузить файлов: {0}", { 0: files.length })}
             </Button>
             <Button variant="tertiary" onClick={() => setFiles([])} disabled={busy}>{tr("Отмена")}</Button>
+            {busy && progress && <span className="upload-progress">{tr("Загружено: {0}", { 0: progress })}</span>}
           </Row>
         </div>
       )}
@@ -259,7 +263,7 @@ function PresentationCard({ p, onShare, onEdit }: { p: Presentation; onShare: ()
         a.href = url;
         a.download = p.file_name;
         a.click();
-      } else if (ext === "pdf") setViewerUrl(url);
+      } else if (["pdf", "docx", "xlsx", "csv"].includes(ext)) setViewerUrl(url);
       else window.open(url, "_blank", "noopener");
     } catch (e) {
       setErr((e as Error).message);
@@ -268,7 +272,12 @@ function PresentationCard({ p, onShare, onEdit }: { p: Presentation; onShare: ()
 
   return (
     <article className="pres-card">
-      {viewerUrl && <PdfViewer url={viewerUrl} title={p.title} onClose={() => setViewerUrl("")} onDownload={() => open(true)} />}
+      {viewerUrl &&
+        (ext === "pdf" ? (
+          <PdfViewer url={viewerUrl} title={p.title} onClose={() => setViewerUrl("")} onDownload={() => open(true)} />
+        ) : (
+          <OfficeViewer url={viewerUrl} fileName={p.file_name} title={p.title} onClose={() => setViewerUrl("")} onDownload={() => open(true)} />
+        ))}
       <div className="pres-top">
         <span className={`pres-kind kind-${KIND[ext] ?? "FILE"}`}>{KIND[ext] ?? ext.toUpperCase().slice(0, 4)}</span>
         <div style={{ minWidth: 0 }}>
@@ -453,6 +462,7 @@ function ShareDialog({ p, onClose }: { p: Presentation; onClose: () => void }) {
             </div>
             <input className="field share-url" readOnly value={url || tr("Готовлю ссылку…")} onFocus={(e) => e.target.select()} aria-label={tr("Ссылка на файл")} />
           </section>
+          {url && <QrBlock url={url} name={p.title} until={until} />}
           {err && (
             <Text variant="body-default-s" onBackground="danger-strong">
               {err}
@@ -526,5 +536,33 @@ function EditDialog({ p, projects, onClose }: { p: Presentation; projects: strin
         </div>
       </div>
     </div>
+  );
+}
+
+/** A QR code of the download link: show it on a screen at a meeting, or put it on a slide or a printed page. */
+function QrBlock({ url, name, until }: { url: string; name: string; until: string }) {
+  const [src, setSrc] = useState("");
+  useEffect(() => {
+    let alive = true;
+    import("qrcode")
+      .then((QR) => QR.toDataURL(url, { errorCorrectionLevel: "M", margin: 2, width: 512, color: { dark: "#14181d", light: "#ffffff" } }))
+      .then((d) => alive && setSrc(d))
+      .catch(() => alive && setSrc(""));
+    return () => {
+      alive = false;
+    };
+  }, [url]);
+  if (!src) return null;
+  return (
+    <section className="share-qr">
+      <img src={src} alt={tr("QR-код ссылки на «{0}»", { 0: name })} width={168} height={168} />
+      <div>
+        <h4>{tr("QR-код")}</h4>
+        <p>{tr("Покажите его на встрече: собеседник наведёт камеру телефона и сразу скачает файл. Действует до {0}, как и ссылка.", { 0: until })}</p>
+        <a className="chip" href={src} download={`QR ${name.replace(/[\\/:*?"<>|]+/g, " ")}.png`}>
+          {tr("Скачать QR-код")}
+        </a>
+      </div>
+    </section>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { createPortal } from "react-dom";
+
 import { tr } from "@/i18n";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -94,7 +96,8 @@ export default function PdfViewer({
     };
   });
 
-  return (
+  // on top of everything, outside the page layout (the fixed header would otherwise cover the toolbar)
+  return createPortal(
     <div className="pdf-overlay" role="dialog" aria-modal="true" aria-label={tr("Просмотр: {0}", { 0: title })}>
       <div className="pdf-bar">
         <span className="pdf-title" title={title}>
@@ -132,6 +135,7 @@ export default function PdfViewer({
           <canvas ref={canvas} className={`pdf-page${busy ? " is-busy" : ""}`} />
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
