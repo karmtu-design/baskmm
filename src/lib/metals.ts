@@ -152,6 +152,59 @@ async function fetchPage(): Promise<string> {
   return res.text();
 }
 
+// ---------- past prices, so the small charts have a real line from the first day ----------
+
+/** Westmetall keeps a daily table per LME metal; read once when fewer than HISTORY_MIN days are stored. */
+const HISTORY_FIELD: Record<string, string> = {
+  copper: "LME_Cu_cash",
+  zinc: "LME_Zn_cash",
+  lead: "LME_Pb_cash",
+  tin: "LME_Sn_cash",
+  nickel: "LME_Ni_cash",
+  aluminium: "LME_Al_cash",
+};
+const HISTORY_MIN = 20;
+const HISTORY_DAYS = 45;
+
+/** «date | cash-settlement | 3-month | stock» rows → the latest days, oldest first. */
+export function parseHistoryTable(html: string, days = HISTORY_DAYS): { date: string; price: number }[] {
+  const out: { date: string; price: number }[] = [];
+  for (const t of parseTables(html))
+    for (const r of t.rows) {
+      const date = parseDate(r[0] ?? "");
+      const nums = (r[1] ?? "").match(/-?\d[\d.,]*/g) ?? [];
+      const price = nums.length === 1 ? parseNumber(nums[0]) : null;
+      if (date && price) out.push({ date, price });
+    }
+  const seen = new Set<string>();
+  return out
+    .filter((p) => !seen.has(p.date) && seen.add(p.date))
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, days)
+    .reverse();
+}
+
+async function backfill(supabase: Awaited<ReturnType<typeof createClient>>, have: Record<string, number>) {
+  const need = Object.keys(HISTORY_FIELD).filter((k) => (have[k] ?? 0) < HISTORY_MIN);
+  await Promise.all(
+    need.map(async (key) => {
+      try {
+        const res = await fetch(`https://www.westmetall.com/en/markdaten.php?action=table&field=${HISTORY_FIELD[key]}`, {
+          headers: { "user-agent": "BASK Metals and Mining portfolio (daily price board)", accept: "text/html" },
+          next: { revalidate: 24 * 3600 },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!res.ok) return;
+        const rows = parseHistoryTable(await res.text()).map((p) => ({ metal: key, price_date: p.date, price: p.price, unit: "$/т" }));
+        // only days not stored yet: what was recorded day by day stays as it is
+        if (rows.length) await supabase.from("metal_prices").upsert(rows, { onConflict: "metal,price_date", ignoreDuplicates: true });
+      } catch {
+        /* the line simply stays short until the next try */
+      }
+    })
+  );
+}
+
 export async function getMetalBoard(): Promise<MetalBoard> {
   const supabase = await createClient();
   let live = false;
@@ -170,6 +223,14 @@ export async function getMetalBoard(): Promise<MetalBoard> {
     await supabase.from("metal_prices").upsert(rows, { onConflict: "metal,price_date" });
   } catch (e) {
     error = (e as Error).message;
+  }
+
+  // fill in past days once, if the board has only just started recording
+  {
+    const { data: counts } = await supabase.from("metal_prices").select("metal").gte("price_date", new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10)).limit(2000);
+    const have: Record<string, number> = {};
+    for (const r of counts ?? []) have[r.metal] = (have[r.metal] ?? 0) + 1;
+    if (Object.keys(HISTORY_FIELD).some((k) => (have[k] ?? 0) < HISTORY_MIN)) await backfill(supabase, have);
   }
 
   // last two stored days per metal: today's price and the change against the previous day

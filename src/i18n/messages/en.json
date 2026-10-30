@@ -1069,5 +1069,6 @@
  "ю.ш.": "S",
  "юридический адрес": "legal address",
  "язык": "language",
- "— ни к чему не привязана": " — not linked to anything"
+ "— ни к чему не привязана": " — not linked to anything",
+ "за {0} дн.: {1}%": "{0} days: {1}%"
 }

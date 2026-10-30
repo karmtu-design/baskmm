@@ -1739,11 +1739,63 @@ th[aria-sort] .sort-mark {
   color: var(--danger-on-background-strong) !important;
 }
 .metal-spark {
+  position: relative;
   display: block;
   width: 100%;
-  height: 24px;
-  stroke: var(--neutral-on-background-medium);
-  opacity: 0.8;
+  height: 40px;
+  margin: 2px 0;
+  color: var(--neutral-on-background-weak);
+}
+.metal-spark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.metal-ticker {
+  --spark-up: #12a150;
+  --spark-down: #e5484d;
+}
+[data-theme="dark"] .metal-ticker {
+  --spark-up: #3dd68c;
+  --spark-down: #ff6369;
+}
+.metal-spark.is-up {
+  color: var(--spark-up);
+}
+.metal-spark.is-down {
+  color: var(--spark-down);
+}
+.metal-ticker .metal-change.is-up {
+  color: var(--spark-up);
+}
+.metal-ticker .metal-change.is-down {
+  color: var(--spark-down);
+}
+.metal-spark-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 2px var(--surface-background, #fff);
+}
+.metal-spark-dot::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.25;
+  animation: spark-pulse 2.4s ease-out infinite;
+}
+@keyframes spark-pulse {
+  from { transform: scale(0.6); opacity: 0.45; }
+  to { transform: scale(1.8); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .metal-spark-dot::after { animation: none; }
 }
 .install-app {
   display: grid;
