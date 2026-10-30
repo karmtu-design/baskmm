@@ -11,6 +11,8 @@ export const TABLES: Record<string, { one: string; link: (id: number) => string 
   tasks: { one: "задача", link: () => "/tasks" },
   map_overlays: { one: "карта на подложке", link: () => null },
   drillholes: { one: "скважина", link: () => null },
+  notes: { one: "заметка", link: () => null },
+  boards: { one: "схема", link: () => null },
 };
 
 const FIELDS: Record<string, string> = {
@@ -66,6 +68,8 @@ const FIELDS: Record<string, string> = {
   pages: "страниц",
   opacity: "прозрачность",
   file_name: "файл",
+  html: "текст",
+  scene: "рисунок",
 };
 
 const TASK_STATUS: Record<string, string> = { new: "Новые", in_progress: "В работе", review: "На проверке", done: "Готово" };

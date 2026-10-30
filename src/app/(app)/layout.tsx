@@ -3,6 +3,7 @@ import { Column } from "@once-ui-system/core";
 import AppHeader from "@/components/AppHeader";
 import AssistantPanel from "@/components/AssistantPanel";
 import SiteNavigator from "@/components/SiteNavigator";
+import WelcomeTour from "@/components/WelcomeTour";
 import PageBackground from "@/components/PageBackground";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,6 +33,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </Column>
       <AssistantPanel />
       <SiteNavigator />
+      <WelcomeTour />
     </Column>
   );
 }

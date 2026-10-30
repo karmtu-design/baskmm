@@ -8,7 +8,8 @@ import { TeaserButton } from "@/components/ExportButtons";
 import ProjectForm from "@/components/ProjectForm";
 import { StageBadge } from "@/components/ProjectRegister";
 import { PageHeader, Panel } from "@/components/ui";
-import { getDocuments, getPresentations, getProject } from "@/lib/data";
+import { getDocuments, getNotesAndBoards, getPresentations, getProject } from "@/lib/data";
+import NotesAndBoards from "@/components/NotesAndBoards";
 import DocumentsPanel from "@/components/DocumentsPanel";
 import { updateProject } from "../actions";
 import { getMetalBoard } from "@/lib/metals";
@@ -21,7 +22,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     (p) => p.project && p.project.trim().toLowerCase() === project.name.trim().toLowerCase()
   );
   const hasPoint = project.lat != null && project.lon != null;
-  const [docs, board] = await Promise.all([getDocuments({ projectId: project.id }), getMetalBoard().catch(() => ({ quotes: [] }))]);
+  const [docs, board, nb] = await Promise.all([
+    getDocuments({ projectId: project.id }),
+    getMetalBoard().catch(() => ({ quotes: [] })),
+    getNotesAndBoards({ projectId: project.id }),
+  ]);
   const prices = board.quotes.map((q) => ({ key: q.key, symbol: q.symbol, price: q.price, unit: q.unit }));
 
   return (
@@ -80,6 +85,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       <Column gap="16" marginTop="48">
         <Heading as="h2" variant="heading-strong-l">{tr("Документы проекта")}</Heading>
         <DocumentsPanel kind="document" projectId={project.id} items={docs} />
+      </Column>
+      <Column gap="16" marginTop="48">
+        <NotesAndBoards notes={nb.notes} boards={nb.boards} projectId={project.id} />
       </Column>
     </>
   );
