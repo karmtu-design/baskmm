@@ -2798,5 +2798,86 @@ a.chip {
 .scan-pick.is-busy {
   cursor: progress;
   font-weight: 500;
+
+/* ---------- Staff ---------- */
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--neutral-alpha-medium);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.role-admin {
+  border-color: #c08a1e;
+  color: #d9a63a;
+}
+.role-editor {
+  border-color: var(--success-alpha-strong, #2e7d4f);
+  color: var(--success-on-background-strong);
+}
+.role-viewer {
+  color: var(--neutral-on-background-weak);
+}
+.staff-table td {
+  vertical-align: middle;
+}
+.staff-table .field {
+  min-height: 36px;
+}
+.staff-mail {
+  font-size: 12px;
+  color: var(--neutral-on-background-weak);
+}
+.staff-me {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--brand-alpha-weak);
+  color: var(--brand-on-background-strong);
+  font-size: 11px;
+}
+.staff-add {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: var(--radius-l);
+  background: var(--surface-background);
+}
+.staff-add h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--neutral-on-background-strong);
+}
+.staff-add-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 860px) {
+  .staff-add-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.staff-key {
+  display: grid;
+  gap: 8px;
+  padding: 16px 20px;
+  border: 1px solid var(--warning-alpha-medium);
+  border-radius: var(--radius-l);
+  background: var(--warning-alpha-weak);
+  font-size: 14px;
+  color: var(--neutral-on-background-strong);
+}
+.staff-key ol {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+}
+.staff-key span {
   color: var(--neutral-on-background-weak);
 }

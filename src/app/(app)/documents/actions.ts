@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { editDenied } from "@/lib/roles";
 
 export type DocMeta = {
   kind: "document" | "history";
@@ -32,6 +33,7 @@ function where(m: { license_id: number | null; project_id: number | null }) {
 
 /** Saves the card of a file the browser has already put into storage; returns its id. */
 export async function addDocument(m: DocMeta): Promise<{ ok: boolean; id?: number; message?: string }> {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const {
     data: { user },
@@ -67,6 +69,7 @@ export async function updateDocument(
   id: number,
   f: { title: string; category: string | null; doc_date: string | null; year: number | null; source: string | null; notes: string | null }
 ): Promise<{ ok: boolean; message?: string }> {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const title = clean(f.title);
   if (!title) return { ok: false, message: "Укажите название." };
@@ -89,6 +92,7 @@ export async function updateDocument(
 }
 
 export async function deleteDocument(id: number): Promise<{ ok: boolean; message?: string }> {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const { data } = await supabase.from("documents").select("file_path, license_id, project_id").eq("id", id).maybeSingle();
   if (!data) return { ok: false, message: "Документ уже удалён." };
