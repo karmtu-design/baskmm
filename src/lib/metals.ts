@@ -139,7 +139,7 @@ export function extractPrices(html: string): ParsedPrice[] {
 
 // ---------- prices for the home page ----------
 
-export type MetalQuote = MetalDef & { price: number; date: string; change: number | null; prevDate: string | null };
+export type MetalQuote = MetalDef & { price: number; date: string; change: number | null; prevDate: string | null; history: number[] };
 export type MetalBoard = { quotes: MetalQuote[]; live: boolean; error?: string };
 
 async function fetchPage(): Promise<string> {
@@ -177,7 +177,7 @@ export async function getMetalBoard(): Promise<MetalBoard> {
     .from("metal_prices")
     .select("metal, price_date, price")
     .order("price_date", { ascending: false })
-    .limit(200);
+    .limit(1000);
   const quotes: MetalQuote[] = [];
   for (const m of METALS) {
     const hist = (data ?? []).filter((r) => r.metal === m.key);
@@ -190,6 +190,7 @@ export async function getMetalBoard(): Promise<MetalBoard> {
       date: cur.price_date,
       change: prev ? (price - Number(prev.price)) / Number(prev.price) : null,
       prevDate: prev?.price_date ?? null,
+      history: hist.slice(0, 30).map((r) => Number(r.price)).reverse(),
     });
   }
   return { quotes, live, error };
