@@ -13,10 +13,13 @@ export const metadata: Metadata = {
   title: { default: "BASK Metals and Mining", template: "%s · BASK Metals and Mining" },
   description: "Exploring Resources. Creating Value.",
   robots: { index: false, follow: false },
+  applicationName: "BASK",
+  appleWebApp: { capable: true, title: "BASK", statusBarStyle: "black-translucent" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 // lets the phone menu sit above the home indicator
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#101820" };
 
 // Runs before the page is painted: skips the splash when it was already shown this session
 // or when the visitor has asked the system to reduce motion.

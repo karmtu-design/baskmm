@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, Icon, type IconName } from "@once-ui-system/core";
+import InstallApp from "./InstallApp";
 
 const OPEN_EVENT = "bask:open-navigator";
 
@@ -31,6 +32,7 @@ export const PAGES: { href: string; title: string; icon: IconName }[] = [
   { href: "/stats", title: "Аналитика", icon: "barChart" },
   { href: "/analysis", title: "Геоанализ портфеля", icon: "radialGauge" },
   { href: "/tasks", title: "Задачи и сроки", icon: "checkbox" },
+  { href: "/audit", title: "Журнал изменений", icon: "time" },
 ];
 
 export default function SiteNavigator() {
@@ -112,6 +114,7 @@ export default function SiteNavigator() {
               </button>
             ))}
           </div>
+          <InstallApp />
         </div>
       </div>
     </div>

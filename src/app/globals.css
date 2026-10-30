@@ -1720,3 +1720,84 @@ th[aria-sort] .sort-mark {
   stroke: var(--neutral-on-background-medium);
   opacity: 0.8;
 }
+.install-app {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  margin: 12px 4px 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--neutral-alpha-weak);
+}
+.install-app p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--neutral-on-background-weak);
+}
+
+/* ---------- Change log ---------- */
+a.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  text-decoration: none;
+}
+.audit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: var(--radius-l);
+  background: var(--surface-background);
+  overflow: hidden;
+}
+.audit-list > li {
+  padding: 12px 16px;
+  border-top: 1px solid var(--neutral-alpha-weak);
+  border-left: 3px solid transparent;
+  font-size: 14px;
+  color: var(--neutral-on-background-strong);
+}
+.audit-list > li:first-child {
+  border-top: 0;
+}
+.audit-list > li.audit-insert {
+  border-left-color: var(--success-solid-medium, #2e7d4f);
+}
+.audit-list > li.audit-delete {
+  border-left-color: var(--danger-solid-medium, #e5484d);
+}
+.audit-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
+}
+.audit-head a {
+  color: var(--brand-on-background-strong);
+  text-decoration: none;
+  font-weight: 500;
+}
+.audit-head time {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--neutral-on-background-weak);
+}
+.audit-who {
+  font-weight: 600;
+}
+.audit-fields {
+  margin: 6px 0 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--neutral-on-background-medium);
+}
+.audit-fields s {
+  color: var(--neutral-on-background-weak);
+}
+.audit-field {
+  color: var(--neutral-on-background-weak);
+}
