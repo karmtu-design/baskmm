@@ -2,7 +2,7 @@
 
 // The metal price cards on the home page, made interactive: click a metal to open its price history
 // and a calculator «how much is this deposit worth at today's price» (metal tonnes, or ore × grade).
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import type { EChartsCoreOption } from "echarts/core";
 import { tr, loc } from "@/i18n";
 import EChart, { type ChartTheme } from "./EChart";
@@ -219,15 +219,44 @@ function MetalPanel({ q, points, usdKzt, onClose }: { q: MetalQuote; points: Poi
   );
 }
 
+/** Small price line on a card: smooth, green when the price rose over the period, red when it fell,
+ *  with a soft fill under it and a dot on today's price. */
 function Spark({ values }: { values: number[] }) {
-  const w = 120,
-    h = 24;
+  const id = useId().replace(/:/g, "");
+  const w = 160,
+    h = 40,
+    pad = 4;
   const lo = Math.min(...values),
     hi = Math.max(...values);
-  const pts = values.map((v, i) => `${((i / (values.length - 1)) * w).toFixed(1)},${(h - 2 - ((v - lo) / (hi - lo || 1)) * (h - 4)).toFixed(1)}`).join(" ");
+  const pts = values.map((v, i) => [(i / (values.length - 1)) * w, h - pad - ((v - lo) / (hi - lo || 1)) * (h - pad * 2)] as const);
+  // smooth curve through every point (Catmull-Rom turned into Bézier pieces, tension kept low so peaks stay honest)
+  const k = 0.18;
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [p0, p1, p2, p3] = [pts[i - 1] ?? pts[i], pts[i], pts[i + 1], pts[i + 2] ?? pts[i + 1]];
+    const c1 = [p1[0] + (p2[0] - p0[0]) * k, p1[1] + (p2[1] - p0[1]) * k];
+    const c2 = [p2[0] - (p3[0] - p1[0]) * k, p2[1] - (p3[1] - p1[1]) * k];
+    d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  const first = values[0],
+    last = values[values.length - 1];
+  const dir = last > first ? "up" : last < first ? "down" : "flat";
+  const end = pts[pts.length - 1];
+  const share = first ? ((last - first) / first) * 100 : 0;
   return (
-    <svg className="metal-spark" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden>
-      <polyline points={pts} fill="none" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-    </svg>
+    <span className={`metal-spark is-${dir}`} title={tr("за {0} дн.: {1}%", { 0: values.length, 1: `${share > 0 ? "+" : ""}${share.toFixed(1)}` })}>
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden>
+        <defs>
+          <linearGradient id={`sg${id}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="currentColor" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={`${d} L${w},${h} L0,${h} Z`} fill={`url(#sg${id})`} stroke="none" />
+        <path d={d} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      </svg>
+      {/* the dot is outside the stretched picture so it stays round */}
+      <i className="metal-spark-dot" style={{ left: `${(end[0] / w) * 100}%`, top: `${(end[1] / h) * 100}%` }} />
+    </span>
   );
 }
