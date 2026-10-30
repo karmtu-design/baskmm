@@ -6,7 +6,8 @@ import Link from "next/link";
 import { Column, Row } from "@once-ui-system/core";
 import TaskBoard from "@/components/TaskBoard";
 import { PageHeader } from "@/components/ui";
-import { getLicenses, getProjects, getTasks } from "@/lib/data";
+import { getLicenses, getProjects, getStaff, getTasks } from "@/lib/data";
+import { staffName } from "@/lib/types";
 
 export const generateMetadata = pageTitle("Задачи и сроки");
 
@@ -22,10 +23,11 @@ const VIEWS = [
 export default async function TasksPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
   const { view: v } = await searchParams;
   const view = VIEWS.some((x) => x.id === v) ? v! : "board";
-  const [tasks, licenses, projects] = await Promise.all([getTasks(), getLicenses(), getProjects()]);
+  const [tasks, licenses, projects, { staff }] = await Promise.all([getTasks(), getLicenses(), getProjects(), getStaff()]);
   const lic = licenses.map((l) => ({ id: l.id, name: dn(l.deposit_name) || l.license_number }));
   const proj = projects.map((p) => ({ id: p.id, name: dn(p.name) }));
-  const people = [...new Set([...licenses.map((l) => l.responsible), ...projects.map((p) => p.responsible)].filter(Boolean) as string[])];
+  // staff first (from «Сотрудники»), then names already written in licences, projects and tasks
+  const people = [...new Set([...staff.map(staffName), ...tasks.map((t) => t.assignee), ...licenses.map((l) => l.responsible), ...projects.map((p) => p.responsible)].filter(Boolean) as string[])];
 
   return (
     <Column>

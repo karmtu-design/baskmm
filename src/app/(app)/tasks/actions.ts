@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { editDenied } from "@/lib/roles";
 import type { Task, TaskStatus } from "@/lib/types";
 
 export type TaskFields = Pick<Task, "title" | "description" | "priority" | "assignee" | "due_date" | "license_id" | "project_id"> & { status?: TaskStatus };
@@ -29,6 +30,7 @@ function refresh(t: { license_id?: number | null; project_id?: number | null }) 
 }
 
 export async function createTask(f: TaskFields): Promise<{ ok: boolean; message?: string }> {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const {
     data: { user },
@@ -44,6 +46,7 @@ export async function createTask(f: TaskFields): Promise<{ ok: boolean; message?
 }
 
 export async function updateTask(id: number, f: TaskFields): Promise<{ ok: boolean; message?: string }> {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const row = clean(f);
   if (!row.title) return { ok: false, message: "Напишите, что нужно сделать." };
@@ -59,6 +62,7 @@ export async function updateTask(id: number, f: TaskFields): Promise<{ ok: boole
 
 /** Drag and drop on the board: new column and place within it. */
 export async function moveTask(id: number, status: TaskStatus, position: number) {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   if (!STATUSES.includes(status) || !isFinite(position)) return { ok: false };
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -73,6 +77,7 @@ export async function moveTask(id: number, status: TaskStatus, position: number)
 }
 
 export async function deleteTask(id: number) {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const { data } = await supabase.from("tasks").select("license_id, project_id, auto_key").eq("id", id).maybeSingle();
   // a renewal task made by the system is closed rather than deleted, so it is not created again

@@ -11,13 +11,16 @@ export const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
 const CHUNK = 6 * 1024 * 1024; // Supabase requires exactly 6 MB pieces
 
+const readOnly = (m: string) =>
+  /row-level security|unauthorized|403/i.test(m) ? "У вас права только на просмотр: загружать файлы могут редакторы и администраторы." : m;
+
 export async function uploadFile(bucket: string, path: string, file: File, onProgress?: (share: number) => void): Promise<{ error: string | null }> {
   const supabase = createClient();
   // small files: one ordinary request is faster
   if (file.size <= CHUNK) {
     const { error } = await supabase.storage.from(bucket).upload(path, file, { contentType: file.type || undefined, upsert: false });
     onProgress?.(1);
-    return { error: error?.message ?? null };
+    return { error: error ? readOnly(error.message) : null };
   }
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
@@ -32,7 +35,7 @@ export async function uploadFile(bucket: string, path: string, file: File, onPro
       chunkSize: CHUNK,
       metadata: { bucketName: bucket, objectName: path, contentType: file.type || "application/octet-stream", cacheControl: "3600" },
       onProgress: (sent, total) => onProgress?.(total ? sent / total : 0),
-      onError: (e) => resolve({ error: e.message.replace(/\s*response text:.*$/is, "") }),
+      onError: (e) => resolve({ error: readOnly(e.message.replace(/\s*response text:.*$/is, "")) }),
       onSuccess: () => resolve({ error: null }),
     });
     // a file interrupted earlier on this computer continues where it stopped

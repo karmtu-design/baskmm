@@ -225,3 +225,13 @@ export async function getNotesAndBoards(f: { licenseId?: number; projectId?: num
   ]);
   return { notes: (n.data ?? []) as import("./types").Note[], boards: (b.data ?? []) as import("./types").Board[] };
 }
+
+/** Everyone with a login, with their role; and who is looking. */
+export async function getStaff() {
+  const supabase = await createClient();
+  const [{ data }, { data: u }] = await Promise.all([
+    supabase.from("staff").select("user_id, email, full_name, position, phone, role, created_at").order("full_name", { nullsFirst: false }).order("email"),
+    supabase.auth.getUser(),
+  ]);
+  return { staff: (data ?? []) as import("./types").StaffMember[], me: u.user?.id ?? null };
+}

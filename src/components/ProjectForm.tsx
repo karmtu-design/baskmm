@@ -6,10 +6,12 @@ export default function ProjectForm({
   action,
   project,
   submitLabel,
+  people = [],
 }: {
   action: (f: FormData) => void | Promise<void>;
   project?: PotentialProject;
   submitLabel: string;
+  people?: string[];
 }) {
   const v = (k: keyof PotentialProject) => (project?.[k] as string | number | null | undefined) ?? "";
   const wide = { gridColumn: "1 / -1" };
@@ -48,7 +50,12 @@ export default function ProjectForm({
         </label>
         <label className="field-label">{tr("Условия / цена")}<input name="terms" defaultValue={v("terms")} className="field" />
         </label>
-        <label className="field-label">{tr("Ответственный")}<input name="responsible" defaultValue={v("responsible")} className="field" />
+        <label className="field-label">{tr("Ответственный")}<input name="responsible" list="staff-names" defaultValue={v("responsible")} className="field" />
+          <datalist id="staff-names">
+            {people.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
         </label>
         <label className="field-label">{tr("Следующий шаг")}<input name="next_step" defaultValue={v("next_step")} className="field" placeholder={tr("что сделать дальше")} />
         </label>

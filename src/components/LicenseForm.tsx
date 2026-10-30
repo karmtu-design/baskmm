@@ -8,12 +8,15 @@ export default function LicenseForm({
   license,
   defaultCompanyId,
   submitLabel,
+  people = [],
 }: {
   action: (f: FormData) => void | Promise<void>;
   companies: Company[];
   license?: License;
   defaultCompanyId?: number;
   submitLabel: string;
+  /** staff names offered when typing «Ответственный» */
+  people?: string[];
 }) {
   const v = (k: keyof License) => (license?.[k] as string | number | null | undefined) ?? "";
   const wide = { gridColumn: "1 / -1" };
@@ -63,7 +66,12 @@ export default function LicenseForm({
         </label>
         <label className="field-label">{tr("Площадь по лицензии, км²")}<input name="area_sq_km" inputMode="decimal" defaultValue={v("area_sq_km")} className="field" />
         </label>
-        <label className="field-label">{tr("Ответственный сотрудник")}<input name="responsible" defaultValue={v("responsible")} className="field" />
+        <label className="field-label">{tr("Ответственный сотрудник")}<input name="responsible" list="staff-names" defaultValue={v("responsible")} className="field" />
+          <datalist id="staff-names">
+            {people.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
         </label>
         <label className="field-label" style={wide}>{tr("Примечания")}<textarea name="notes" rows={3} defaultValue={v("notes")} className="field" />
         </label>
