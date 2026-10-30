@@ -1,41 +1,20 @@
 import { tr, plural } from "@/i18n";
-import { dn, dp } from "@/lib/translit";
 import Link from "next/link";
 import { Suspense } from "react";
 import MetalPrices, { MetalPricesSkeleton } from "@/components/MetalPrices";
-import { Badge, Column, Grid, Heading, Row, Text } from "@once-ui-system/core";
+import { Badge, Column, Heading, Row, Text } from "@once-ui-system/core";
 import { NavigatorButton } from "@/components/SiteNavigator";
-import { ButtonLink, ExpiryText, Panel, StatusBadge } from "@/components/ui";
-import { getCompanies, getDocuments, getLicenses, getPresentations, getProjects, getTasks } from "@/lib/data";
-import { ExchangeRates, InGroundValue, IndustryNews, KeyFigures, PanelSkeleton, ProjectFunnel, RecentChanges, RecentFiles, WeekTasks } from "@/components/HomeWidgets";
+import { ButtonLink, Panel, StatusBadge } from "@/components/ui";
+import { getCompanies, getDocuments, getLicenses, getProjects, getTasks } from "@/lib/data";
+import { IndustryNews, KeyFigures, PanelSkeleton } from "@/components/HomeWidgets";
 import { BRAND } from "@/lib/brand";
-import { daysUntil, isTest } from "@/lib/types";
-
-const rowLink: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "flex-start",
-  gap: 12,
-  padding: "10px 0",
-  textDecoration: "none",
-  borderTop: "1px solid var(--neutral-alpha-weak)",
-};
+import { isTest } from "@/lib/types";
+import { dn } from "@/lib/translit";
 
 export default async function Overview() {
-  const [companies, licenses, projects, tasks, presentations, documents] = await Promise.all([
-    getCompanies(),
-    getLicenses(),
-    getProjects(),
-    getTasks(),
-    getPresentations(),
-    getDocuments(),
-  ]);
+  const [companies, licenses, projects, tasks, documents] = await Promise.all([getCompanies(), getLicenses(), getProjects(), getTasks(), getDocuments()]);
   const exploration = licenses.filter((l) => l.license_type === "Разведка").length;
   const mining = licenses.filter((l) => l.license_type === "Добыча").length;
-  const deadlines = licenses
-    .map((l) => ({ l, d: daysUntil(l.expiry_date) }))
-    .filter((x) => x.d != null && x.d <= 365)
-    .sort((a, b) => a.d! - b.d!);
   const attention = licenses.filter((l) => l.status && l.status !== "действует");
 
   return (
@@ -63,62 +42,18 @@ export default async function Overview() {
         </Suspense>
       </Column>
 
-      <div className="home-grid home-grid-2-1">
-        <Suspense fallback={<PanelSkeleton title={tr("Металл в недрах по сегодняшним ценам")} />}>
-          <InGroundValue projects={projects} />
-        </Suspense>
-        <Suspense fallback={<PanelSkeleton title={tr("Курсы Нацбанка РК")} />}>
-          <ExchangeRates />
-        </Suspense>
-      </div>
-
       {licenses.some(isTest) && (
         <Row background="warning-alpha-weak" border="warning-alpha-medium" radius="l" padding="16">
           <Text variant="body-default-s">{tr("Сейчас в системе тестовые лицензии и условные контуры. Замените их реальными данными после настройки входа для сотрудников.")}</Text>
         </Row>
       )}
 
-      <Grid columns={attention.length > 0 ? "3" : "2"} gap="24" m={{ columns: "1" }}>
-        <Panel title={tr("Сроки в ближайший год")} padding="16">
-          {deadlines.length === 0 ? (
-            <Text variant="body-default-s" onBackground="neutral-weak">{tr("Ни одна лицензия не истекает в ближайшие 12 месяцев.")}</Text>
-          ) : (
-            <Column>
-              {deadlines.map(({ l }) => (
-                <Link key={l.id} href={`/licenses/${l.id}`} style={rowLink}>
-                  <Column gap="2">
-                    <Text variant="label-strong-s">{dn(l.deposit_name)}</Text>
-                    <Text variant="body-default-xs" onBackground="neutral-weak">
-                      {dn(l.company_name)}
-                    </Text>
-                  </Column>
-                  <Text variant="body-default-s" align="right">
-                    <ExpiryText date={l.expiry_date} />
-                  </Text>
-                </Link>
-              ))}
-            </Column>
-          )}
-        </Panel>
-
-        <Panel title={tr("Компании")} padding="16">
-          <Column>
-            {companies.map((c) => (
-              <Link key={c.id} href={`/companies/${c.id}`} style={rowLink}>
-                <Text variant="label-strong-s">{dn(c.name)}</Text>
-                <Text variant="body-default-s" onBackground="neutral-weak">
-                  {plural(licenses.filter((l) => l.company_id === c.id).length, "лицензия", "лицензии", "лицензий")}
-                </Text>
-              </Link>
-            ))}
-          </Column>
-        </Panel>
-
+      <div className={attention.length > 0 ? "home-grid home-grid-1-2" : "home-grid"}>
         {attention.length > 0 && (
           <Panel title={tr("Требуют внимания")} padding="16">
             <Column>
               {attention.map((l) => (
-                <Link key={l.id} href={`/licenses/${l.id}`} style={{ ...rowLink, alignItems: "center" }}>
+                <Link key={l.id} href={`/licenses/${l.id}`} className="home-row">
                   <Text variant="label-strong-s">{dn(l.deposit_name)}</Text>
                   <StatusBadge status={l.status} />
                 </Link>
@@ -126,18 +61,6 @@ export default async function Overview() {
             </Column>
           </Panel>
         )}
-      </Grid>
-
-      <div className="home-grid home-grid-3">
-        <WeekTasks tasks={tasks} />
-        <ProjectFunnel projects={projects} />
-        <Suspense fallback={<PanelSkeleton title={tr("Последние изменения")} />}>
-          <RecentChanges />
-        </Suspense>
-      </div>
-
-      <div className="home-grid home-grid-1-1">
-        <RecentFiles presentations={presentations} documents={documents} />
         <Suspense fallback={<PanelSkeleton title={tr("Новости отрасли")} />}>
           <IndustryNews />
         </Suspense>
