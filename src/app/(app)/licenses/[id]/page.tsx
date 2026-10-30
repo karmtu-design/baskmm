@@ -8,6 +8,7 @@ import LicenseForm from "@/components/LicenseForm";
 import { ExpiryText, MineralSwatch, PageHeader, Panel, StatusBadge, TestMark } from "@/components/ui";
 import { getCompanies, getDocuments, getDrillholes, getLicense, getLicenses, getOverlays, getProjects, getTasks } from "@/lib/data";
 import TaskBoard from "@/components/TaskBoard";
+import { LicenseDocxButton } from "@/components/ExportButtons";
 import DocumentsPanel from "@/components/DocumentsPanel";
 import { formatDate, isTest } from "@/lib/types";
 import { updateLicense } from "../../actions";
@@ -102,6 +103,7 @@ export default async function LicensePage({
             {isTest(license) && <TestMark />}
           </span>
         }
+        actions={<LicenseDocxButton license={license} />}
       />
 
       <Row as="nav" gap="4" marginBottom="24" borderBottom overflowX="auto" aria-label="Разделы лицензии" className="tab-row">

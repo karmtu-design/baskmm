@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Column, Grid, Heading, Row, SmartLink, Text } from "@once-ui-system/core";
 import DeleteProjectButton from "@/components/DeleteProjectButton";
+import { TeaserButton } from "@/components/ExportButtons";
 import ProjectForm from "@/components/ProjectForm";
 import { StageBadge } from "@/components/ProjectRegister";
 import { PageHeader, Panel } from "@/components/ui";
@@ -30,7 +31,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             {[project.commodity, project.region, project.holder].filter(Boolean).join(" · ")}
           </Row>
         }
-        actions={<DeleteProjectButton id={project.id} />}
+        actions={
+          <>
+            <TeaserButton project={project} />
+            <DeleteProjectButton id={project.id} />
+          </>
+        }
       />
       <Grid columns="3" gap="32" m={{ columns: "1" }}>
         <Column className="span-2">
