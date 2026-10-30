@@ -1983,3 +1983,178 @@ a.chip {
     opacity: 0.45;
   }
 }
+
+/* ---------- Interactive metal cards, calculator, converter ---------- */
+.metal-card.is-button {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.metal-card.is-button:hover {
+  border-color: var(--brand-alpha-strong);
+  transform: translateY(-2px);
+}
+.metal-card.is-button:focus-visible {
+  outline: 2px solid var(--brand-on-background-strong);
+  outline-offset: 2px;
+}
+.metal-card.is-open {
+  border-color: #c08a1e;
+  box-shadow: 0 0 0 1px #c08a1e inset, 0 10px 30px -12px rgba(192, 138, 30, 0.55);
+}
+.metal-panel {
+  margin-top: 4px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: var(--radius-l);
+  background: var(--surface-background);
+  animation: panel-in 0.25s ease-out;
+}
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+.metal-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 0 20px;
+}
+.metal-panel-head h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--neutral-on-background-strong);
+}
+.metal-panel-body {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 24px;
+  padding: 12px 20px 20px;
+}
+@media (max-width: 900px) {
+  .metal-panel-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.metal-panel-chart {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.metal-calc {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--neutral-alpha-weak);
+}
+.metal-calc h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--neutral-on-background-strong);
+}
+.calc-field {
+  display: grid;
+  gap: 4px;
+}
+.calc-label {
+  font-size: 12px;
+  color: var(--neutral-on-background-weak);
+}
+.calc-inputs {
+  display: grid;
+  grid-template-columns: 1fr 96px auto;
+  align-items: center;
+  gap: 8px;
+}
+.calc-inputs input[type="range"] {
+  width: 100%;
+  accent-color: #c08a1e;
+}
+.calc-num {
+  min-height: 34px !important;
+  padding: 4px 8px !important;
+  font-variant-numeric: tabular-nums;
+}
+.calc-unit {
+  min-width: 36px;
+  font-size: 12px;
+  color: var(--neutral-on-background-weak);
+}
+.calc-out {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--neutral-alpha-medium);
+}
+.calc-out > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.calc-out dt {
+  font-size: 13px;
+  color: var(--neutral-on-background-weak);
+}
+.calc-out dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--neutral-on-background-strong);
+}
+.calc-out small {
+  font-weight: 400;
+  color: var(--neutral-on-background-weak);
+}
+.calc-big {
+  font-size: 22px;
+  color: #d9a63a !important;
+}
+.fx-conv {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--neutral-alpha-weak);
+}
+.fx-row {
+  display: grid;
+  grid-template-columns: 1fr 88px;
+  gap: 8px;
+}
+.fx-out {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 16px;
+  font-size: 13px;
+}
+.fx-out li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--neutral-on-background-weak);
+}
+.fx-out b {
+  color: var(--neutral-on-background-strong);
+  font-variant-numeric: tabular-nums;
+}
+.metal-calc .metal-muted,
+.metal-panel-chart .metal-muted {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}

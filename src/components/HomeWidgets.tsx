@@ -5,6 +5,7 @@ import { Column, Row, Text } from "@once-ui-system/core";
 import { tr, loc, currentLocale } from "@/i18n";
 import { Panel } from "@/components/ui";
 import AuditList from "@/components/AuditList";
+import CurrencyConverter from "@/components/CurrencyConverter";
 import { getAudit, getAuditNames, getNews, getRates } from "@/lib/data";
 import { getMetalBoard } from "@/lib/metals";
 import { parseResources, valueOf } from "@/lib/inground";
@@ -136,6 +137,7 @@ export async function ExchangeRates() {
               </Row>
             </div>
           ))}
+          <CurrencyConverter rates={r.rates} />
         </Column>
       )}
       {muted(
