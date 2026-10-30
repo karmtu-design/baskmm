@@ -1,6 +1,7 @@
 "use client";
 
 import { tr, currentLocale } from "@/i18n";
+import VoiceButton from "./VoiceButton";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -177,11 +178,14 @@ export default function AssistantPanel() {
             />
             <Row horizontal="between" vertical="center" gap="8">
               <Text variant="body-default-xs" onBackground="neutral-weak">{tr("ИИ может ошибаться: сверяйте с карточкой лицензии.")}</Text>
-              {busy ? (
-                <Button type="button" size="s" variant="secondary" onClick={() => abort.current?.abort()}>{tr("Стоп")}</Button>
-              ) : (
-                <Button type="submit" size="s" suffixIcon="send" disabled={!input.trim()}>{tr("Спросить")}</Button>
-              )}
+              <Row gap="8" vertical="center">
+                {!busy && <VoiceButton onText={setInput} onFinal={(t) => ask(t)} />}
+                {busy ? (
+                  <Button type="button" size="s" variant="secondary" onClick={() => abort.current?.abort()}>{tr("Стоп")}</Button>
+                ) : (
+                  <Button type="submit" size="s" suffixIcon="send" disabled={!input.trim()}>{tr("Спросить")}</Button>
+                )}
+              </Row>
             </Row>
           </form>
         </Column>
