@@ -12,9 +12,11 @@ import { DOC_CATEGORIES, HISTORY_CATEGORIES, formatDate, type DocKind, type Docu
 import { addDocument, deleteDocument, searchDocuments, updateDocument, type DocHit } from "@/app/(app)/documents/actions";
 
 const PdfViewer = dynamic(() => import("./PdfViewer"), { ssr: false });
+const OfficeViewer = dynamic(() => import("./OfficeViewer"), { ssr: false });
+const officeViewable = (n: string) => ["docx", "xlsx", "csv", "txt"].includes(extOf(n));
 
 const BUCKET = "documents";
-const MAX_BYTES = 50 * 1024 * 1024;
+import { MAX_UPLOAD_BYTES as MAX_BYTES, MAX_UPLOAD_MB, uploadFile } from "@/lib/upload";
 const ACCEPT = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.tif,.tiff,.txt,.csv,.zip,.dwg,.dxf,.kml,.kmz";
 const extOf = (name: string) => (name.split(".").pop() ?? "").toLowerCase();
 const isImage = (n: string) => ["png", "jpg", "jpeg", "webp", "bmp", "tif", "tiff"].includes(extOf(n));
@@ -97,7 +99,7 @@ export default function DocumentsPanel({
 
   async function open(d: DocumentRow) {
     try {
-      if (extOf(d.file_name) === "pdf") setViewer({ url: await signedUrl(d.file_path, d.file_name, false), doc: d });
+      if (extOf(d.file_name) === "pdf" || officeViewable(d.file_name)) setViewer({ url: await signedUrl(d.file_path, d.file_name, false), doc: d });
       else if (isImage(d.file_name)) window.open(await signedUrl(d.file_path, d.file_name, false), "_blank", "noopener");
       else download(d);
     } catch (e) {
@@ -204,7 +206,12 @@ export default function DocumentsPanel({
         )}
       </Column>
 
-      {viewer && <PdfViewer url={viewer.url} title={viewer.doc.title} onClose={() => setViewer(null)} onDownload={() => download(viewer.doc)} />}
+      {viewer &&
+        (extOf(viewer.doc.file_name) === "pdf" ? (
+          <PdfViewer url={viewer.url} title={viewer.doc.title} onClose={() => setViewer(null)} onDownload={() => download(viewer.doc)} />
+        ) : (
+          <OfficeViewer url={viewer.url} fileName={viewer.doc.file_name} title={viewer.doc.title} onClose={() => setViewer(null)} onDownload={() => download(viewer.doc)} />
+        ))}
       {edit && <EditDialog d={edit} categories={allCats} onClose={() => setEdit(null)} />}
     </Column>
   );
@@ -308,10 +315,10 @@ function DocItem({
         </Row>
       </div>
       <div className="doc-actions">
-        <Button size="s" variant="secondary" prefixIcon={ext === "pdf" || isImage(d.file_name) ? "eye" : "download"} onClick={onOpen}>
-          {ext === "pdf" || isImage(d.file_name) ? tr("Открыть") : tr("Скачать")}
+        <Button size="s" variant="secondary" prefixIcon={ext === "pdf" || isImage(d.file_name) || officeViewable(d.file_name) ? "eye" : "download"} onClick={onOpen}>
+          {ext === "pdf" || isImage(d.file_name) || officeViewable(d.file_name) ? tr("Открыть") : tr("Скачать")}
         </Button>
-        {(ext === "pdf" || isImage(d.file_name)) && <Button size="s" variant="tertiary" prefixIcon="download" aria-label={tr("Скачать")} onClick={onDownload} />}
+        {(ext === "pdf" || isImage(d.file_name) || officeViewable(d.file_name)) && <Button size="s" variant="tertiary" prefixIcon="download" aria-label={tr("Скачать")} onClick={onDownload} />}
         {canRead(d.file_name) && d.text_status !== "done" && d.text_status !== "ocr" && !step && (
           <Button size="s" variant="tertiary" prefixIcon="refresh" onClick={reread}>{tr("Распознать текст")}</Button>
         )}
@@ -395,14 +402,14 @@ function Uploader({
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       if (f.size > MAX_BYTES) {
-        set(i, tr("больше 50 МБ, не загружен. Сожмите файл или разделите на части."), false);
+        set(i, tr("больше {0} МБ, не загружен. Сожмите файл или разделите на части.", { 0: MAX_UPLOAD_MB }), false);
         continue;
       }
       set(i, tr("загружаю файл"));
       const path = `${licenseId ? `lic-${licenseId}` : projectId ? `proj-${projectId}` : "misc"}/${crypto.randomUUID()}.${extOf(f.name).replace(/[^a-z0-9]/g, "") || "bin"}`;
-      const { error } = await supabase.storage.from(BUCKET).upload(path, f, { contentType: f.type || undefined });
+      const { error } = await uploadFile(BUCKET, path, f, (share) => share < 1 && set(i, tr("загружаю файл: {0}%", { 0: Math.round(share * 100) })));
       if (error) {
-        set(i, tr("не загрузился: {0}", { 0: error.message }), false);
+        set(i, tr("не загрузился: {0}", { 0: error }), false);
         continue;
       }
       const r = await addDocument({
@@ -470,7 +477,7 @@ function Uploader({
             files.map((f) => `${f.name} (${sizeText(f.size)})`).join(", ")
           )}
         </span>
-        <small>{tr("PDF, сканы, Word, Excel, картинки, до 50 МБ на файл. Текст из файлов попадёт в поиск.")}</small>
+        <small>{tr("PDF, сканы, Word, Excel, картинки, до {0} МБ на файл. Текст из файлов попадёт в поиск.", { 0: MAX_UPLOAD_MB })}</small>
       </label>
 
       {files.length > 0 && (

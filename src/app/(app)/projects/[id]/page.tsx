@@ -10,6 +10,7 @@ import { PageHeader, Panel } from "@/components/ui";
 import { getDocuments, getPresentations, getProject } from "@/lib/data";
 import DocumentsPanel from "@/components/DocumentsPanel";
 import { updateProject } from "../actions";
+import { getMetalBoard } from "@/lib/metals";
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,7 +20,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     (p) => p.project && p.project.trim().toLowerCase() === project.name.trim().toLowerCase()
   );
   const hasPoint = project.lat != null && project.lon != null;
-  const docs = await getDocuments({ projectId: project.id });
+  const [docs, board] = await Promise.all([getDocuments({ projectId: project.id }), getMetalBoard().catch(() => ({ quotes: [] }))]);
+  const prices = board.quotes.map((q) => ({ key: q.key, symbol: q.symbol, price: q.price, unit: q.unit }));
 
   return (
     <>
@@ -34,7 +36,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         }
         actions={
           <>
-            <TeaserButton project={project} />
+            <TeaserButton project={project} prices={prices} />
             <DeleteProjectButton id={project.id} />
           </>
         }

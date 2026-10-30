@@ -40,8 +40,9 @@ export function LicenseDocxButton({ license }: { license: License }) {
 }
 
 /** «Тизер PDF» on the project card: one page for investors, in Russian or English. */
-export function TeaserButton({ project }: { project: PotentialProject }) {
+export function TeaserButton({ project, prices = [] }: { project: PotentialProject; prices?: import("@/lib/deckExport").Price[] }) {
   const [open, setOpen] = useState(false);
+  const [format, setFormat] = useState<"pdf" | "pptx">("pdf");
   const [lang, setLang] = useState<"ru" | "en">("ru");
   const [about, setAbout] = useState("");
   const [busy, setBusy] = useState(false);
@@ -50,8 +51,13 @@ export function TeaserButton({ project }: { project: PotentialProject }) {
     setBusy(true);
     setErr("");
     try {
-      const { downloadProjectTeaser } = await import("@/lib/docExport");
-      await downloadProjectTeaser(project, lang, about);
+      if (format === "pdf") {
+        const { downloadProjectTeaser } = await import("@/lib/docExport");
+        await downloadProjectTeaser(project, lang, about);
+      } else {
+        const { downloadProjectDeck } = await import("@/lib/deckExport");
+        await downloadProjectDeck(project, lang, about, prices);
+      }
       setOpen(false);
     } catch (e) {
       setErr(tr("Не получилось: {0}", { 0: (e as Error).message }));
@@ -60,7 +66,7 @@ export function TeaserButton({ project }: { project: PotentialProject }) {
   }
   return (
     <>
-      <Button variant="secondary" prefixIcon="document" onClick={() => setOpen(true)}>{tr("Тизер PDF")}</Button>
+      <Button variant="secondary" prefixIcon="document" onClick={() => setOpen(true)}>{tr("Для инвестора: PDF или PowerPoint")}</Button>
       {open && (
         <div className="nav-overlay" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
           <div className="nav-dialog share-dialog" role="dialog" aria-modal="true" aria-label={tr("Тизер проекта")}>
@@ -71,7 +77,16 @@ export function TeaserButton({ project }: { project: PotentialProject }) {
               </button>
             </div>
             <div className="share-body">
-              <p>{tr("Одна страница PDF с логотипом BASK: металл, расположение, координаты, формат сделки, запасы и условия. Владелец, контакты, источник и внутренние заметки в тизер не попадают.")}</p>
+              <Row gap="8" vertical="center">
+                <span className="share-label">{tr("Формат:")}</span>
+                <button type="button" className={`chip${format === "pdf" ? " is-on" : ""}`} onClick={() => setFormat("pdf")}>{tr("Тизер PDF, 1 страница")}</button>
+                <button type="button" className={`chip${format === "pptx" ? " is-on" : ""}`} onClick={() => setFormat("pptx")}>{tr("Презентация PowerPoint")}</button>
+              </Row>
+              <p>
+                {format === "pdf"
+                  ? tr("Одна страница PDF с логотипом BASK: металл, расположение, координаты, формат сделки, запасы и условия. Владелец, контакты, источник и внутренние заметки в тизер не попадают.")
+                  : tr("4–5 слайдов в фирменных цветах BASK: обложка, ключевые параметры, описание, металл в недрах по сегодняшним ценам, контакты. Файл можно дальше править в PowerPoint или Google Slides. Внутренние поля в презентацию не попадают.")}
+              </p>
               <Row gap="8" vertical="center">
                 <span className="share-label">{tr("Язык подписей:")}</span>
                 <button type="button" className={`chip${lang === "ru" ? " is-on" : ""}`} onClick={() => setLang("ru")}>{tr("Русский")}</button>
@@ -85,7 +100,7 @@ export function TeaserButton({ project }: { project: PotentialProject }) {
               <label className="field-label">{tr("Короткое описание для инвестора (необязательно)")}<textarea className="field" rows={5} value={about} onChange={(e) => setAbout(e.target.value)} placeholder={tr("2–4 предложения: что за объект, чем интересен, что уже сделано")} />
               </label>
               <Row gap="8">
-                <Button prefixIcon="download" loading={busy} onClick={run}>{tr("Скачать PDF")}</Button>
+                <Button prefixIcon="download" loading={busy} onClick={run}>{format === "pdf" ? tr("Скачать PDF") : tr("Скачать PowerPoint")}</Button>
                 <Button variant="tertiary" onClick={() => setOpen(false)}>{tr("Отмена")}</Button>
               </Row>
               {err && (
