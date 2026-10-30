@@ -269,3 +269,15 @@ export type Board = {
   created_at: string;
   updated_at: string;
 };
+
+export type StaffMember = {
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  position: string | null;
+  phone: string | null;
+  role: "admin" | "editor" | "viewer";
+  created_at: string;
+};
+/** How a person is shown in lists: their name, or the e-mail while no name is entered. */
+export const staffName = (s: Pick<StaffMember, "full_name" | "email">) => s.full_name?.trim() || s.email;

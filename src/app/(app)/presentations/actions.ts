@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { editDenied } from "@/lib/roles";
 
 export type PresentationMeta = {
   title: string;
@@ -21,6 +22,7 @@ const clean = (v: string | null | undefined, max = 300) => {
 
 /** Saves the card of a file that the browser has already put into storage. */
 export async function addPresentation(meta: PresentationMeta): Promise<{ ok: boolean; message?: string }> {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const {
     data: { user },
@@ -47,6 +49,7 @@ export async function updatePresentation(
   id: number,
   fields: { title: string; project: string | null; language: string | null; description: string | null }
 ): Promise<{ ok: boolean; message?: string }> {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const title = clean(fields.title);
   if (!title) return { ok: false, message: "Укажите название." };
@@ -61,6 +64,7 @@ export async function updatePresentation(
 
 /** Removes the file from storage and its card. */
 export async function deletePresentation(id: number): Promise<{ ok: boolean; message?: string }> {
+  { const denied = await editDenied(); if (denied) return { ok: false, message: denied }; }
   const supabase = await createClient();
   const { data } = await supabase.from("presentations").select("file_path").eq("id", id).maybeSingle();
   if (!data) return { ok: false, message: "Презентация уже удалена." };

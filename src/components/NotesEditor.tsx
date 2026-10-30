@@ -15,7 +15,7 @@ import type { Note } from "@/lib/types";
 type Owner = { licenseId?: number; projectId?: number };
 const when = (iso: string) => new Date(iso).toLocaleString(loc(), { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Almaty" });
 
-export default function NotesPanel({ notes, owner }: { notes: Note[]; owner: Owner }) {
+export default function NotesPanel({ notes, owner, readOnly = false }: { notes: Note[]; owner: Owner; readOnly?: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState<number | "new" | null>(null);
   const [busy, setBusy] = useState(false);
@@ -39,9 +39,9 @@ export default function NotesPanel({ notes, owner }: { notes: Note[]; owner: Own
   return (
     <div className="notes">
       <div className="notes-list">
-        <button type="button" className="notes-new" onClick={create} disabled={busy}>
+        {!readOnly && <button type="button" className="notes-new" onClick={create} disabled={busy}>
           ＋ {tr("Новая заметка")}
-        </button>
+        </button>}
         {notes.length === 0 && <p className="notes-empty">{tr("Заметок пока нет. Запишите итоги встречи или звонка, договорённости, вопросы к владельцу.")}</p>}
         {notes.map((n) => (
           <button key={n.id} type="button" className={`notes-item${open === n.id ? " is-on" : ""}`} onClick={() => setOpen(n.id)}>
@@ -55,13 +55,13 @@ export default function NotesPanel({ notes, owner }: { notes: Note[]; owner: Own
         ))}
       </div>
       <div className="notes-body">
-        {current ? <NoteEditor key={current.id} note={current} onDeleted={() => (setOpen(null), router.refresh())} /> : <p className="notes-empty">{tr("Выберите заметку слева или создайте новую.")}</p>}
+        {current ? <NoteEditor key={current.id} note={current} readOnly={readOnly} onDeleted={() => (setOpen(null), router.refresh())} /> : <p className="notes-empty">{tr("Выберите заметку слева или создайте новую.")}</p>}
       </div>
     </div>
   );
 }
 
-function NoteEditor({ note, onDeleted }: { note: Note; onDeleted: () => void }) {
+function NoteEditor({ note, onDeleted, readOnly }: { note: Note; onDeleted: () => void; readOnly: boolean }) {
   const router = useRouter();
   const [title, setTitle] = useState(note.title);
   const [state, setState] = useState<"saved" | "saving" | "dirty" | "error">("saved");
@@ -70,6 +70,7 @@ function NoteEditor({ note, onDeleted }: { note: Note; onDeleted: () => void }) 
   titleRef.current = title;
 
   const editor = useEditor({
+    editable: !readOnly,
     extensions: [StarterKit.configure({ link: { openOnClick: true, autolink: true } }), TableKit.configure({ table: { resizable: false } })],
     content: DOMPurify.sanitize(note.html),
     immediatelyRender: false,
@@ -120,6 +121,7 @@ function NoteEditor({ note, onDeleted }: { note: Note; onDeleted: () => void }) 
       <div className="note-head">
         <input
           className="note-title"
+          readOnly={readOnly}
           value={title}
           onChange={(e) => {
             setTitle(e.target.value);
@@ -131,11 +133,11 @@ function NoteEditor({ note, onDeleted }: { note: Note; onDeleted: () => void }) 
         <span className={`note-state is-${state}`} role="status">
           {state === "saved" ? tr("Сохранено") : state === "saving" ? tr("Сохраняю…") : state === "dirty" ? tr("Изменения…") : tr("Не сохранилось, проверьте интернет")}
         </span>
-        <button type="button" className="chip" onClick={remove}>
+        {!readOnly && <button type="button" className="chip" onClick={remove}>
           {tr("Удалить")}
-        </button>
+        </button>}
       </div>
-      {editor && <Toolbar editor={editor} />}
+      {editor && !readOnly && <Toolbar editor={editor} />}
       <EditorContent editor={editor} />
     </div>
   );
