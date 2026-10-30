@@ -63,6 +63,30 @@ input[type="checkbox"] {
   color-scheme: dark;
 }
 
+/* Drop-down lists: the opened list of a <select> is drawn by the browser itself. In the dark theme it inherited
+   light text on a light background (Windows), so the options were invisible: give the list the theme's colours. */
+[data-theme="dark"] select,
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="number"] {
+  color-scheme: dark;
+}
+[data-theme="light"] select {
+  color-scheme: light;
+}
+[data-theme="dark"] select option,
+[data-theme="dark"] select optgroup {
+  background-color: #151b22;
+  color: #e8eaed;
+}
+[data-theme="light"] select option,
+[data-theme="light"] select optgroup {
+  background-color: #ffffff;
+  color: #14181d;
+}
+select option:disabled {
+  color: #8a9199;
+}
+
 body {
   font-feature-settings: "tnum" 1;
 }
