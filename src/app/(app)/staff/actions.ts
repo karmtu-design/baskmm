@@ -96,3 +96,16 @@ export async function changeMyPassword(password: string): Promise<Result> {
   const { error } = await supabase.auth.updateUser({ password });
   return error ? { ok: false, message: /same|different/i.test(error.message) ? "Новый пароль совпадает со старым." : error.message } : { ok: true };
 }
+
+/** Access to the founding documents of companies: only an administrator gives or takes it away. */
+export async function setFoundingAccess(userId: string, on: boolean): Promise<Result> {
+  const denied = await adminOnly();
+  if (denied) return { ok: false, message: denied };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("staff").update({ founding_access: !!on }).eq("user_id", userId).select("user_id");
+  if (error) return { ok: false, message: error.message };
+  if (!data?.length) return { ok: false, message: "Не сохранилось: нет прав." };
+  revalidatePath("/staff");
+  revalidatePath("/companies", "layout");
+  return { ok: true };
+}
