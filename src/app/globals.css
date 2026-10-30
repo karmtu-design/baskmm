@@ -15,6 +15,53 @@ body {
   margin: 0;
   padding: 0;
 }
+/* nothing on a page may push it sideways on a phone */
+body {
+  overflow-x: clip;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+/* the fixed header must not cover what keyboard focus or an anchor jumps to */
+html {
+  scroll-padding-top: 96px;
+}
+
+/* one clearly visible focus ring for keyboard users, in the brand gold */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--bask-gold);
+  outline-offset: 2px;
+}
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--bask-gold);
+  color: #101820 !important;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-150%);
+  transition: transform 150ms ease;
+}
+.skip-link:focus {
+  transform: none;
+}
+
+/* checkboxes: bigger and in brand colour, easier to hit with a finger */
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--bask-gold);
+  cursor: pointer;
+}
+[data-theme="dark"] input[type="checkbox"] {
+  color-scheme: dark;
+}
 
 body {
   font-feature-settings: "tnum" 1;
@@ -60,6 +107,8 @@ a {
 
 /* ---------- Tables ---------- */
 .data-table-wrap {
+  /* a wide table scrolls inside its frame instead of stretching the whole page on phones */
+  contain: inline-size;
   overflow-x: auto;
   border: 1px solid var(--neutral-alpha-medium);
   border-radius: var(--radius-l);
@@ -74,7 +123,7 @@ a {
   text-align: left;
 }
 .data-table th {
-  padding: 12px 16px;
+  padding: 6px 16px;
   font-weight: 500;
   color: var(--neutral-on-background-weak);
   border-bottom: 1px solid var(--neutral-alpha-medium);
@@ -112,6 +161,17 @@ a {
 .field:focus {
   outline: none;
   border-color: var(--brand-solid-medium);
+}
+.field:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-alpha-medium);
+}
+@media (max-width: 768px) {
+  .field,
+  .nav-dialog input,
+  .assistant-form textarea {
+    font-size: 16px !important;
+  }
 }
 .field-label {
   display: flex;
@@ -218,6 +278,9 @@ textarea.field {
 
 /* ---------- Licence tabs ---------- */
 a.tab-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   white-space: nowrap;
   padding: 10px 12px;
   margin-bottom: -1px;
@@ -228,6 +291,12 @@ a.tab-link {
 }
 a.tab-link:hover {
   color: var(--neutral-on-background-strong);
+}
+@media (max-width: 768px) {
+  .tab-row {
+    mask-image: linear-gradient(90deg, #000 85%, transparent);
+    scrollbar-width: none;
+  }
 }
 a.tab-link[aria-current="page"] {
   border-color: var(--brand-solid-strong);
@@ -385,6 +454,7 @@ html[data-intro="seen"] .intro {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-height: 32px;
   padding: 0;
   border: 0;
   background: none;
@@ -436,8 +506,16 @@ th[aria-sort] .sort-mark {
 }
 .col-menu-list label {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
+  min-height: 32px;
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  .col-menu-list {
+    left: auto;
+    right: 0;
+  }
 }
 
 /* ---------- AI assistant ---------- */
@@ -875,7 +953,7 @@ th[aria-sort] .sort-mark {
 .pres-kind.kind-PPT,
 .pres-kind.kind-KEY,
 .pres-kind.kind-ODP {
-  background: #c2662b;
+  background: #a8531e;
 }
 .pres-kind.kind-DOC {
   background: #2f5d9e;
@@ -996,10 +1074,10 @@ th[aria-sort] .sort-mark {
   background: #5b6670;
 }
 .share-app.wa .share-dot {
-  background: #25d366;
+  background: #0f7a5c;
 }
 .share-app.tg .share-dot {
-  background: #229ed9;
+  background: #1c6fa0;
 }
 .share-app.mail .share-dot {
   background: #8a6d3b;
@@ -1084,4 +1162,17 @@ th[aria-sort] .sort-mark {
   .metal-card.is-loading {
     animation: none;
   }
+}
+
+/* ---------- Page header ---------- */
+.page-subtitle {
+  max-width: 72ch;
+}
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
+.page-bg {
+  overflow: hidden;
 }

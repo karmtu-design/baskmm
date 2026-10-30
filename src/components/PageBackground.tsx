@@ -5,6 +5,7 @@ import { effects } from "@/resources/once-ui.config";
 export default function PageBackground() {
   return (
     <Background
+      className="page-bg"
       position="fixed"
       top="0"
       left="0"

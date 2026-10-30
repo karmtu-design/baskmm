@@ -143,7 +143,7 @@ export default function ProjectRegister({ projects }: { projects: PotentialProje
             aria-label="Поиск по проектам"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ width: 300, minHeight: 40 }}
+            style={{ width: 260, minHeight: 40 }}
           />
           <select aria-label="Этап" className="field" style={{ width: "auto", minHeight: 40 }} value={stage} onChange={(e) => setStage(e.target.value)}>
             <option value="">Все этапы</option>

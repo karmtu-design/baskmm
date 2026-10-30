@@ -14,7 +14,7 @@ const fmt = (n: number, d = 1) => n.toLocaleString("ru-RU", { maximumFractionDig
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Column gap="8" paddingTop="16" borderTop>
-      <Heading as="h4" variant="label-strong-m">
+      <Heading as="h3" variant="label-strong-m">
         {title}
       </Heading>
       {children}
@@ -80,7 +80,7 @@ export default function GeoAnalysisPanel({
 
   return (
     <Column background="surface" border radius="l" padding="24" gap="12">
-      <Heading as="h3" variant="heading-strong-m">
+      <Heading as="h2" variant="heading-strong-m">
         Геоанализ участка
       </Heading>
 

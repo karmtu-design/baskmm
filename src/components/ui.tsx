@@ -64,7 +64,7 @@ export function PageHeader({
     <Column as="header" gap="8" marginBottom="32">
       {back && (
         <Row>
-          <SmartLink href={back.href} prefixIcon="chevronLeft">
+          <SmartLink href={back.href} prefixIcon="chevronLeft" className="back-link">
             {back.label}
           </SmartLink>
         </Row>
@@ -75,12 +75,16 @@ export function PageHeader({
             {title}
           </Heading>
           {subtitle && (
-            <Text variant="body-default-l" onBackground="neutral-weak">
+            <Text variant="body-default-l" onBackground="neutral-weak" className="page-subtitle">
               {subtitle}
             </Text>
           )}
         </Column>
-        {actions && <Row gap="8">{actions}</Row>}
+        {actions && (
+          <Row gap="8" wrap>
+            {actions}
+          </Row>
+        )}
       </Row>
     </Column>
   );
