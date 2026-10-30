@@ -24,10 +24,8 @@ export default function MetalStudio({ quotes, history, usdKzt }: { quotes: Metal
   const [open, setOpen] = useState<string | null>(null);
   const q = quotes.find((x) => x.key === open) ?? null;
 
-  return (
-    <>
-      <div className="metal-row">
-        {quotes.map((x) => {
+  const renderCards = (dup: boolean) =>
+        quotes.map((x) => {
           const up = x.change != null && x.change > 0.00005;
           const down = x.change != null && x.change < -0.00005;
           const on = x.key === open;
@@ -35,6 +33,7 @@ export default function MetalStudio({ quotes, history, usdKzt }: { quotes: Metal
             <button
               key={x.key}
               type="button"
+              tabIndex={dup ? -1 : undefined}
               className={`metal-card is-button${on ? " is-open" : ""}`}
               aria-expanded={on}
               onClick={() => setOpen(on ? null : x.key)}
@@ -59,7 +58,19 @@ export default function MetalStudio({ quotes, history, usdKzt }: { quotes: Metal
               </div>
             </button>
           );
-        })}
+        });
+
+  return (
+    <>
+      {/* a running line: the cards move slowly to the left and stop under the mouse or when a metal is open */}
+      <div className={`metal-ticker${open ? " is-paused" : ""}`} style={{ ["--ticker-time" as string]: `${Math.max(30, quotes.length * 6)}s` }}>
+        <div className="metal-track">
+          {[0, 1].map((copy) => (
+            <div key={copy} className="metal-run" aria-hidden={copy === 1 || undefined}>
+              {renderCards(copy === 1)}
+            </div>
+          ))}
+        </div>
       </div>
       {q && <MetalPanel key={q.key} q={q} points={history[q.key] ?? []} usdKzt={usdKzt} onClose={() => setOpen(null)} />}
     </>
