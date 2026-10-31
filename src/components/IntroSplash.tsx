@@ -1,8 +1,7 @@
 "use client";
 
 // The «Керн» intro: a drill core runs through the strata, stops on the copper and gold interval
-// and its layers fold into the A of the BASK logo. Plays once per browser session, without sound
-// unless the visitor turns it on (browsers do not allow sound before a click).
+// and its layers fold into the A of the BASK logo. Plays once per browser session, with sound.
 import { tr } from "@/i18n";
 import { useEffect, useRef, useState } from "react";
 import { BRAND, INTRO_KEY } from "@/lib/brand";
@@ -12,7 +11,6 @@ export default function IntroSplash() {
   const video = useRef<HTMLVideoElement>(null);
   const [gone, setGone] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const [sound, setSound] = useState(false);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -37,18 +35,32 @@ export default function IntroSplash() {
         setGone(true);
       }, 650);
     };
+    // sound is on by default; browsers that forbid sound before a click (Safari on iPhone, for one)
+    // start the video silently and the sound comes on at the first touch, click or key press
+    const unmute = () => {
+      v.muted = false;
+      v.volume = 0.8;
+      off();
+    };
+    const evs = ["pointerdown", "touchstart", "keydown"] as const;
+    const off = () => evs.forEach((e) => window.removeEventListener(e, unmute));
     const onPlaying = () => (started = true);
     v.addEventListener("playing", onPlaying);
     v.addEventListener("ended", finish);
     v.addEventListener("error", finish);
-    v.play().catch(finish); // e.g. power-saving mode on a phone: no intro, straight to the page
+    v.muted = false;
+    v.play().catch(() => {
+      v.muted = true;
+      evs.forEach((e) => window.addEventListener(e, unmute, { passive: true }));
+      v.play().catch(finish); // e.g. power-saving mode on a phone: no intro, straight to the page
+    });
     // a slow connection should not keep people waiting in front of a blank screen
     const slow = setTimeout(() => !started && finish(), 3500);
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && finish();
     window.addEventListener("keydown", onKey);
-    (root.current as HTMLDivElement & { finish?: () => void }).finish = finish;
     return () => {
       clearTimeout(slow);
+      off();
       window.removeEventListener("keydown", onKey);
       v.removeEventListener("playing", onPlaying);
       v.removeEventListener("ended", finish);
@@ -57,34 +69,16 @@ export default function IntroSplash() {
     };
   }, []);
 
-  function skip() {
-    (root.current as (HTMLDivElement & { finish?: () => void }) | null)?.finish?.();
-  }
-  function toggleSound() {
-    const v = video.current;
-    if (!v) return;
-    v.muted = !v.muted;
-    if (!v.muted) v.volume = 0.8;
-    setSound(!v.muted);
-  }
-
   if (gone) return null;
 
   return (
     <div ref={root} className={`intro${leaving ? " is-leaving" : ""}`} role="dialog" aria-modal="true" aria-label={tr("Заставка {0}", { 0: BRAND.name })}>
-      <video ref={video} className="intro-video" muted playsInline preload="auto" poster="/media/intro-poster.jpg" aria-hidden tabIndex={-1}>
-        {/* full 4K on large screens, a light copy everywhere else */}
+      <video ref={video} className="intro-video" playsInline preload="auto" aria-hidden tabIndex={-1}>
+        {/* a vertical cut for phones held upright, full 4K on large screens, a light copy everywhere else */}
+        <source src="/media/intro-portrait.mp4" type="video/mp4" media="(max-aspect-ratio: 4/5)" />
         <source src="/media/intro-4k.mp4" type="video/mp4" media="(min-width: 2200px)" />
         <source src="/media/intro-1080.mp4" type="video/mp4" />
       </video>
-      <div className="intro-buttons">
-        <button type="button" className="intro-skip" onClick={toggleSound} aria-pressed={sound}>
-          {sound ? tr("Без звука") : tr("Со звуком")}
-        </button>
-        <button type="button" className="intro-skip" onClick={skip}>
-          {tr("Пропустить")}
-        </button>
-      </div>
     </div>
   );
 }
