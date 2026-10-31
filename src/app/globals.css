@@ -103,6 +103,15 @@ a {
   height: 100%;
   width: auto;
 }
+.login-logo {
+  margin: 0;
+  line-height: 0;
+}
+@media (max-width: 768px) {
+  .login-logo .brand-logo {
+    height: 96px !important;
+  }
+}
 .brand-logo-on-light {
   display: none;
 }
