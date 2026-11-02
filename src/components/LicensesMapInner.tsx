@@ -168,6 +168,58 @@ export default function LicensesMapInner({
   const licRef = useRef(licenses);
   licRef.current = licenses;
 
+  // «На весь экран»: the browser's own full screen where it exists; on iPhone (no such thing for a page
+  // element) the map simply covers the whole window. Esc or the same button brings it back.
+  const [full, setFull] = useState(false);
+  const native = useRef(false);
+  const toggleFull = async () => {
+    const el = shell.current;
+    if (!el) return;
+    if (full) {
+      if (native.current && document.fullscreenElement) await document.exitFullscreen().catch(() => {});
+      native.current = false;
+      setFull(false);
+      return;
+    }
+    native.current = false;
+    if (document.fullscreenEnabled && el.requestFullscreen) {
+      try {
+        await el.requestFullscreen({ navigationUI: "hide" });
+        native.current = true;
+      } catch {
+        /* not allowed here: fall back to covering the window */
+      }
+    }
+    setFull(true);
+  };
+  useEffect(() => {
+    if (!full) return;
+    const onChange = () => {
+      if (native.current && !document.fullscreenElement) {
+        native.current = false;
+        setFull(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !native.current && setFull(false);
+    document.addEventListener("fullscreenchange", onChange);
+    window.addEventListener("keydown", onKey);
+    const o = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = o;
+    };
+  }, [full]);
+  // the map has to re-measure itself after the box changes size
+  useEffect(() => {
+    const t = [0, 150, 400].map((ms) => setTimeout(() => map.current?.resize(), ms));
+    return () => t.forEach(clearTimeout);
+  }, [full]);
+  useEffect(() => () => {
+    if (native.current && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }, []);
+
   // create the map once
   useEffect(() => {
     if (!box.current) return;
@@ -344,7 +396,7 @@ export default function LicensesMapInner({
   const contours = useMemo(() => licensesGeoJSON(licenses), [licenses]);
   const btn = (active: boolean) => `map-switch-btn${active ? " is-active" : ""}`;
   return (
-    <div className="map-shell" style={{ height }} ref={shell}>
+    <div className={`map-shell${full ? " is-full" : ""}`} style={full ? undefined : { height }} ref={shell}>
       <div ref={box} style={{ position: "absolute", inset: 0 }} />
       <div className="map-switch" role="group" aria-label={tr("Подложка карты")}>
         <button type="button" className={btn(basemap === "scheme")} onClick={() => setBasemap("scheme")}>{tr("Схема")}</button>
@@ -358,6 +410,23 @@ export default function LicensesMapInner({
           aria-pressed={is3d}
           title={tr("Объёмный рельеф: наклоните карту правой кнопкой мыши или двумя пальцами")}
         >{tr("3D-рельеф")}</button>
+        <span className="map-switch-sep" />
+        <button
+          type="button"
+          className={`${btn(full)} map-full-btn`}
+          onClick={toggleFull}
+          aria-pressed={full}
+          aria-label={full ? tr("Свернуть карту") : tr("Карта на весь экран")}
+          title={full ? tr("Свернуть карту") : tr("Карта на весь экран")}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            {full ? (
+              <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+            ) : (
+              <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+            )}
+          </svg>
+        </button>
       </div>
       {draw && <MapDraw map={map.current} ready={ready} initial={draw.initial} onChange={draw.onChange} />}
       {tools && !draw && (
