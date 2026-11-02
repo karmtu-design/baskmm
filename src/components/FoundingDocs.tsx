@@ -14,6 +14,7 @@ import { FOUNDING_CATEGORIES, formatDate, type FoundingDoc } from "@/lib/types";
 
 const PdfViewer = dynamic(() => import("./PdfViewer"), { ssr: false });
 const BUCKET = "founding";
+import { saveStoredFile } from "@/lib/saveFile";
 const ACCEPT = ".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.tif,.tiff,.zip";
 const extOf = (n: string) => (n.split(".").pop() ?? "").toLowerCase();
 const sizeText = (b: number | null) =>
@@ -43,10 +44,7 @@ export default function FoundingDocs({ companyId, docs, canEdit }: { companyId: 
     }
   }
   async function download(d: FoundingDoc) {
-    const a = document.createElement("a");
-    a.href = await link(d, true);
-    a.download = d.file_name;
-    a.click();
+    await saveStoredFile(BUCKET, d.file_path, d.file_name);
   }
   async function remove(d: FoundingDoc) {
     if (!confirm(tr("Удалить документ «{0}»? Файл будет удалён без возможности восстановить.", { 0: d.title }))) return;
