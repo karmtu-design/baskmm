@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Column, Row, Text } from "@once-ui-system/core";
 import { tr } from "@/i18n";
-import { addStaff, changeMyPassword, deleteStaff, setFoundingAccess, setStaffPassword, updateStaff } from "@/app/(app)/staff/actions";
+import { addStaff, changeMyPassword, deleteStaff, setFinanceRole, setFoundingAccess, setStaffPassword, updateStaff } from "@/app/(app)/staff/actions";
 import type { StaffMember } from "@/lib/types";
 
 const ROLE_LABEL: Record<StaffMember["role"], string> = { admin: "Администратор", editor: "Редактор", viewer: "Просмотр" };
@@ -42,6 +42,7 @@ export default function StaffManager({ staff, me, isAdmin, serviceKey }: { staff
               <th>{tr("Телефон")}</th>
               <th>{tr("Роль")}</th>
               <th title={tr("Доступ к учредительным документам компаний. Выдаёт и снимает администратор.")}>{tr("Учредительные документы")}</th>
+              <th title={tr("Доступ к разделу «Финансы» и роль в согласовании платежей. Выдаёт администратор.")}>{tr("Финансы")}</th>
               {isAdmin && <th />}
             </tr>
           </thead>
@@ -121,6 +122,9 @@ function StaffRow({ s, isMe, isAdmin, serviceKey, onDone }: { s: StaffMember; is
           <FoundingCell s={s} isAdmin={isAdmin} onDone={onDone} />
         </td>
         <td>
+          <FinanceCell s={s} isAdmin={isAdmin} onDone={onDone} />
+        </td>
+        <td>
           <Row gap="8">
             <Button size="s" onClick={save} loading={pending}>{tr("Сохранить")}</Button>
             <Button size="s" variant="tertiary" onClick={() => setEdit(false)}>{tr("Отмена")}</Button>
@@ -143,6 +147,9 @@ function StaffRow({ s, isMe, isAdmin, serviceKey, onDone }: { s: StaffMember; is
       </td>
       <td>
         <FoundingCell s={s} isAdmin={isAdmin} onDone={onDone} />
+      </td>
+      <td>
+        <FinanceCell s={s} isAdmin={isAdmin} onDone={onDone} />
       </td>
       {(isAdmin || canEdit) && (
         <td>
@@ -180,6 +187,51 @@ function FoundingCell({ s, isAdmin, onDone }: { s: StaffMember; isAdmin: boolean
       <span aria-hidden />
       {s.founding_access ? tr("есть доступ") : tr("нет доступа")}
     </label>
+  );
+}
+
+const FIN_LABEL: Record<string, string> = {
+  "": "нет доступа",
+  view: "просмотр",
+  edit: "ввод данных",
+  cfo: "финансовый директор",
+  head: "руководитель",
+  accountant: "бухгалтер",
+};
+const FIN_HINT: Record<string, string> = {
+  view: "видит финансы, ничего не меняет",
+  edit: "вносит договоры, платежи, займы",
+  cfo: "вносит данные и согласует заявки первым",
+  head: "вносит данные и окончательно утверждает заявки",
+  accountant: "вносит данные и отмечает заявки оплаченными",
+};
+/** Access to «Финансы»: a list for the administrator, plain text for everyone else. */
+function FinanceCell({ s, isAdmin, onDone }: { s: StaffMember; isAdmin: boolean; onDone: (m: { ok: boolean; text: string }) => void }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  if (s.role === "admin") return <span className="access-note">{tr("полный доступ")}</span>;
+  const v = s.finance_role ?? "";
+  if (!isAdmin) return <span className={`access-note${v ? " is-on" : ""}`}>{tr(FIN_LABEL[v])}</span>;
+  return (
+    <select
+      className="field fin-role"
+      value={v}
+      disabled={pending}
+      aria-label={tr("Финансы: {0}", { 0: s.full_name || s.email })}
+      title={v ? tr(FIN_HINT[v]) : undefined}
+      onChange={(e) => {
+        const r = e.target.value || null;
+        start(async () => {
+          const res = await setFinanceRole(s.user_id, r);
+          onDone(res.ok ? { ok: true, text: tr("{0}: финансы — {1}.", { 0: s.full_name || s.email, 1: tr(FIN_LABEL[r ?? ""]) }) } : { ok: false, text: res.message ?? "" });
+          if (res.ok) router.refresh();
+        });
+      }}
+    >
+      {Object.entries(FIN_LABEL).map(([k, l]) => (
+        <option key={k} value={k}>{tr(l)}</option>
+      ))}
+    </select>
   );
 }
 

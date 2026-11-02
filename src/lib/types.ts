@@ -279,6 +279,8 @@ export type StaffMember = {
   role: "admin" | "editor" | "viewer";
   /** may open the founding documents of companies (administrators always may) */
   founding_access: boolean;
+  /** access to «Финансы»: none, view, edit, or a role in payment approvals */
+  finance_role: "view" | "edit" | "cfo" | "head" | "accountant" | null;
   created_at: string;
 };
 
