@@ -9,7 +9,7 @@ export const LICENSE_COLUMNS = [
   { key: "license_number", header: "Номер лицензии", width: 22, required: true },
   { key: "deposit_name", header: "Участок / месторождение", width: 28 },
   { key: "license_type", header: "Вид (Разведка / Добыча)", width: 22 },
-  { key: "category", header: "Категория (ТПИ / ОПИ)", width: 20 },
+  { key: "category", header: "Категория (ТПИ / ОПИ / УВС)", width: 20 },
   { key: "mineral", header: "Полезное ископаемое", width: 20 },
   { key: "region", header: "Область", width: 24 },
   { key: "district", header: "Район", width: 20 },
