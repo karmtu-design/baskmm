@@ -3471,3 +3471,22 @@ a.chip {
   font-size: 13px;
 }
 
+
+/* ---------- Light theme: cards stand out from the page ----------
+   The page is the intro's warm off-white; cards are pure white with a visible warm-grey edge and a soft
+   shadow underneath, so a block of data never melts into the background. */
+html[data-theme="light"] {
+  --surface-background: #ffffff;
+  --bask-card-edge: #e2dbcd;
+  --bask-card-shadow: 0 1px 2px rgba(46, 34, 12, 0.06), 0 8px 24px -12px rgba(46, 34, 12, 0.18);
+}
+html[data-theme="light"] .surface-background,
+html[data-theme="light"] :is(.data-table-wrap, .pres-card, .metal-card, .doc-list, .task-col, .cal-shell, .gantt-shell,
+  .audit-list, .kpi-tile, .metal-panel, .notes-item, .note-doc, .board-card, .coord-site, .fin-tile, .fin-net, .map-shell) {
+  border-color: var(--bask-card-edge) !important;
+  box-shadow: var(--bask-card-shadow);
+}
+/* white fields inside white cards still need an edge */
+html[data-theme="light"] :is(input.field, select.field, textarea.field, select) {
+  border-color: #d9d1c2;
+}
