@@ -35,12 +35,14 @@ export type License = {
 };
 
 export const LICENSE_TYPES = ["Разведка", "Добыча"];
-export const CATEGORIES = ["ТПИ", "ОПИ"];
+/** ТПИ — твёрдые полезные ископаемые, ОПИ — общераспространённые, УВС — углеводородное сырьё (нефть, газ, конденсат). */
+export const CATEGORIES = ["ТПИ", "ОПИ", "УВС"];
 export const STATUSES = ["действует", "на продлении", "в оформлении", "приостановлена", "истекла"];
 
 /** Colour of a licence on the map, by its main commodity — a geological-legend palette. */
 export function mineralColor(mineral: string | null): string {
   const m = (mineral || "").toLowerCase();
+  if (m.includes("увс") || m.includes("углевод") || m.includes("нефт") || m.includes("газ") || m.includes("конденсат") || /\b(oil|gas)\b/.test(m)) return "#A23B3B";
   if (m.startsWith("au") || m.includes("золот")) return "#C08A1E";
   if (m.startsWith("li") || m.includes("лит")) return "#7B5EA7";
   if (m.startsWith("cu") || m.includes("мед")) return "#2E7D73";
@@ -58,6 +60,7 @@ export function mineralGroup(mineral: string | null): string {
       "#2E7D73": "Медь",
       "#4A6A8C": "W, Mo, Sn",
       "#5E8C3A": "Поделочные камни",
+      "#A23B3B": "Углеводороды (УВС)",
     } as Record<string, string>
   )[c] ?? "Прочее";
 }

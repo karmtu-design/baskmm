@@ -1295,5 +1295,8 @@
  "Геоанализ": "Geo analysis",
  "Управление": "Admin",
  "Портфель": "Portfolio",
- "Тёмная": "Dark"
+ "Тёмная": "Dark",
+ "УВС": "Hydrocarbons",
+ "Углеводороды (УВС)": "Hydrocarbons (oil & gas)",
+ "Категория (ТПИ / ОПИ / УВС)": "Category (solid / common / hydrocarbons)"
 }
