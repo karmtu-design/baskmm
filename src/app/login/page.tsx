@@ -27,7 +27,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <PageBackground />
 
       <Row as="header" fillWidth maxWidth="xl" paddingX="24" paddingY="20" vertical="center" horizontal="between" zIndex={1}>
-        <BrandLogo height={44} />
+        <BrandLogo height={32} />
         <Row gap="16" vertical="center">
           <Text variant="body-default-s" onBackground="neutral-weak" s={{ hide: true }}>
             {tr("Внутренняя система группы")}
@@ -52,12 +52,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <Row>
             <Badge title={tr("Портфель недропользования")} icon="globe" arrow={false} />
           </Row>
-          <Heading as="h1" variant="display-strong-xl" wrap="balance" style={{ letterSpacing: "0.02em", lineHeight: 1 }}>
-            BASK
-            <span style={{ display: "block", fontSize: "0.42em", fontWeight: 400, letterSpacing: "0.3em", marginTop: 8 }}>
-              METALS AND MINING
-            </span>
-          </Heading>
+          <h1 className="login-logo">
+            <BrandLogo variant="full" height={150} />
+          </h1>
           <Line background="brand-strong" maxWidth="64" />
           <Text
             variant="heading-default-xl"

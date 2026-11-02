@@ -91,7 +91,7 @@ export default function AppHeader({ email, readOnly = false }: { email?: string 
         zIndex={9}
       >
         <Row fillWidth paddingLeft="12" vertical="center" className="app-header-side">
-          <BrandLogo href="/" height={36} />
+          <BrandLogo href="/" height={30} />
         </Row>
         <Row fillWidth horizontal="center" className="app-header-pill">
           {pill}

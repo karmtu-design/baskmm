@@ -64,7 +64,7 @@ export async function downloadLicenseDocx(l: License, extras: LicenseExtras) {
 
   const children: (InstanceType<typeof Paragraph> | InstanceType<typeof Table>)[] = [];
   try {
-    children.push(new Paragraph({ children: [new ImageRun({ type: "png", data: await bytes("/brand/full-dark.png"), transformation: { width: 150, height: 70 } })] }));
+    children.push(new Paragraph({ children: [new ImageRun({ type: "png", data: await bytes("/brand/full-dark.png"), transformation: { width: 160, height: 70 } })] }));
   } catch {
     /* the logo is decoration */
   }

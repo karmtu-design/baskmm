@@ -2,7 +2,8 @@
 
 import { tr } from "@/i18n";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import CoordTable, { newSite, readRow, rowFrom, type Site } from "./CoordTable";
 import { useRouter } from "next/navigation";
 import { Button, Checkbox, Column, Grid, Heading, Row, SegmentedControl, Text } from "@once-ui-system/core";
 import LicensesMap, { type MapLicense, type MapOverlay } from "./LicensesMap";
@@ -10,6 +11,7 @@ import {
   contourAreaKm2,
   contourCorners,
   contourToKML,
+  convertPoint,
   extractContour,
   parsePointsText,
   pointsToPolygon,
@@ -25,18 +27,31 @@ const EXAMPLE = `1. 49°37'12" 80°31'05"
 3. 49°36'05" 80°35'30"
 4. 49°35'20" 80°32'00"`;
 
+/** The saved contour back as table rows (WGS-84), so it can be corrected point by point. */
+function sitesFrom(c: Contour | null): Site[] {
+  if (!c) return [newSite()];
+  const polys = c.type === "Polygon" ? [c.coordinates] : c.coordinates;
+  return polys.map((p) => {
+    const ring = p[0];
+    const closed = ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1];
+    return { ...newSite(0), rows: (closed ? ring.slice(0, -1) : ring).map(([x, y]) => rowFrom(y, x)) };
+  });
+}
+
 export default function ContourEditor({
   license,
   licenseArea,
   contourSource,
   overlay,
   aside,
+  readOnly = false,
 }: {
   license: MapLicense;
   licenseArea: number | null;
   contourSource: string | null;
   overlay?: MapOverlay;
   aside?: React.ReactNode;
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<"points" | "file" | "draw">("points");
@@ -54,6 +69,44 @@ export default function ContourEditor({
   const [swapped, setSwapped] = useState(false);
   const [crsNote, setCrsNote] = useState("");
 
+  // the table of corner points: filled with the saved contour, so a point can be corrected in place
+  const [sites, setSites] = useState<Site[]>(() => sitesFrom(license.contour));
+  const [dirty, setDirty] = useState(false);
+  const editSites = (s: Site[]) => {
+    setSites(s);
+    setDirty(true);
+    setMessage(null);
+  };
+  useEffect(() => {
+    if (!dirty) setSites(sitesFrom(license.contour));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [license.contour]);
+  // the map follows the table as it is typed
+  useEffect(() => {
+    if (mode !== "points" || !dirty) return;
+    const polys: [number, number][][][] = [];
+    const errs: string[] = [];
+    sites.forEach((st, si) => {
+      const pts: [number, number][] = [];
+      st.rows.forEach((r, ri) => {
+        const rs = readRow(r);
+        if (rs.empty) return;
+        const where = sites.length > 1 ? tr("Участок {0}, точка {1}", { 0: si + 1, 1: ri + 1 }) : tr("Точка {0}", { 0: ri + 1 });
+        if (rs.error) return void errs.push(`${where}: ${rs.error}`);
+        const p = convertPoint(String(rs.lat), String(rs.lon), system);
+        if (!p) return void errs.push(`${where}: ${tr("координаты вне допустимого диапазона")}`);
+        pts.push(p);
+      });
+      if (pts.length === 0) return;
+      if (pts.length < 3) return void errs.push(tr("Участок {0}: нужно не меньше трёх точек", { 0: si + 1 }));
+      polys.push(pointsToPolygon(pts)!.coordinates as [number, number][][]);
+    });
+    setErrors(errs);
+    if (!polys.length || errs.length) return setPreview(null);
+    setPreview(polys.length === 1 ? { type: "Polygon", coordinates: polys[0] } : { type: "MultiPolygon", coordinates: polys });
+    setSource(tr("Угловые точки, {0}", { 0: system === "sk42" ? "СК-42 → WGS-84" : "WGS-84" }));
+  }, [sites, system, dirty, mode]);
+
   // corner points read from a scanned appendix
   const [scan, setScan] = useState<{ busy: boolean; note: string; ok?: boolean }>({ busy: false, note: "" });
   async function readScan(file: File) {
@@ -65,9 +118,9 @@ export default function ContourEditor({
         setScan({ busy: false, ok: false, note: tr("Координаты в файле не нашлись (найдено точек: {0}). Проверьте, что это страница с таблицей угловых точек и скан чёткий, или введите точки вручную.", { 0: r.points.length }) });
         return;
       }
-      setText(pointsAsText(r.points));
+      void pointsAsText;
+      editSites([{ ...newSite(0), rows: r.points.map((p) => rowFrom(p.lat, p.lon)) }]);
       if (r.system) setSystem(r.system);
-      setLonFirst(false);
       setScan({
         busy: false,
         ok: true,
@@ -85,18 +138,12 @@ export default function ContourEditor({
   const shown = preview ?? current;
   const area = contourAreaKm2(shown);
 
-  function showPoints() {
-    setMessage(null);
-    const r = parsePointsText(text, { system, lonFirst });
-    setErrors(r.errors);
-    const poly = pointsToPolygon(r.points);
-    if (!poly) {
-      setPreview(null);
-      if (r.errors.length === 0) setErrors([tr("Нужно не меньше трёх угловых точек.")]);
-      return;
-    }
-    setPreview(poly);
-    setSource(tr("Угловые точки, {0}", { 0: system === "sk42" ? "СК-42 → WGS-84" : "WGS-84" }));
+  /** A list pasted as text (from Word, Excel, an e-mail) goes into the table. */
+  function fillFromText() {
+    const r = parsePointsText(text, { system: "wgs84", lonFirst });
+    if (!r.points.length) return setErrors(r.errors.length ? r.errors : [tr("В тексте не нашлось координат.")]);
+    editSites([{ ...newSite(0), rows: r.points.map(([lon, lat]) => rowFrom(lat, lon)) }]);
+    setText("");
   }
 
   function showRaw(polys: RawPolygons, name: string, key: string, swap: boolean) {
@@ -198,6 +245,7 @@ export default function ContourEditor({
       if (r.ok) {
         setPreview(null);
         setText("");
+        setDirty(false);
         setMessage({ ok: true, text: c ? tr("Контур сохранён.") : tr("Контур удалён.") });
         router.refresh();
       } else setMessage({ ok: false, text: tr("Не сохранилось: {0}", { 0: r.message }) });
@@ -271,7 +319,9 @@ export default function ContourEditor({
           )}
         </Row>
 
-        {current && !preview && (
+        {mode === "points" && !readOnly && <CoordTable sites={sites} onChange={editSites} />}
+
+        {current && !preview && (mode !== "points" || readOnly) && (
           <Column background="surface" border radius="l" padding="16">
             <details>
               <summary>{tr("Угловые точки контура (")}{contourCorners(current).length})</summary>
@@ -309,6 +359,12 @@ export default function ContourEditor({
       </Column>
 
       <Column gap="24">
+      {readOnly ? (
+        <Column background="surface" border radius="l" padding="24" gap="8" fitHeight>
+          <Heading as="h2" variant="heading-strong-m">{tr("Контур участка")}</Heading>
+          <Text variant="body-default-s" onBackground="neutral-weak">{tr("Вводить и менять координаты могут редакторы и администраторы. Попросите администратора сменить вам роль на странице «Сотрудники».")}</Text>
+        </Column>
+      ) : (
       <Column background="surface" border radius="l" padding="24" gap="16" fitHeight>
         <Heading as="h2" variant="heading-strong-m">
           {current ? tr("Заменить контур") : tr("Добавить контур участка")}
@@ -331,7 +387,7 @@ export default function ContourEditor({
           </Text>
         ) : mode === "points" ? (
           <Column gap="12">
-            <Text variant="body-default-s" onBackground="neutral-weak">{tr("Вставьте точки из приложения к лицензии, по одной на строку: сначала широта, затем долгота. Подходят градусы-минуты-секунды и десятичные градусы, можно копировать прямо из Word или Excel.")}</Text>
+            <Text variant="body-default-s" onBackground="neutral-weak">{tr("Впишите угловые точки из приложения к лицензии в таблицу под картой: градусы, минуты, секунды. После двух цифр курсор сам переходит дальше, после секунд — пробел или Tab, Enter — следующая точка. Контур появляется на карте по мере ввода. Можно вставить сразу весь список, скопированный из Word или Excel.")}</Text>
             <label className={`scan-pick${scan.busy ? " is-busy" : ""}`}>
               <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" disabled={scan.busy} onChange={(e) => e.target.files?.[0] && readScan(e.target.files[0])} />
               📄 {scan.busy ? scan.note : tr("Распознать из скана приложения (PDF или фото)")}
@@ -341,23 +397,26 @@ export default function ContourEditor({
                 {scan.note}
               </Text>
             )}
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={8}
-              placeholder={EXAMPLE}
-              aria-label={tr("Угловые точки")}
-              className="field"
-            />
             <label className="field-label">{tr("Система координат в документе")}<select value={system} onChange={(e) => setSystem(e.target.value as CoordSystem)} className="field">
                 <option value="wgs84">{tr("WGS-84 (современные лицензии, GPS)")}</option>
                 <option value="sk42">{tr("СК-42, Пулково-1942 (старые документы)")}</option>
               </select>
             </label>
-            <Checkbox label={tr("В строке сначала долгота, затем широта")} checked={lonFirst} onToggle={setLonFirst} />
-            <Row>
-              <Button variant="secondary" prefixIcon="eye" onClick={showPoints} disabled={!text.trim()}>{tr("Показать на карте")}</Button>
-            </Row>
+            <details className="coord-paste">
+              <summary>{tr("Вставить списком из Word или Excel")}</summary>
+              <Column gap="8" paddingTop="8">
+                <textarea value={text} onChange={(e) => setText(e.target.value)} rows={6} placeholder={EXAMPLE} aria-label={tr("Угловые точки")} className="field" />
+                <Checkbox label={tr("В строке сначала долгота, затем широта")} checked={lonFirst} onToggle={setLonFirst} />
+                <Row>
+                  <Button variant="secondary" size="s" onClick={fillFromText} disabled={!text.trim()}>{tr("Заполнить таблицу")}</Button>
+                </Row>
+              </Column>
+            </details>
+            {dirty && (
+              <Row>
+                <Button variant="tertiary" size="s" onClick={() => editSites([newSite()])}>{tr("Очистить таблицу")}</Button>
+              </Row>
+            )}
           </Column>
         ) : (
           <Column gap="12">
@@ -430,7 +489,7 @@ export default function ContourEditor({
         {preview && (
           <Row wrap gap="8" borderTop paddingTop="16">
             <Button onClick={() => save(preview)} loading={pending} prefixIcon="check">{tr("Сохранить контур")}</Button>
-            <Button variant="secondary" onClick={() => setPreview(null)}>{tr("Отменить")}</Button>
+            <Button variant="secondary" onClick={() => { setPreview(null); setDirty(false); setErrors([]); setSites(sitesFrom(current)); }}>{tr("Отменить")}</Button>
           </Row>
         )}
 
@@ -451,6 +510,7 @@ export default function ContourEditor({
           </Text>
         )}
       </Column>
+      )}
       {aside}
       </Column>
     </Grid>
