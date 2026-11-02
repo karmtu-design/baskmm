@@ -1283,5 +1283,7 @@
  "обновлено {0}": "updated {0}",
  "Показывать подробности на карточках": "Show details on cards",
  "Текущий статус: что сделано, на каком этапе, что мешает. Это видно прямо на карточке на доске.": "Current status: what is done, what stage it is at, what is in the way. This is shown right on the card on the board.",
- "Не удалось скачать файл. Проверьте интернет и попробуйте ещё раз.": "Could not download the file. Check the internet connection and try again."
+ "Не удалось скачать файл. Проверьте интернет и попробуйте ещё раз.": "Could not download the file. Check the internet connection and try again.",
+ "Свернуть карту": "Exit full screen",
+ "Карта на весь экран": "Full-screen map"
 }

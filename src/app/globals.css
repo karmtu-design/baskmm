@@ -257,6 +257,39 @@ textarea.field {
   color: var(--neutral-on-background-strong);
   font-weight: 500;
 }
+.map-shell.is-full {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  border: 0;
+  border-radius: 0;
+}
+/* the page's main column is its own layer (z-index 1), so lift it above the header, menu and assistant */
+main:has(.map-shell.is-full) {
+  z-index: 4000 !important;
+}
+.map-shell.is-full:fullscreen {
+  width: 100%;
+  height: 100%;
+}
+/* on a phone the layer switcher spans the width, so the zoom buttons go below it */
+@media (max-width: 560px) {
+  .map-shell .maplibregl-ctrl-top-left {
+    top: 46px;
+  }
+}
+.map-full-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+}
+.map-full-btn svg {
+  display: block;
+}
 .map-switch-sep {
   width: 1px;
   margin: 4px 2px;
