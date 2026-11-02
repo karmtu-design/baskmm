@@ -109,3 +109,17 @@ export async function setFoundingAccess(userId: string, on: boolean): Promise<Re
   revalidatePath("/companies", "layout");
   return { ok: true };
 }
+
+/** Access to «Финансы» and the person's part in payment approvals: only an administrator sets it. */
+export async function setFinanceRole(userId: string, role: string | null): Promise<Result> {
+  const denied = await adminOnly();
+  if (denied) return { ok: false, message: denied };
+  const value = role && ["view", "edit", "cfo", "head", "accountant"].includes(role) ? role : null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("staff").update({ finance_role: value }).eq("user_id", userId).select("user_id");
+  if (error) return { ok: false, message: error.message };
+  if (!data?.length) return { ok: false, message: "Не сохранилось: нет прав." };
+  revalidatePath("/staff");
+  revalidatePath("/finance");
+  return { ok: true };
+}

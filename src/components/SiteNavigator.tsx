@@ -33,6 +33,7 @@ export const PAGES: { href: string; title: string; icon: IconName }[] = [
   { href: "/stats", title: "Аналитика", icon: "barChart" },
   { href: "/analysis", title: "Геоанализ портфеля", icon: "radialGauge" },
   { href: "/tasks", title: "Задачи и сроки", icon: "checkbox" },
+  { href: "/finance", title: "Финансы", icon: "banknotes" },
   { href: "/audit", title: "Журнал изменений", icon: "time" },
   { href: "/staff", title: "Сотрудники", icon: "people" },
 ];

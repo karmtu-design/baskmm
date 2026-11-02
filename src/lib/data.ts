@@ -230,7 +230,7 @@ export async function getNotesAndBoards(f: { licenseId?: number; projectId?: num
 export async function getStaff() {
   const supabase = await createClient();
   const [{ data }, { data: u }] = await Promise.all([
-    supabase.from("staff").select("user_id, email, full_name, position, phone, role, founding_access, created_at").order("full_name", { nullsFirst: false }).order("email"),
+    supabase.from("staff").select("user_id, email, full_name, position, phone, role, founding_access, finance_role, created_at").order("full_name", { nullsFirst: false }).order("email"),
     supabase.auth.getUser(),
   ]);
   return { staff: (data ?? []) as import("./types").StaffMember[], me: u.user?.id ?? null };
