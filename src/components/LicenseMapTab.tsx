@@ -16,12 +16,14 @@ export default function LicenseMapTab({
   contourSource,
   others,
   images = [],
+  readOnly = false,
 }: {
   license: MapLicense;
   licenseArea: number | null;
   contourSource: string | null;
   others: Lic[];
   images?: MapImage[];
+  readOnly?: boolean;
 }) {
   const [overlay, setOverlay] = useState<MapOverlay>({});
   const [shown, setShown] = useState<Record<number, number | false>>({});
@@ -40,6 +42,7 @@ export default function LicenseMapTab({
       licenseArea={licenseArea}
       contourSource={contourSource}
       overlay={merged}
+      readOnly={readOnly}
       aside={
         <>
           <GeoAnalysisPanel license={license} others={others} overlay={overlay} onOverlay={setOverlay} />

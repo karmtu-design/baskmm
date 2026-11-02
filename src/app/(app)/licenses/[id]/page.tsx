@@ -170,6 +170,7 @@ export default async function LicensePage({
 
       {tab === "map" && (
         <LicenseMapTab
+          readOnly={role === "viewer"}
           license={license}
           licenseArea={license.area_sq_km}
           contourSource={license.contour_source}

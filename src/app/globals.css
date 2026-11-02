@@ -3008,3 +3008,146 @@ a.chip {
   opacity: 0.6;
   cursor: progress;
 }
+
+/* ---------- Corner points table (licence contour) ---------- */
+.coord-sites {
+  display: grid;
+  gap: 16px;
+}
+.coord-site {
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 16px;
+  background: var(--surface-background);
+  overflow: hidden;
+}
+.coord-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px 10px 16px;
+  background: var(--brand-alpha-weak);
+  border-bottom: 1px solid var(--neutral-alpha-medium);
+  font-size: 15px;
+}
+.coord-head-tools {
+  display: flex;
+  gap: 6px;
+}
+.coord-scroll {
+  overflow-x: auto;
+}
+.coord-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.coord-table th {
+  padding: 8px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--neutral-on-background-medium);
+  background: var(--neutral-alpha-weak);
+  border-bottom: 1px solid var(--neutral-alpha-medium);
+  text-align: center;
+}
+.coord-table .coord-sub th {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: lowercase;
+  color: var(--neutral-on-background-weak);
+}
+.coord-table td {
+  border-bottom: 1px solid var(--neutral-alpha-weak);
+  border-right: 1px solid var(--neutral-alpha-weak);
+  padding: 0;
+}
+.coord-table td:nth-child(4) {
+  border-right: 2px solid var(--neutral-alpha-medium);
+}
+.coord-table .coord-n {
+  width: 36px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--neutral-on-background-weak);
+  background: var(--neutral-alpha-weak);
+}
+.coord-in {
+  width: 100%;
+  min-width: 52px;
+  padding: 11px 10px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--neutral-on-background-strong);
+  font: inherit;
+  font-size: 16px; /* 16px: phones do not zoom in on focus */
+}
+.coord-in::placeholder {
+  color: var(--neutral-on-background-weak);
+  opacity: 0.45;
+}
+.coord-in:focus {
+  background: var(--brand-alpha-weak);
+  box-shadow: inset 0 0 0 2px var(--brand-solid-medium);
+}
+.coord-table tr.is-bad td:not(.coord-n):not(.coord-del) {
+  background: var(--danger-alpha-weak);
+}
+.coord-del {
+  width: 44px;
+  text-align: center;
+  border-right: 0 !important;
+}
+.coord-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--neutral-alpha-medium);
+  border-radius: 8px;
+  background: var(--surface-background);
+  color: var(--neutral-on-background-medium);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+.coord-btn:hover {
+  border-color: var(--danger-border-strong, #d33);
+}
+.coord-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+}
+.coord-kind {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--neutral-on-background-medium);
+  background: var(--neutral-alpha-weak);
+}
+.coord-add,
+.coord-add-site {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--brand-alpha-strong);
+  background: var(--brand-alpha-weak);
+  color: var(--brand-on-background-strong);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.coord-add-site {
+  justify-self: start;
+  border-style: dashed;
+  background: transparent;
+}
+.coord-paste summary {
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--brand-on-background-strong);
+}
