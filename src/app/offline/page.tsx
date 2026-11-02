@@ -5,7 +5,7 @@ export const dynamic = "force-static";
 export default function Offline() {
   const p = { color: "#a9adb2", lineHeight: 1.5, margin: "0 0 14px" } as const;
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#101820", color: "#f0efec", textAlign: "center" }}>
+    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#F9F7F3", color: "#0F0F10", textAlign: "center" }}>
       <div style={{ maxWidth: 440 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/icons/icon-192.png" alt="BASK" width={96} height={96} style={{ borderRadius: 20 }} />

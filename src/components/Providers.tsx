@@ -4,6 +4,7 @@ import { DataThemeProvider, IconProvider, ThemeProvider, ToastProvider } from "@
 import { LayoutProvider } from "@once-ui-system/core/next";
 import { SerwistProvider } from "@serwist/turbopack/react";
 import { dataStyle, style } from "@/resources/once-ui.config";
+import { baskIcons } from "@/lib/icons";
 
 // LayoutProvider from /next routes links and images through next/link and next/image.
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -14,7 +15,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <ThemeProvider {...style}>
           <DataThemeProvider {...dataStyle}>
             <ToastProvider>
-              <IconProvider>{children}</IconProvider>
+              <IconProvider icons={baskIcons}>{children}</IconProvider>
             </ToastProvider>
           </DataThemeProvider>
         </ThemeProvider>

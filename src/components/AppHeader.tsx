@@ -11,19 +11,19 @@ import { openNavigator } from "./SiteNavigator";
 import LanguageSwitch from "./LanguageSwitch";
 
 const NAV: { href: string; label: string; icon: IconName }[] = [
-  { href: "/map", label: "Карта", icon: "globe" },
-  { href: "/licenses", label: "Лицензии", icon: "document" },
-  { href: "/companies", label: "Компании", icon: "organization" },
-  { href: "/projects", label: "Проекты", icon: "trendUp" },
-  { href: "/presentations", label: "Презентации", icon: "screen" },
-  { href: "/tasks", label: "Задачи", icon: "checkbox" },
+  { href: "/map", label: "Карта", icon: "navMap" },
+  { href: "/licenses", label: "Лицензии", icon: "navLicense" },
+  { href: "/companies", label: "Компании", icon: "navCompany" },
+  { href: "/projects", label: "Проекты", icon: "navProject" },
+  { href: "/presentations", label: "Презентации", icon: "navPresent" },
+  { href: "/tasks", label: "Задачи", icon: "navTask" },
 ];
 
 function ThemeToggle() {
   const { setTheme } = useTheme();
-  const [current, setCurrent] = useState<"light" | "dark">("dark");
+  const [current, setCurrent] = useState<"light" | "dark">("light");
   useEffect(() => {
-    const read = () => setCurrent(document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
+    const read = () => setCurrent(document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
     read();
     const obs = new MutationObserver(read);
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -32,7 +32,7 @@ function ThemeToggle() {
   const next = current === "dark" ? "light" : "dark";
   return (
     <ToggleButton
-      prefixIcon={current === "dark" ? "light" : "dark"}
+      prefixIcon={current === "dark" ? "navSun" : "navMoon"}
       onClick={() => setTheme(next)}
       aria-label={next === "light" ? tr("Светлая тема") : tr("Тёмная тема")}
     />
@@ -53,7 +53,7 @@ export default function AppHeader({ email, readOnly = false }: { email?: string 
       vertical="center"
       textVariant="body-default-s"
     >
-      <ToggleButton prefixIcon="home" href="/" aria-label={tr("Обзор портфеля")} selected={path === "/"} />
+      <ToggleButton prefixIcon="navHome" href="/" aria-label={tr("Обзор портфеля")} selected={path === "/"} />
       <Line background="neutral-alpha-medium" vert maxHeight="24" />
       {NAV.map((item) => (
         <Row key={item.href}>
@@ -66,10 +66,10 @@ export default function AppHeader({ email, readOnly = false }: { email?: string 
         </Row>
       ))}
       <Line background="neutral-alpha-medium" vert maxHeight="24" />
-      <ToggleButton prefixIcon="grid" onClick={openNavigator} aria-label={tr("Все разделы (Ctrl+K)")} />
+      <ToggleButton prefixIcon="navAll" onClick={openNavigator} aria-label={tr("Все разделы (Ctrl+K)")} />
       <ThemeToggle />
       <form action={signOut} style={{ display: "contents" }}>
-        <ToggleButton prefixIcon="logout" aria-label={tr("Выйти")} type="submit" />
+        <ToggleButton prefixIcon="navExit" aria-label={tr("Выйти")} type="submit" />
       </form>
     </Row>
   );

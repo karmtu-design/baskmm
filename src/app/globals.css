@@ -1,13 +1,52 @@
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/jost";
+@import "@fontsource-variable/manrope";
+@import "@fontsource/playfair-display/600.css";
+@import "@fontsource/playfair-display/700.css";
 
-/* Once UI reads these four font variables; Geist has Cyrillic */
+/* «Белый и золото». Once UI reads the four font variables; Manrope and Playfair Display have Cyrillic.
+   Playfair is only for page titles (see below), numbers and everything else stay in Manrope. */
 :root {
-  --font-heading: "Geist Variable", system-ui, sans-serif;
-  --font-body: "Geist Variable", system-ui, sans-serif;
-  --font-label: "Geist Variable", system-ui, sans-serif;
+  --font-heading: "Manrope Variable", system-ui, sans-serif;
+  --font-body: "Manrope Variable", system-ui, sans-serif;
+  --font-label: "Manrope Variable", system-ui, sans-serif;
   --font-code: ui-monospace, "SFMono-Regular", monospace;
-  --bask-gold: #c9a45c;
+  --font-display: "Playfair Display", Georgia, serif;
+  --bask-gold: #b08a3e;
+  --bask-gold-soft: #b08a3e26;
+  --bask-paper: #f9f7f3;
+  --bask-page: #f9f7f3;
+  --bask-panel: #ffffff;
+}
+[data-theme="dark"] {
+  --bask-gold: #e3c27f;
+  --bask-gold-soft: #e3c27f26;
+  --bask-page: #0b0b0c;
+  --bask-panel: #111113;
+}
+/* black buttons on white; gold buttons on the dark theme (beats Once UI's contrast tokens) */
+html[data-theme="light"][data-solid] {
+  --brand-solid-strong: #0f0f10;
+  --brand-solid-medium: #2a2a2d;
+  --brand-on-solid-strong: #ffffff;
+  --brand-on-solid-medium: #ffffff;
+}
+html[data-theme="dark"][data-solid] {
+  --brand-solid-strong: #e3c27f;
+  --brand-solid-medium: #ecd09a;
+  --brand-solid-weak: #b8954f;
+  --brand-on-solid-strong: #0b0b0c;
+  --brand-on-solid-medium: #0b0b0c;
+}
+/* page titles in the serif; the same rule names it for anything else that wants it */
+main h1,
+.display-font {
+  font-family: var(--font-display) !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+::selection {
+  background: var(--bask-gold-soft);
 }
 
 html,
@@ -388,7 +427,7 @@ details > summary::-webkit-details-marker {
   z-index: 9999;
   display: grid;
   place-items: center;
-  background: #faf8f4; /* the same off-white as the video, so it fills any screen shape seamlessly */
+  background: #f9f7f3; /* the same off-white as the video, so it fills any screen shape seamlessly */
   transition: opacity 0.6s ease, visibility 0.6s ease;
   /* failsafe: if the script never runs, the splash still gets out of the way */
   animation: intro-failsafe 0.6s ease 13s forwards;
@@ -412,7 +451,7 @@ html[data-intro="seen"] .intro {
   width: 100%;
   height: 100%;
   object-fit: cover; /* fills the whole screen; the vertical cut keeps the logo inside on phones */
-  background: #faf8f4;
+  background: #f9f7f3;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3431,3 +3470,4 @@ a.chip {
   padding: 6px 8px;
   font-size: 13px;
 }
+

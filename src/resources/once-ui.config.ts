@@ -1,23 +1,22 @@
 import type { OnceUIDataStyleConfig, OnceUIStyleConfig } from "@once-ui-system/core";
 
 /**
- * Look and feel, in the spirit of the Magic Portfolio template: dark by default with a working
- * light/dark switch, translucent surfaces, playful corners, a dotted background.
- * Colours are BASK's own: gold brand on graphite.
+ * «Белый и золото»: light by default (the warm white of the intro video), black buttons, gold only in
+ * the details; the dark theme is near-black with gold buttons. The switch is in the menu.
  */
 export const style: OnceUIStyleConfig = {
   theme: "system", // keep "system" so the switch works; the first visit uses defaultTheme
-  defaultTheme: "dark",
-  neutral: "slate",
+  defaultTheme: "light",
+  neutral: "gray",
   brandSeed: "#C9A45C", // BASK gold
   accent: "orange",
   solid: "contrast",
   solidStyle: "flat",
   border: "playful",
-  surface: "translucent",
+  surface: "filled",
   transition: "all",
   scaling: "100",
-  pageBackground: { dark: "#101820", light: "neutral-background-weak" },
+  pageBackground: { dark: "#0B0B0C", light: "#F9F7F3" }, // light = the intro video background, so the intro melts into the site
 };
 
 export const dataStyle: OnceUIDataStyleConfig = {
@@ -30,9 +29,9 @@ export const dataStyle: OnceUIDataStyleConfig = {
 
 /** Background effects for every page: dots and a soft gold glow at the top. */
 export const effects = {
-  dots: { display: true, opacity: 40, size: "2", color: "brand-background-strong" },
+  dots: { display: false, opacity: 40, size: "2", color: "brand-background-strong" },
   gradient: {
-    display: true,
+    display: false,
     opacity: 40,
     x: 50,
     y: 0,

@@ -23,19 +23,19 @@ export function NavigatorButton() {
 
 /** Every page of the system, in the order shown in the «Все разделы» window. */
 export const PAGES: { href: string; title: string; icon: IconName }[] = [
-  { href: "/", title: "Обзор портфеля", icon: "home" },
-  { href: "/map", title: "Карта участков", icon: "globe" },
-  { href: "/licenses", title: "Реестр лицензий", icon: "document" },
-  { href: "/companies", title: "Компании группы", icon: "organization" },
-  { href: "/projects", title: "Потенциальные проекты", icon: "trendUp" },
-  { href: "/presentations", title: "Презентации", icon: "screen" },
-  { href: "/documents", title: "Документы", icon: "document" },
-  { href: "/stats", title: "Аналитика", icon: "barChart" },
-  { href: "/analysis", title: "Геоанализ портфеля", icon: "radialGauge" },
-  { href: "/tasks", title: "Задачи и сроки", icon: "checkbox" },
-  { href: "/finance", title: "Финансы", icon: "banknotes" },
-  { href: "/audit", title: "Журнал изменений", icon: "time" },
-  { href: "/staff", title: "Сотрудники", icon: "people" },
+  { href: "/", title: "Обзор портфеля", icon: "navHome" },
+  { href: "/map", title: "Карта участков", icon: "navMap" },
+  { href: "/licenses", title: "Реестр лицензий", icon: "navLicense" },
+  { href: "/companies", title: "Компании группы", icon: "navCompany" },
+  { href: "/projects", title: "Потенциальные проекты", icon: "navProject" },
+  { href: "/presentations", title: "Презентации", icon: "navPresent" },
+  { href: "/documents", title: "Документы", icon: "navDocs" },
+  { href: "/stats", title: "Аналитика", icon: "navStats" },
+  { href: "/analysis", title: "Геоанализ портфеля", icon: "navGeo" },
+  { href: "/tasks", title: "Задачи и сроки", icon: "navTask" },
+  { href: "/finance", title: "Финансы", icon: "navFinance" },
+  { href: "/audit", title: "Журнал изменений", icon: "navAudit" },
+  { href: "/staff", title: "Сотрудники", icon: "navStaff" },
 ];
 
 export default function SiteNavigator() {

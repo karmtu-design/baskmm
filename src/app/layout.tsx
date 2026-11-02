@@ -18,12 +18,12 @@ export const metadata: Metadata = {
   description: "Exploring Resources. Creating Value.",
   robots: { index: false, follow: false },
   applicationName: "BASK",
-  appleWebApp: { capable: true, title: "BASK", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "BASK", statusBarStyle: "default" },
   icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 // lets the phone menu sit above the home indicator
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#101820" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#F9F7F3" };
 
 // Runs before the page is painted: skips the splash when it was already shown this session
 // or when the visitor has asked the system to reduce motion.
