@@ -18,6 +18,7 @@ const isCloud = (n: string) => ["las", "laz"].includes(extOf(n));
 const PointCloudViewer = dynamic(() => import("./PointCloudViewer"), { ssr: false });
 
 const BUCKET = "documents";
+import { saveStoredFile } from "@/lib/saveFile";
 import { MAX_UPLOAD_BYTES as MAX_BYTES, MAX_UPLOAD_MB, uploadFile } from "@/lib/upload";
 const ACCEPT = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.tif,.tiff,.txt,.csv,.zip,.dwg,.dxf,.kml,.kmz,.las,.laz";
 const extOf = (name: string) => (name.split(".").pop() ?? "").toLowerCase();
@@ -109,10 +110,11 @@ export default function DocumentsPanel({
     }
   }
   async function download(d: DocumentRow) {
-    const a = document.createElement("a");
-    a.href = await signedUrl(d.file_path, d.file_name, true);
-    a.download = d.file_name;
-    a.click();
+    try {
+      await saveStoredFile(BUCKET, d.file_path, d.file_name);
+    } catch {
+      alertText(tr("Не удалось скачать файл. Проверьте интернет и попробуйте ещё раз."));
+    }
   }
 
   const owner = (d: DocumentRow) =>

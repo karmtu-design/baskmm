@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Button, Column, Heading, Icon, Row, Text } from "@once-ui-system/core";
+import { saveStoredFile } from "@/lib/saveFile";
 import { createClient } from "@/lib/supabase/client";
 import { PRESENTATION_LANGUAGES, type Presentation } from "@/lib/types";
 import { addPresentation, deletePresentation, updatePresentation } from "@/app/(app)/presentations/actions";
@@ -257,13 +258,9 @@ function PresentationCard({ p, onShare, onEdit }: { p: Presentation; onShare: ()
   async function open(download: boolean) {
     setErr("");
     try {
-      const url = await signedUrl(p, 600, download);
-      if (download) {
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = p.file_name;
-        a.click();
-      } else if (["pdf", "docx", "xlsx", "csv"].includes(ext)) setViewerUrl(url);
+      if (download) return await saveStoredFile(BUCKET, p.file_path, p.file_name);
+      const url = await signedUrl(p, 600, false);
+      if (["pdf", "docx", "xlsx", "csv"].includes(ext)) setViewerUrl(url);
       else window.open(url, "_blank", "noopener");
     } catch (e) {
       setErr((e as Error).message);
