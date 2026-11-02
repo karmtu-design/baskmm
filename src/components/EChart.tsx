@@ -17,15 +17,15 @@ function readTheme(): ChartTheme {
   const css = getComputedStyle(root);
   const v = (n: string, fb: string) => css.getPropertyValue(n).trim() || fb;
   const dark = root.getAttribute("data-theme") !== "light";
-  // one validated blue per theme (single series: no legend, the title names it)
-  const series = dark ? "#3987e5" : "#2a78d6";
+  // the brand gold, one shade per theme (single series: no legend, the title names it)
+  const series = dark ? "#e3c27f" : "#a8822f";
   return {
     text: v("--neutral-on-background-strong", dark ? "#f0efec" : "#0b0b0b"),
     muted: v("--neutral-on-background-weak", dark ? "#9a9a96" : "#52514e"),
     grid: v("--neutral-alpha-weak", dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"),
-    surface: v("--page-background", dark ? "#101820" : "#ffffff"),
+    surface: v("--page-background", dark ? "#0B0B0C" : "#ffffff"),
     series,
-    wash: dark ? "rgba(57,135,229,0.12)" : "rgba(42,120,214,0.10)",
+    wash: dark ? "rgba(227,194,127,0.14)" : "rgba(168,130,47,0.12)",
     font: getComputedStyle(document.body).fontFamily || "sans-serif",
   };
 }

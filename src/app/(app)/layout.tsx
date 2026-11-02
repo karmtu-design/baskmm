@@ -14,7 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   } = await supabase.auth.getUser();
 
   return (
-    <Column fillWidth minHeight="100vh" horizontal="center" background="page">
+    <Column fillWidth minHeight="100vh" horizontal="center" background="page" className="app-shell">
       <PageBackground />
       <a href="#main" className="skip-link">{tr("Перейти к содержимому")}</a>
       <AppHeader email={user?.email} readOnly={(await myRole()) === "viewer"} />
@@ -24,10 +24,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         fillWidth
         maxWidth="xl"
         zIndex={1}
-        paddingX="24"
-        paddingTop="104"
-        paddingBottom="80"
-        s={{ paddingX: "16", paddingTop: "80", paddingBottom: "128" }}
+        className="app-main"
+        paddingX="32"
+        s={{ paddingX: "16" }}
       >
         {children}
       </Column>
