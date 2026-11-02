@@ -1430,6 +1430,43 @@ th[aria-sort] .sort-mark {
   cursor: pointer;
   overflow-wrap: anywhere;
 }
+.task-details {
+  display: grid;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--neutral-alpha-weak);
+}
+.task-details p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--neutral-on-background-medium);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.task-details p.is-open {
+  -webkit-line-clamp: unset;
+  display: block;
+}
+.task-more {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--brand-on-background-strong);
+  cursor: pointer;
+}
+.task-updated {
+  font-size: 11px;
+  color: var(--neutral-on-background-weak);
+}
 .task-meta {
   display: flex;
   flex-wrap: wrap;

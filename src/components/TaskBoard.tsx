@@ -40,7 +40,26 @@ const dueText = (t: Task) => {
   );
 };
 
-function Card({ t, licenses, projects, onOpen, dragging }: { t: Task; licenses: Map<number, string>; projects: Map<number, string>; onOpen: () => void; dragging?: boolean }) {
+/** The details of a task shown on its card: the current status as the person in charge writes it. */
+function Details({ t }: { t: Task }) {
+  const [open, setOpen] = useState(false);
+  const text = (t.description ?? "").trim();
+  if (!text) return null;
+  const long = text.length > 160 || text.split("\n").length > 3;
+  return (
+    <div className="task-details">
+      <p className={open ? "is-open" : undefined}>{text}</p>
+      {long && (
+        <button type="button" className="task-more" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setOpen(!open); }}>
+          {open ? tr("свернуть") : tr("показать полностью")}
+        </button>
+      )}
+      <span className="task-updated">{tr("обновлено {0}", { 0: new Date(t.updated_at).toLocaleString(loc(), { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Almaty" }) })}</span>
+    </div>
+  );
+}
+
+function Card({ t, licenses, projects, onOpen, dragging, details = true }: { t: Task; licenses: Map<number, string>; projects: Map<number, string>; onOpen: () => void; dragging?: boolean; details?: boolean }) {
   const link = t.license_id ? (
     <Link href={`/licenses/${t.license_id}?tab=tasks`} onClick={(e) => e.stopPropagation()}>
       {licenses.get(t.license_id) ?? tr("лицензия")}
@@ -55,6 +74,7 @@ function Card({ t, licenses, projects, onOpen, dragging }: { t: Task; licenses: 
       <button type="button" className="task-title" onClick={onOpen}>
         {t.title}
       </button>
+      {details && <Details t={t} />}
       <div className="task-meta">
         {t.priority === "high" && <span className="task-prio">{tr("важно")}</span>}
         {t.assignee && (
@@ -70,7 +90,7 @@ function Card({ t, licenses, projects, onOpen, dragging }: { t: Task; licenses: 
   );
 }
 
-function SortableCard(props: { t: Task; licenses: Map<number, string>; projects: Map<number, string>; onOpen: () => void }) {
+function SortableCard(props: { t: Task; licenses: Map<number, string>; projects: Map<number, string>; onOpen: () => void; details?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: props.t.id });
   return (
     <li
@@ -123,6 +143,19 @@ export default function TaskBoard({
   const [dialog, setDialog] = useState<{ task?: Task; status?: TaskStatus } | null>(null);
   const [who, setWho] = useState("");
   const [hideOld, setHideOld] = useState(true);
+  // details on the cards: on by default, the choice is remembered on this computer
+  const [showDetails, setShowDetails] = useState(true);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("bask-task-details") === "0") setShowDetails(false);
+    } catch {}
+  }, []);
+  const toggleDetails = (v: boolean) => {
+    setShowDetails(v);
+    try {
+      localStorage.setItem("bask-task-details", v ? "1" : "0");
+    } catch {}
+  };
   const licMap = useMemo(() => new Map(licenses.map((l) => [l.id, l.name])), [licenses]);
   const projMap = useMemo(() => new Map(projects.map((p) => [p.id, p.name])), [projects]);
   const allPeople = useMemo(() => [...new Set([...people, ...(tasks.map((t) => t.assignee).filter(Boolean) as string[])])].sort(), [people, tasks]);
@@ -182,6 +215,8 @@ export default function TaskBoard({
         </select>
         <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 14 }}>
           <input type="checkbox" checked={hideOld} onChange={(e) => setHideOld(e.target.checked)} />{tr("Скрыть выполненные больше месяца назад")}</label>
+        <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 14 }}>
+          <input type="checkbox" checked={showDetails} onChange={(e) => toggleDetails(e.target.checked)} />{tr("Показывать подробности на карточках")}</label>
         <Text variant="body-default-xs" onBackground="neutral-weak" style={{ marginLeft: "auto" }}>{tr("Перетаскивайте карточки между колонками. На телефоне: нажмите и подержите.")}</Text>
       </Row>
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={() => setItems(tasks)}>
@@ -192,7 +227,7 @@ export default function TaskBoard({
               <ColumnBox key={c.id} id={c.id} label={tr(c.label)} count={list.length} onAdd={() => setDialog({ status: c.id })}>
                 <SortableContext items={list.map((t) => t.id)} strategy={verticalListSortingStrategy}>
                   {list.map((t) => (
-                    <SortableCard key={t.id} t={t} licenses={licMap} projects={projMap} onOpen={() => setDialog({ task: t })} />
+                    <SortableCard key={t.id} t={t} licenses={licMap} projects={projMap} details={showDetails} onOpen={() => setDialog({ task: t })} />
                   ))}
                 </SortableContext>
                 {list.length === 0 && <li className="task-empty">{tr("Перетащите сюда задачу")}</li>}
@@ -200,7 +235,7 @@ export default function TaskBoard({
             );
           })}
         </div>
-        <DragOverlay>{active ? <Card t={active} licenses={licMap} projects={projMap} onOpen={() => {}} dragging /> : null}</DragOverlay>
+        <DragOverlay>{active ? <Card t={active} licenses={licMap} projects={projMap} details={showDetails} onOpen={() => {}} dragging /> : null}</DragOverlay>
       </DndContext>
       {dialog && (
         <TaskDialog
@@ -288,7 +323,7 @@ export function TaskDialog({
         >
           <label className="field-label" style={{ gridColumn: "1 / -1" }}>{tr("Что сделать")}<input className="field" required autoFocus value={f.title} onChange={(e) => set("title", e.target.value)} placeholder={tr("например, подать отчёт по обязательствам")} />
           </label>
-          <label className="field-label" style={{ gridColumn: "1 / -1" }}>{tr("Подробности")}<textarea className="field" rows={3} value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} />
+          <label className="field-label" style={{ gridColumn: "1 / -1" }}>{tr("Подробности")}<textarea className="field" rows={4} value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} placeholder={tr("Текущий статус: что сделано, на каком этапе, что мешает. Это видно прямо на карточке на доске.")} />
           </label>
           <label className="field-label">{tr("Исполнитель")}<input className="field" list="task-people" value={f.assignee ?? ""} onChange={(e) => set("assignee", e.target.value)} />
             <datalist id="task-people">
